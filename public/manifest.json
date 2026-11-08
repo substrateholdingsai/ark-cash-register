@@ -1,0 +1,61 @@
+{
+  "product": "Ark Cash Register",
+  "vendor": "Ark Systems · Substrate Holdings LLC",
+  "infrastructure": "Pey CoDi® (Banxico)",
+  "generated_at": "2026-11-08T01:44:31.647105+00:00",
+  "palette": {
+    "navy": "#002B7F",
+    "navy-dark": "#001A4D",
+    "navy-soft": "#E8EEF9",
+    "gold": "#D4AF37",
+    "gold-light": "#F5D97A",
+    "ink": "#121A2E",
+    "muted": "#6B7A99",
+    "line": "#E8E0CC",
+    "surface": "#FFFFFF",
+    "pey-blue": "#0067F1",
+    "pey-soft": "#E6F0FF"
+  },
+  "assets": [
+    {
+      "file": "favicon.svg",
+      "bytes": 1588,
+      "kb": 1.55
+    },
+    {
+      "file": "logo-lockup.svg",
+      "bytes": 1793,
+      "kb": 1.75
+    },
+    {
+      "file": "pattern.svg",
+      "bytes": 536,
+      "kb": 0.52
+    },
+    {
+      "file": "og-image.svg",
+      "bytes": 3310,
+      "kb": 3.23
+    },
+    {
+      "file": "divider.svg",
+      "bytes": 294,
+      "kb": 0.29
+    },
+    {
+      "file": "mask-arc.svg",
+      "bytes": 396,
+      "kb": 0.39
+    },
+    {
+      "file": "sprite-gremial.svg",
+      "bytes": 3091,
+      "kb": 3.02
+    },
+    {
+      "file": "badge-pey.svg",
+      "bytes": 487,
+      "kb": 0.48
+    }
+  ]
+}

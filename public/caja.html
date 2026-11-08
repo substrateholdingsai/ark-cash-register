@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Ark Cash Register — Caja Registradora CoDi</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <meta name="theme-color" content="#002B7F">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
+  <!-- Open Graph / Meta Social -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://caja.arksystems.site/">
+  <meta property="og:title" content="Ark Cash Register — Caja Registradora CoDi">
+  <meta property="og:description" content="La caja registradora digital para el comerciante mexicano. Cobra con CoDi® Banxico, QR dinámico y links. Powered by Pey.">
+  <meta property="og:image" content="https://caja.arksystems.site/og-image.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://caja.arksystems.site/og-image.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@700&family=Playfair+Display:wght@900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <style>
+    :root {
+      --navy: #002b7f;
+      --navy-2: #001a4d;
+      --surface: #ffffff;
+      --ink: #121a2e;
+      --muted: #6b7a99;
+      --line: #e8e0cc;
+      --gold: #d4af37;
+      --gold-light: #f5d97a;
+      --gold-dark: #a8883f;
+      --paid: #16a34a;
+      --waiting: #d97706;
+      --expired: #dc2626;
+      --offline: #6b7280;
+    }
+
+    body {
+      background-color: var(--surface);
+      color: var(--ink);
+      font-family: 'Inter', -apple-system, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    .font-orbitron {
+      font-family: 'Orbitron', ui-monospace, monospace;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .font-playfair {
+      font-family: 'Playfair Display', serif;
+    }
+
+    /* 5.1 cash-amount */
+    .cash-amount {
+      font-family: 'Orbitron', ui-monospace, monospace;
+      font-weight: 700;
+      font-size: 56px;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      text-align: center;
+      line-height: 1;
+    }
+
+    .cash-amount.text-condensed {
+      font-size: 44px;
+    }
+
+    /* 5.2 cash-keypad */
+    .cash-keypad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      max-width: 360px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .cash-keypad button {
+      height: 72px;
+      border-radius: 16px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      font-family: 'Orbitron', monospace;
+      font-weight: 700;
+      font-size: 26px;
+      color: var(--ink);
+      transition: background 0.08s ease, color 0.08s ease;
+      touch-action: manipulation;
+    }
+
+    .cash-keypad button:active {
+      background: var(--navy);
+      color: #fff;
+    }
+
+    .cash-keypad .key-action {
+      background: var(--surface);
+      border-color: var(--line);
+      color: var(--ink);
+      font-family: 'Inter', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .btn-navy-primary {
+      background-color: var(--navy);
+      color: #ffffff;
+      transition: background-color 0.1s ease;
+    }
+    .btn-navy-primary:active {
+      background-color: var(--navy-2);
+    }
+
+    /* 5.4 cash-payment-list */
+    .cash-payment-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      background: var(--line);
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+
+    .cash-payment-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      background: var(--surface);
+    }
+
+    .cash-payment-badge {
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      background: var(--gold);
+      color: var(--navy-2);
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .animate-spin-custom {
+      animation: spin 1.4s linear infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between max-w-md mx-auto shadow-2xl relative bg-white pb-6">
+
+  <!-- 5.5 CASH-HEADER PERSISTENTE -->
+  <header class="cash-header px-5 py-4 border-b border-[#E8E0CC] flex items-center justify-between sticky top-0 bg-white z-40">
+    <div onclick="openOnboardingModal(true)" class="cursor-pointer group flex items-center gap-1.5" title="Configurar o cambiar comercio">
+      <div>
+        <div class="flex items-center gap-1">
+          <span id="header-merchant-name" class="font-bold text-[16px] text-[#121A2E] leading-tight group-hover:text-[#002B7F] transition">Cargando mostrador...</span>
+          <svg class="w-3.5 h-3.5 text-[#6B7A99] group-hover:text-[#002B7F] transition" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </div>
+        <div id="header-merchant-location" class="text-[12px] font-medium text-[#6B7A99]">Riel CoDi® Banxico</div>
+      </div>
+    </div>
+    <div id="network-status-badge" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#DCFCE7] text-[#166534]">
+      <span class="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse"></span>
+      <span id="network-status-text">🟢 CoDi activo</span>
+    </div>
+  </header>
+
+  <!-- CONTENEDOR PRINCIPAL DE PANTALLAS -->
+  <main class="flex-1 flex flex-col justify-between p-4 overflow-y-auto">
+
+    <!-- ========================================== -->
+    <!-- 7.1 PANTALLA A — EL MOSTRADOR -->
+    <!-- ========================================== -->
+    <section id="screen-a" class="flex-1 flex flex-col justify-between space-y-6">
+      <div class="space-y-3 pt-2">
+        <!-- Banner Enlace Instructivo -->
+        <a href="/instructivo" class="w-full py-2.5 px-3.5 bg-[#E8EEF9]/80 border border-[#C5D7F2] rounded-xl flex items-center justify-between text-[12px] text-[#002B7F] hover:bg-[#E8EEF9] transition shadow-2xs">
+          <div class="flex items-center gap-2 font-semibold">
+            <span>📖</span>
+            <span>Instructivo: Cómo cobrar y cómo viaja tu dinero</span>
+          </div>
+          <span class="font-bold text-[14px]">→</span>
+        </a>
+
+        <!-- Botón "Cobrar aquí" (Navy sólido, 64px alto) -->
+        <button onclick="goToScreenB()" class="w-full h-16 rounded-[16px] btn-navy-primary font-bold text-[17px] flex items-center justify-center shadow-sm">
+          <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+          Cobrar aquí
+        </button>
+
+        <!-- Botón "Cobrar a distancia" (Blanco, borde line, 56px alto) -->
+        <button onclick="goToScreenC()" class="w-full h-14 rounded-[16px] bg-white border border-[#E8E0CC] text-[#121A2E] font-semibold text-[15px] flex items-center justify-center active:bg-gray-50">
+          <svg class="w-5 h-5 mr-2 text-[#6B7A99]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+          Cobrar a distancia
+        </button>
+      </div>
+
+      <!-- Lista de Pagos de Hoy -->
+      <div class="flex-1 flex flex-col justify-end mt-4">
+        <div class="flex items-center justify-between mb-2 px-1">
+          <span class="text-[11px] font-bold uppercase tracking-[0.16em] text-[#6B7A99]">Pagos de hoy</span>
+          <span id="sales-count-badge" class="text-[12px] font-medium text-[#6B7A99]">0 pagos</span>
+        </div>
+
+        <div id="payment-list-container" class="cash-payment-list">
+          <div id="empty-payments-state" class="p-6 text-center text-[#6B7A99] text-sm bg-white">
+            Aún no hay pagos hoy
+          </div>
+        </div>
+
+        <!-- Cerrar caja del día -->
+        <div class="text-center mt-6">
+          <button onclick="openCloseDayModal()" class="text-[13px] font-medium text-[#6B7A99] underline hover:text-[#002B7F] py-2">
+            Cerrar caja del día
+          </button>
+        </div>
+
+        <div class="my-3 flex items-center justify-center opacity-60">
+          <img src="/divider.svg" alt="" class="w-full max-w-[260px] h-2 object-contain" />
+        </div>
+
+        <!-- Footer Institucional de Confianza -->
+        <div class="pt-6 pb-2 text-center flex flex-col items-center justify-center space-y-1.5 opacity-90">
+          <span class="text-[10px] font-bold uppercase tracking-[0.18em] text-[#6B7A99]">Infraestructura de Pagos</span>
+          <div class="flex items-center justify-center gap-1.5">
+            <span class="text-[11px] font-medium text-[#6B7A99]">Powered by</span>
+            <img src="/pey-codi-logo.png" alt="Pey CoDi" class="h-4.5 max-h-[18px] w-auto object-contain" />
+          </div>
+          <span class="text-[10px] text-[#8C9BB5]">Riel CoDi® Banxico · Cero contracargos</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 7.2 PANTALLA B — COBRAR AQUÍ (QR CODI) -->
+    <!-- ========================================== -->
+    <section id="screen-b" class="hidden flex-1 flex flex-col justify-between">
+      
+      <!-- ESTADO 1: TECLADO -->
+      <div id="b-state-keypad" class="flex-1 flex flex-col justify-between">
+        <div class="flex items-center justify-between pb-3">
+          <button onclick="goToScreenA()" class="text-[#002B7F] font-semibold text-[15px] flex items-center py-1">
+            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            Cobrar aquí
+          </button>
+          <span class="text-[11px] font-bold uppercase tracking-[0.16em] text-[#6B7A99]">Paso 1 de 2</span>
+        </div>
+
+        <!-- Monto operativo -->
+        <div class="my-auto py-4">
+          <div class="text-[11px] font-bold uppercase tracking-[0.16em] text-[#6B7A99] text-center mb-1">Monto a cobrar</div>
+          <div class="flex items-baseline justify-center">
+            <span class="text-[24px] font-normal text-[#6B7A99] mr-2">$</span>
+            <div id="b-amount-display" class="cash-amount">0.00</div>
+          </div>
+        </div>
+
+        <!-- Teclado Numérico -->
+        <div class="cash-keypad mb-3">
+          <button onclick="keypadPress('1')">1</button>
+          <button onclick="keypadPress('2')">2</button>
+          <button onclick="keypadPress('3')">3</button>
+          <button onclick="keypadPress('4')">4</button>
+          <button onclick="keypadPress('5')">5</button>
+          <button onclick="keypadPress('6')">6</button>
+          <button onclick="keypadPress('7')">7</button>
+          <button onclick="keypadPress('8')">8</button>
+          <button onclick="keypadPress('9')">9</button>
+          <button onclick="keypadBackspace()" class="key-action">⌫</button>
+          <button onclick="keypadPress('0')">0</button>
+          <button onclick="keypadPress('00')">00</button>
+        </div>
+
+        <!-- Botón Generar QR -->
+        <button id="btn-generate-qr" onclick="generateCodiQr()" class="w-full h-14 rounded-[16px] btn-navy-primary font-bold text-[16px] flex items-center justify-center">
+          Generar QR
+        </button>
+      </div>
+
+      <!-- ESTADO 2: ESPERANDO PAGO (QR + TIMER) -->
+      <div id="b-state-waiting" class="hidden flex-1 flex flex-col justify-between items-center text-center py-2">
+        <div class="w-full flex items-center justify-between pb-2">
+          <button onclick="cancelPayment()" class="text-[#6B7A99] font-medium text-[14px]">Cancelar</button>
+          <span class="text-[12px] font-semibold text-[#002B7F] bg-[#E8E0CC]/40 px-3 py-1 rounded-full">CoDi Banxico</span>
+        </div>
+
+        <div class="flex flex-col items-center justify-center my-auto space-y-4">
+          <!-- Contenedor QR 280x280 client-side -->
+          <div class="p-3 bg-white border border-[#E8E0CC] rounded-[20px] shadow-sm flex items-center justify-center">
+            <div id="qrcode-container" class="w-[260px] h-[260px] flex items-center justify-center"></div>
+          </div>
+
+          <!-- Banner Escaneo / Powered by Pey CoDi -->
+          <div class="w-full max-w-[280px] px-3.5 py-2.5 bg-[#F8FAFC] border border-[#E8E0CC] rounded-[14px] flex items-center justify-between shadow-xs">
+            <div class="text-left">
+              <div class="text-[11px] font-bold text-[#121A2E] leading-tight">Escanea con tu app bancaria</div>
+              <div class="text-[10px] text-[#6B7A99] font-medium">BBVA, Banorte, Nu, Santander...</div>
+            </div>
+            <div class="flex items-center pl-2 border-l border-[#E8E0CC]">
+              <img src="/pey-codi-logo.png" alt="Pey CoDi" class="h-4 max-h-[16px] w-auto object-contain" />
+            </div>
+          </div>
+
+          <!-- Monto Bloqueado -->
+          <div class="flex items-center space-x-1.5 font-orbitron font-bold text-[28px] text-[#121A2E]">
+            <span id="b-locked-amount">$150.00</span>
+            <span class="text-sm">🔒</span>
+          </div>
+
+          <!-- Contador de Expiración -->
+          <div class="flex items-center space-x-2 text-[14px] font-semibold text-[#6B7A99]">
+            <svg class="w-4 h-4 text-[#D97706]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span>Expira en <span id="b-timer-text" class="font-orbitron font-bold text-[#121A2E]">10:00</span></span>
+          </div>
+
+          <!-- Spinner Ámbar Esperando Pago -->
+          <div class="flex items-center space-x-2 text-[#D97706] font-semibold text-[15px] pt-1">
+            <svg class="w-5 h-5 animate-spin-custom" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            <span>Esperando pago…</span>
+          </div>
+          <div class="text-[13px] text-[#6B7A99] max-w-[280px]">El cliente está escaneando con la app de su banco. No cierres esta pantalla.</div>
+        </div>
+
+        <button onclick="cancelPayment()" class="w-full h-12 rounded-[14px] border border-[#E8E0CC] text-[#6B7A99] font-semibold text-[14px]">
+          Cancelar cobro
+        </button>
+      </div>
+
+      <!-- ESTADO 3: PAGADO (CHECK VERDE) -->
+      <div id="b-state-paid" class="hidden flex-1 flex flex-col justify-between items-center text-center py-6">
+        <div></div>
+        <div class="space-y-4 my-auto">
+          <!-- Check 80px Verde -->
+          <div class="w-20 h-20 bg-[#DCFCE7] text-[#16A34A] rounded-full flex items-center justify-center mx-auto shadow-inner">
+            <svg class="w-12 h-12" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          </div>
+
+          <div class="text-[26px] font-bold text-[#121A2E]">¡Pagado!</div>
+          <div id="b-paid-amount" class="font-orbitron font-bold text-[48px] text-[#121A2E] leading-none">$150.00</div>
+          <div class="text-[13px] text-[#16A34A] font-semibold flex items-center justify-center">
+            <span>✓ Confirmado en Banxico CoDi</span>
+          </div>
+        </div>
+
+        <!-- Botón Siguiente Venta -->
+        <button onclick="goToScreenA()" class="w-full h-16 rounded-[16px] btn-navy-primary font-bold text-[17px]">
+          Siguiente venta
+        </button>
+      </div>
+
+      <!-- ESTADO EXPIRADO -->
+      <div id="b-state-expired" class="hidden flex-1 flex flex-col justify-between items-center text-center py-6">
+        <div></div>
+        <div class="space-y-4 my-auto">
+          <div class="w-20 h-20 bg-red-100 text-[#DC2626] rounded-full flex items-center justify-center mx-auto">
+            <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          </div>
+          <div class="text-[22px] font-bold text-[#121A2E]">El QR expiró</div>
+          <div class="text-[14px] text-[#6B7A99] max-w-[260px]">El cliente no completó el pago a tiempo en la app bancaria.</div>
+        </div>
+        <button onclick="regenerateQr()" class="w-full h-14 rounded-[16px] btn-navy-primary font-bold text-[16px]">
+          Regenerar QR
+        </button>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 7.3 PANTALLA C — COBRAR A DISTANCIA (LINK) -->
+    <!-- ========================================== -->
+    <section id="screen-c" class="hidden flex-1 flex flex-col justify-between">
+      
+      <!-- ESTADO 1: TECLADO -->
+      <div id="c-state-keypad" class="flex-1 flex flex-col justify-between">
+        <div class="flex items-center justify-between pb-3">
+          <button onclick="goToScreenA()" class="text-[#002B7F] font-semibold text-[15px] flex items-center py-1">
+            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            Cobrar a distancia
+          </button>
+          <span class="text-[11px] font-bold uppercase tracking-[0.16em] text-[#6B7A99]">Enlace Remoto</span>
+        </div>
+
+        <div class="my-auto py-4">
+          <div class="text-[11px] font-bold uppercase tracking-[0.16em] text-[#6B7A99] text-center mb-1">Monto a cobrar</div>
+          <div class="flex items-baseline justify-center">
+            <span class="text-[24px] font-normal text-[#6B7A99] mr-2">$</span>
+            <div id="c-amount-display" class="cash-amount">0.00</div>
+          </div>
+        </div>
+
+        <div class="cash-keypad mb-3">
+          <button onclick="keypadPress('1', 'c')">1</button>
+          <button onclick="keypadPress('2', 'c')">2</button>
+          <button onclick="keypadPress('3', 'c')">3</button>
+          <button onclick="keypadPress('4', 'c')">4</button>
+          <button onclick="keypadPress('5', 'c')">5</button>
+          <button onclick="keypadPress('6', 'c')">6</button>
+          <button onclick="keypadPress('7', 'c')">7</button>
+          <button onclick="keypadPress('8', 'c')">8</button>
+          <button onclick="keypadPress('9', 'c')">9</button>
+          <button onclick="keypadBackspace('c')" class="key-action">⌫</button>
+          <button onclick="keypadPress('0', 'c')">0</button>
+          <button onclick="keypadPress('00', 'c')">00</button>
+        </div>
+
+        <button onclick="generatePaymentLink()" class="w-full h-14 rounded-[16px] btn-navy-primary font-bold text-[16px] flex items-center justify-center">
+          Generar link
+        </button>
+      </div>
+
+      <!-- ESTADO 2: LINK LISTO -->
+      <div id="c-state-ready" class="hidden flex-1 flex flex-col justify-between py-2">
+        <div class="flex items-center justify-between pb-2">
+          <button onclick="cancelPayment()" class="text-[#6B7A99] font-medium text-[14px]">Cancelar</button>
+          <span class="text-[12px] font-semibold text-[#16A34A] bg-[#DCFCE7] px-3 py-1 rounded-full">✓ Link generado</span>
+        </div>
+
+        <div class="my-auto space-y-4">
+          <div class="font-orbitron font-bold text-[36px] text-center text-[#121A2E]" id="c-ready-amount">$150.00</div>
+          
+          <div class="p-4 bg-[#F8FAFC] border border-[#E8E0CC] rounded-[16px] break-all text-[13px] text-[#121A2E] font-medium select-all text-center" id="c-generated-url">
+            https://app.mipey.mx/payment-link/...
+          </div>
+
+          <div class="space-y-2 pt-2">
+            <!-- Copiar Link (Navy sólido) -->
+            <button onclick="copyGeneratedLink()" id="btn-copy-link" class="w-full h-14 rounded-[16px] btn-navy-primary font-bold text-[15px] flex items-center justify-center">
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+              Copiar link
+            </button>
+
+            <!-- Compartir por WhatsApp (Blanco, borde line) -->
+            <button onclick="shareWhatsApp()" class="w-full h-14 rounded-[16px] bg-white border border-[#E8E0CC] text-[#121A2E] font-semibold text-[15px] flex items-center justify-center active:bg-gray-50">
+              <svg class="w-5 h-5 mr-2 text-[#16A34A]" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
+              Compartir por WhatsApp
+            </button>
+          </div>
+
+          <div class="flex items-center justify-center space-x-2 text-[#D97706] font-semibold text-[14px] pt-3">
+            <svg class="w-4 h-4 animate-spin-custom" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            <span>Esperando pago…</span>
+          </div>
+
+          <!-- Badge Checkout Pey -->
+          <div class="flex items-center justify-center gap-1.5 pt-2 text-[#6B7A99] text-[11px]">
+            <span>Checkout seguro operado por</span>
+            <img src="/pey-codi-logo.png" alt="Pey CoDi" class="h-3.5 max-h-[14px] w-auto object-contain inline-block" />
+          </div>
+        </div>
+
+        <button onclick="cancelPayment()" class="w-full h-12 rounded-[14px] border border-[#E8E0CC] text-[#6B7A99] font-semibold text-[14px]">
+          Cancelar
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <!-- MODAL: CORTE DEL DÍA (PLAYFAIR DISPLAY 900) -->
+  <div id="modal-close-day" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-[24px] max-w-sm w-full p-6 text-center space-y-5 border border-[#E8E0CC] shadow-2xl">
+      <div class="text-[12px] font-bold uppercase tracking-[0.16em] text-[#6B7A99]">Cierre de Operaciones</div>
+      
+      <div>
+        <div class="text-[14px] text-[#6B7A99] mb-1">Total recaudado hoy</div>
+        <div id="cut-total-amount" class="font-playfair text-[44px] font-black text-[#121A2E] leading-none">$0.00</div>
+      </div>
+
+      <div class="bg-[#F8FAFC] border border-[#E8E0CC] rounded-[16px] p-4 text-left space-y-2 text-sm">
+        <div class="flex justify-between">
+          <span class="text-[#6B7A99]">Transacciones CoDi:</span>
+          <span id="cut-total-tx" class="font-bold text-[#121A2E]">0</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-[#6B7A99]">Liquidación:</span>
+          <span class="font-semibold text-[#16A34A]">Inmediata (SPEI / Banxico)</span>
+        </div>
+        <div class="flex justify-between border-t border-[#E8E0CC] pt-2">
+          <span class="text-[#6B7A99]">Fecha:</span>
+          <span id="cut-date-label" class="text-[#121A2E] font-medium">Hoy</span>
+        </div>
+        <div class="flex items-center justify-between border-t border-[#E8E0CC] pt-2 text-[11px] text-[#6B7A99]">
+          <span>Procesador bancario:</span>
+          <img src="/pey-codi-logo.png" alt="Pey CoDi" class="h-3.5 max-h-[14px] w-auto object-contain" />
+        </div>
+      </div>
+
+      <button onclick="confirmCloseDay()" class="w-full h-14 rounded-[16px] btn-navy-primary font-bold text-[16px]">
+        Aceptar y nuevo turno
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: ONBOARDING DE MERCHANT (3 PASOS) -->
+  <!-- ========================================== -->
+  <div id="modal-onboarding" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+    <div class="bg-white rounded-[24px] max-w-sm w-full p-6 text-center space-y-4 border border-[#E8E0CC] shadow-2xl relative max-h-[92vh] overflow-y-auto">
+      
+      <!-- Botón cerrar (solo si ya tiene merchant configurado) -->
+      <button id="btn-close-onboarding" onclick="closeOnboardingModal()" class="hidden absolute top-4 right-4 text-[#6B7A99] hover:text-[#121A2E] p-1 rounded-full hover:bg-gray-100">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+
+      <!-- PASO 1: TU NEGOCIO -->
+      <div id="ob-step-1" class="space-y-4">
+        <div class="flex items-center justify-center gap-2 mb-1">
+          <img src="/favicon.svg" alt="Ark" class="w-8 h-8 rounded-lg shadow-2xs" />
+          <span class="text-[11px] font-bold uppercase tracking-[0.18em] text-[#002B7F]">Paso 1 de 3</span>
+        </div>
+        <div>
+          <h3 class="text-[20px] font-extrabold text-[#121A2E] leading-tight">Configura tu Mostrador</h3>
+          <p class="text-[12px] text-[#6B7A99] mt-1">¿Cómo se llama tu negocio y quién es el titular?</p>
+        </div>
+
+        <div class="space-y-3 text-left">
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-[#6B7A99] mb-1">Nombre comercial del negocio *</label>
+            <input type="text" id="ob-alias" placeholder="Ej. Taquería El Güero" class="w-full h-12 px-3.5 rounded-xl border border-[#E8E0CC] text-[14px] font-medium text-[#121A2E] focus:outline-none focus:border-[#002B7F] bg-[#F8FAFC]" />
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-[#6B7A99] mb-1">Nombre del titular o Razón Social *</label>
+            <input type="text" id="ob-name" placeholder="Ej. Roberto Güero Morales" class="w-full h-12 px-3.5 rounded-xl border border-[#E8E0CC] text-[14px] font-medium text-[#121A2E] focus:outline-none focus:border-[#002B7F] bg-[#F8FAFC]" />
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-[#6B7A99] mb-1">Tipo de registro *</label>
+            <select id="ob-entity" class="w-full h-12 px-3.5 rounded-xl border border-[#E8E0CC] text-[14px] font-medium text-[#121A2E] focus:outline-none focus:border-[#002B7F] bg-[#F8FAFC]">
+              <option value="PERSON">Persona Física (Comercio / Persona)</option>
+              <option value="BUSINESS">Persona Moral (Empresa S.A. de C.V.)</option>
+            </select>
+          </div>
+        </div>
+
+        <button onclick="goToOnboardingStep(2)" class="w-full h-13 rounded-[16px] btn-navy-primary font-bold text-[15px] flex items-center justify-center gap-1 shadow-xs">
+          <span>Continuar: Tu cuenta bancaria</span>
+          <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </button>
+
+        <div class="text-[11px] text-[#6B7A99] pt-1">
+          ¿Ya tienes cuenta? <button onclick="promptExistingMerchantId()" class="text-[#002B7F] font-semibold underline">Ingresar código de comercio</button>
+        </div>
+      </div>
+
+      <!-- PASO 2: TU CUENTA CLABE -->
+      <div id="ob-step-2" class="hidden space-y-4">
+        <div class="flex items-center justify-center gap-2 mb-1">
+          <span class="text-[11px] font-bold uppercase tracking-[0.18em] text-[#002B7F]">Paso 2 de 3</span>
+        </div>
+        <div>
+          <h3 class="text-[20px] font-extrabold text-[#121A2E] leading-tight">¿Dónde cae tu dinero?</h3>
+          <p class="text-[12px] text-[#6B7A99] mt-1">Escribe tu CLABE de 18 dígitos para recibir pagos directos.</p>
+        </div>
+
+        <div class="space-y-3 text-left">
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-[#6B7A99] mb-1">CLABE Interbancaria (18 dígitos) *</label>
+            <input type="text" id="ob-clabe" maxlength="18" inputmode="numeric" placeholder="Ej. 012180001234567899" oninput="handleClabeInput(this.value)" class="w-full h-12 px-3.5 rounded-xl border border-[#E8E0CC] font-orbitron font-bold text-[15px] tracking-wider text-[#121A2E] focus:outline-none focus:border-[#002B7F] bg-[#F8FAFC]" />
+          </div>
+
+          <!-- Badge dinámico de Banco detectado -->
+          <div id="ob-bank-badge" class="hidden p-3 rounded-xl bg-[#E8EEF9] border border-[#C5D7F2] flex items-center justify-between text-[12px]">
+            <div class="flex items-center gap-2">
+              <span id="ob-bank-icon" class="text-base">🏦</span>
+              <span id="ob-bank-name" class="font-bold text-[#002B7F]">Detectando banco...</span>
+            </div>
+            <span id="ob-bank-status" class="text-[11px] font-semibold text-[#16A34A]">✓ Oficial</span>
+          </div>
+
+          <!-- Error de CLABE -->
+          <div id="ob-clabe-error" class="hidden p-2.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-[12px] font-medium text-left">
+          </div>
+
+          <!-- Aviso de seguridad y tranquilidad -->
+          <div class="p-3 bg-[#F0FDF4] border border-[#BBF7D0] rounded-xl text-[12px] text-[#166534] flex items-start gap-2">
+            <span class="text-sm font-bold">🛡️</span>
+            <span><strong>Seguridad total:</strong> Esta cuenta es solo para depositarte. Nadie puede retirar dinero de tu cuenta.</span>
+          </div>
+        </div>
+
+        <div class="flex gap-2 pt-1">
+          <button onclick="goToOnboardingStep(1)" class="w-1/3 h-13 rounded-[16px] border border-[#E8E0CC] text-[#6B7A99] font-bold text-[14px] hover:bg-gray-50">
+            Atrás
+          </button>
+          <button id="btn-submit-onboarding" onclick="submitMerchantOnboarding()" class="w-2/3 h-13 rounded-[16px] btn-navy-primary font-bold text-[15px] flex items-center justify-center gap-1 shadow-xs">
+            <span>Activar CoDi Banxico</span>
+            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- PASO 3: ÉXITO Y ENLACE DE ACCESO -->
+      <div id="ob-step-3" class="hidden space-y-4">
+        <div class="w-16 h-16 rounded-full bg-[#DCFCE7] text-[#16A34A] flex items-center justify-center mx-auto text-2xl shadow-inner font-bold">
+          ✓
+        </div>
+        <div>
+          <h3 class="text-[22px] font-extrabold text-[#121A2E] leading-tight">¡Caja Activada!</h3>
+          <p class="text-[13px] text-[#6B7A99] mt-1" id="ob-success-subtext">Tu negocio ya está conectado al riel CoDi® del Banco de México.</p>
+        </div>
+
+        <div class="bg-[#F8FAFC] border border-[#E8E0CC] rounded-2xl p-4 text-left space-y-2 text-[12px]">
+          <div class="flex justify-between">
+            <span class="text-[#6B7A99]">Negocio:</span>
+            <span id="ob-summary-alias" class="font-bold text-[#121A2E]">-</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-[#6B7A99]">Banco Receptor:</span>
+            <span id="ob-summary-bank" class="font-bold text-[#002B7F]">-</span>
+          </div>
+          <div class="flex justify-between border-t border-[#E8E0CC] pt-2">
+            <span class="text-[#6B7A99]">Riel de Cobro:</span>
+            <span class="font-semibold text-[#16A34A]">CoDi® / SPEI (Inmediato)</span>
+          </div>
+        </div>
+
+        <div class="text-left">
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-[#6B7A99] mb-1">Tu enlace directo a esta caja:</label>
+          <div class="p-2.5 bg-gray-50 border border-[#E8E0CC] rounded-xl text-[11px] text-[#121A2E] font-mono break-all select-all flex items-center justify-between">
+            <span id="ob-direct-url" class="truncate mr-2">https://caja.arksystems.site/?m=...</span>
+            <button onclick="copyDirectUrl()" id="btn-copy-direct-url" class="px-2.5 py-1 bg-white border border-[#E8E0CC] rounded-md font-sans font-bold text-[10px] text-[#002B7F] shrink-0 active:bg-gray-100">
+              Copiar
+            </button>
+          </div>
+        </div>
+
+        <button onclick="finishOnboardingAndEnter()" class="w-full h-14 rounded-[16px] btn-navy-primary font-bold text-[16px] shadow-sm">
+          Entrar a cobrar a mi Mostrador →
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- LÓGICA DE NEGOCIO Y OPERACIÓN DE LA CAJA -->
+  <script>
+    // ==========================================
+    // ESTADO MULTI-TENANT Y SESIÓN DE CAJA
+    // ==========================================
+    let currentMerchantId = null;
+    let currentMerchant = null;
+    let newRegisteredMerchantId = null;
+
+    // Variables de Estado Operativo
+    let activeScreen = 'A'; // 'A', 'B', 'C'
+    let currentInputCents = 0;
+    let currentScreenContext = 'b';
+    let pollingInterval = null;
+    let timerCountdown = null;
+    let currentPayment = null;
+    let todayPayments = [];
+
+    // Catálogo de bancos Banxico para detección en tiempo real (0ms latencia)
+    const CLIENT_BANKS = {
+      '002': 'Banamex / Citibanamex',
+      '012': 'BBVA México',
+      '014': 'Santander',
+      '021': 'HSBC',
+      '030': 'Banco del Bajío',
+      '036': 'Inbursa',
+      '042': 'Mifel',
+      '044': 'Scotiabank',
+      '058': 'Banregio',
+      '072': 'Banorte',
+      '127': 'Banco Azteca',
+      '137': 'Bancoppel',
+      '138': 'ABC Capital / Ualá',
+      '140': 'Consubanco',
+      '166': 'Banco del Bienestar',
+      '646': 'STP (Transferencias)',
+      '659': 'Spin by OXXO',
+      '684': 'Nu México',
+      '722': 'Mercado Pago Wallet',
+      '846': 'Albo',
+      '855': 'Klar',
+      '860': 'Hey Banco'
+    };
+
+    // ==========================================
+    // GESTOR MULTI-TENANT (RESOLUCIÓN DE COMERCIO)
+    // ==========================================
+    async function initTenant() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const paramM = urlParams.get('m');
+      const storedM = localStorage.getItem('ark_merchant_id');
+
+      const targetId = paramM || storedM || '01JBAVWE4NS5TGXHWGMX3KH23Q';
+
+      const loaded = await loadMerchantProfile(targetId);
+      if (loaded) {
+        currentMerchantId = targetId;
+        localStorage.setItem('ark_merchant_id', targetId);
+        await loadTodayPayments();
+      } else {
+        openOnboardingModal(false);
+      }
+    }
+
+    async function loadMerchantProfile(mId) {
+      try {
+        const res = await fetch(`/api/merchant/${encodeURIComponent(mId)}`);
+        if (res.ok) {
+          currentMerchant = await res.json();
+          currentMerchantId = currentMerchant.id;
+          localStorage.setItem('ark_merchant_id', currentMerchantId);
+
+          document.getElementById('header-merchant-name').textContent = currentMerchant.alias || currentMerchant.name;
+          document.getElementById('header-merchant-location').textContent = currentMerchant.bank 
+            ? `${currentMerchant.bank} · CoDi` 
+            : 'Riel CoDi® Banxico';
+          
+          const badge = document.getElementById('network-status-badge');
+          const badgeText = document.getElementById('network-status-text');
+          if (currentMerchant.codiStatus === 'ACTIVE') {
+            badge.className = 'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#DCFCE7] text-[#166534]';
+            badgeText.textContent = '🟢 CoDi activo';
+          } else {
+            badge.className = 'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#FEF3C7] text-[#92400E]';
+            badgeText.textContent = '🟡 En verificación';
+          }
+          return true;
+        }
+      } catch (err) {
+        console.warn('Error al cargar perfil de comercio', err);
+      }
+      return false;
+    }
+
+    // ==========================================
+    // ONBOARDING STEPS DEL MERCHANT (3 PASOS)
+    // ==========================================
+    function openOnboardingModal(allowClose = false) {
+      const modal = document.getElementById('modal-onboarding');
+      const closeBtn = document.getElementById('btn-close-onboarding');
+      
+      if (allowClose && currentMerchantId) {
+        closeBtn.classList.remove('hidden');
+      } else {
+        closeBtn.classList.add('hidden');
+      }
+
+      goToOnboardingStep(1);
+      modal.classList.remove('hidden');
+    }
+
+    function closeOnboardingModal() {
+      document.getElementById('modal-onboarding').classList.add('hidden');
+    }
+
+    function goToOnboardingStep(step) {
+      if (step === 2) {
+        const alias = document.getElementById('ob-alias').value.trim();
+        const name = document.getElementById('ob-name').value.trim();
+        if (!alias || !name) {
+          alert('Por favor escribe el nombre de tu negocio y el nombre del titular.');
+          return;
+        }
+      }
+
+      document.getElementById('ob-step-1').classList.add('hidden');
+      document.getElementById('ob-step-2').classList.add('hidden');
+      document.getElementById('ob-step-3').classList.add('hidden');
+
+      document.getElementById(`ob-step-${step}`).classList.remove('hidden');
+    }
+
+    function handleClabeInput(val) {
+      const clean = val.replace(/\D/g, '').slice(0, 18);
+      document.getElementById('ob-clabe').value = clean;
+
+      const badge = document.getElementById('ob-bank-badge');
+      const nameEl = document.getElementById('ob-bank-name');
+      const statusEl = document.getElementById('ob-bank-status');
+      const errEl = document.getElementById('ob-clabe-error');
+
+      errEl.classList.add('hidden');
+
+      if (clean.length >= 3) {
+        const prefix = clean.slice(0, 3);
+        const bankName = CLIENT_BANKS[prefix] || 'Banco Autorizado Banxico';
+        nameEl.textContent = bankName;
+        badge.classList.remove('hidden');
+
+        if (clean.length === 18) {
+          const weights = [3, 7, 1, 3, 7, 1, 3, 7, 1, 3, 7, 1, 3, 7, 1, 3, 7];
+          let sum = 0;
+          for (let i = 0; i < 17; i++) {
+            sum += (parseInt(clean[i], 10) * weights[i]) % 10;
+          }
+          const checksum = (10 - (sum % 10)) % 10;
+          const expected = parseInt(clean[17], 10);
+
+          if (checksum === expected) {
+            statusEl.textContent = '✓ CLABE Válida';
+            statusEl.className = 'text-[11px] font-semibold text-[#16A34A]';
+          } else {
+            statusEl.textContent = '✕ Dígito incorrecto';
+            statusEl.className = 'text-[11px] font-semibold text-red-600';
+            errEl.textContent = 'El dígito verificador no coincide. Revisa los 18 números de tu CLABE.';
+            errEl.classList.remove('hidden');
+          }
+        } else {
+          statusEl.textContent = `${clean.length}/18 dígitos`;
+          statusEl.className = 'text-[11px] font-semibold text-[#6B7A99]';
+        }
+      } else {
+        badge.classList.add('hidden');
+      }
+    }
+
+    async function submitMerchantOnboarding() {
+      const alias = document.getElementById('ob-alias').value.trim();
+      const name = document.getElementById('ob-name').value.trim();
+      const entity = document.getElementById('ob-entity').value;
+      const clabe = document.getElementById('ob-clabe').value.trim();
+
+      if (!alias || !name || !clabe || clabe.length !== 18) {
+        alert('Por favor completa todos los campos con una CLABE válida de 18 dígitos.');
+        return;
+      }
+
+      const btn = document.getElementById('btn-submit-onboarding');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="inline-block animate-spin mr-1">↻</span> Registrando con Banxico…';
+
+      try {
+        const res = await fetch('/api/merchant/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ alias, name, clabe, entity })
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error?.message || 'Error al registrar cuenta bancaria');
+        }
+
+        newRegisteredMerchantId = data.merchantId;
+        
+        document.getElementById('ob-summary-alias').textContent = alias;
+        document.getElementById('ob-summary-bank').textContent = data.bank || CLIENT_BANKS[clabe.slice(0, 3)] || 'Banco Registrado';
+        
+        const directUrl = `${window.location.origin}/caja?m=${encodeURIComponent(newRegisteredMerchantId)}`;
+        document.getElementById('ob-direct-url').textContent = directUrl;
+
+        goToOnboardingStep(3);
+
+      } catch (err) {
+        const errEl = document.getElementById('ob-clabe-error');
+        errEl.textContent = err.message || 'Error al conectar con el riel bancario.';
+        errEl.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>Activar CoDi Banxico</span><svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>';
+      }
+    }
+
+    function copyDirectUrl() {
+      const url = document.getElementById('ob-direct-url').textContent.trim();
+      navigator.clipboard.writeText(url).then(() => {
+        const btn = document.getElementById('btn-copy-direct-url');
+        btn.textContent = '✓ Copiado';
+        setTimeout(() => { btn.textContent = 'Copiar'; }, 2000);
+      });
+    }
+
+    function finishOnboardingAndEnter() {
+      if (newRegisteredMerchantId) {
+        currentMerchantId = newRegisteredMerchantId;
+        localStorage.setItem('ark_merchant_id', currentMerchantId);
+        window.history.replaceState({}, '', `/caja?m=${encodeURIComponent(currentMerchantId)}`);
+        loadMerchantProfile(currentMerchantId);
+        loadTodayPayments();
+      }
+      closeOnboardingModal();
+    }
+
+    function promptExistingMerchantId() {
+      const mId = prompt('Escribe o pega el ID de tu comercio:');
+      if (mId && mId.trim()) {
+        newRegisteredMerchantId = mId.trim();
+        finishOnboardingAndEnter();
+      }
+    }
+
+    // Chime sonoro con Web Audio API (acordes de éxito institucional)
+    function playSuccessChime() {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+
+        const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
+        notes.forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.08);
+
+          gain.gain.setValueAtTime(0.001, ctx.currentTime + i * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + i * 0.08 + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + i * 0.08 + 0.6);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+
+          osc.start(ctx.currentTime + i * 0.08);
+          osc.stop(ctx.currentTime + i * 0.08 + 0.6);
+        });
+
+        // Haptic feedback
+        if (navigator.vibrate) {
+          navigator.vibrate([100, 50, 150]);
+        }
+      } catch (e) {
+        console.warn('Audio feedback blocked or not supported', e);
+      }
+    }
+
+    // Formateo de Montos
+    function formatCentsToAmount(cents) {
+      return (cents / 100).toFixed(2);
+    }
+
+    function updateAmountDisplay(target = 'b') {
+      const display = document.getElementById(`${target}-amount-display`);
+      const amountStr = formatCentsToAmount(currentInputCents);
+      display.textContent = amountStr;
+
+      if (amountStr.length > 7) {
+        display.classList.add('text-condensed');
+      } else {
+        display.classList.remove('text-condensed');
+      }
+    }
+
+    // Manejo de Teclado
+    function keypadPress(val, target = 'b') {
+      currentScreenContext = target;
+      if (val === '00') {
+        if (currentInputCents > 0 && currentInputCents < 1000000) {
+          currentInputCents = currentInputCents * 100;
+        }
+      } else {
+        const digit = parseInt(val, 10);
+        if (currentInputCents < 10000000) { // límite $100,000.00
+          currentInputCents = currentInputCents * 10 + digit;
+        }
+      }
+      updateAmountDisplay(target);
+    }
+
+    function keypadBackspace(target = 'b') {
+      currentScreenContext = target;
+      currentInputCents = Math.floor(currentInputCents / 10);
+      updateAmountDisplay(target);
+    }
+
+    // Navegación de Pantallas
+    function hideAllScreens() {
+      document.getElementById('screen-a').classList.add('hidden');
+      document.getElementById('screen-b').classList.add('hidden');
+      document.getElementById('screen-c').classList.add('hidden');
+      clearInterval(pollingInterval);
+      clearInterval(timerCountdown);
+    }
+
+    function goToScreenA() {
+      hideAllScreens();
+      activeScreen = 'A';
+      document.getElementById('screen-a').classList.remove('hidden');
+      currentInputCents = 0;
+      loadTodayPayments();
+    }
+
+    function goToScreenB() {
+      hideAllScreens();
+      activeScreen = 'B';
+      currentInputCents = 0;
+      updateAmountDisplay('b');
+      document.getElementById('screen-b').classList.remove('hidden');
+      document.getElementById('b-state-keypad').classList.remove('hidden');
+      document.getElementById('b-state-waiting').classList.add('hidden');
+      document.getElementById('b-state-paid').classList.add('hidden');
+      document.getElementById('b-state-expired').classList.add('hidden');
+    }
+
+    function goToScreenC() {
+      hideAllScreens();
+      activeScreen = 'C';
+      currentInputCents = 0;
+      updateAmountDisplay('c');
+      document.getElementById('screen-c').classList.remove('hidden');
+      document.getElementById('c-state-keypad').classList.remove('hidden');
+      document.getElementById('c-state-ready').classList.add('hidden');
+    }
+
+    // ==========================================
+    // COBRO AQUÍ: GENERAR QR CLIENT-SIDE Y POLLING
+    // ==========================================
+    async function generateCodiQr() {
+      const amount = currentInputCents / 100;
+      if (amount <= 0) {
+        alert('Por favor escribe un monto válido para cobrar.');
+        return;
+      }
+
+      const btn = document.getElementById('btn-generate-qr');
+      btn.disabled = true;
+      btn.textContent = 'Generando CoDi…';
+
+      try {
+        const res = await fetch('/api/codi/qr', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount,
+            concept: 'Venta mostrador',
+            expiration: 600,
+            merchantId: currentMerchantId || '01JBAVWE4NS5TGXHWGMX3KH23Q'
+          })
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error?.message || 'Error al generar CoDi');
+        }
+
+        currentPayment = data;
+
+        // Renderizar QR client-side con qrcode.js desde qrString
+        const container = document.getElementById('qrcode-container');
+        container.innerHTML = '';
+        new QRCode(container, {
+          text: data.qrString,
+          width: 250,
+          height: 250,
+          colorDark: '#001A4D',
+          colorLight: '#FFFFFF',
+          correctLevel: QRCode.CorrectLevel.M
+        });
+
+        // Monto bloqueado
+        document.getElementById('b-locked-amount').textContent = `$${amount.toFixed(2)}`;
+
+        // Mostrar Estado 2 (Esperando)
+        document.getElementById('b-state-keypad').classList.add('hidden');
+        document.getElementById('b-state-waiting').classList.remove('hidden');
+
+        // Iniciar timer countdown 600s
+        startExpirationTimer(data.expiration || 600);
+
+        // Iniciar Polling cada 5s
+        startPollingCodi(data.qrId);
+
+      } catch (err) {
+        alert(err.message || 'No se pudo conectar con el servicio CoDi.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Generar QR';
+      }
+    }
+
+    function startExpirationTimer(durationSeconds) {
+      clearInterval(timerCountdown);
+      let remaining = durationSeconds;
+      const display = document.getElementById('b-timer-text');
+
+      function tick() {
+        const mins = Math.floor(remaining / 60);
+        const secs = remaining % 60;
+        display.textContent = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        if (remaining <= 0) {
+          clearInterval(timerCountdown);
+          clearInterval(pollingInterval);
+          document.getElementById('b-state-waiting').classList.add('hidden');
+          document.getElementById('b-state-expired').classList.remove('hidden');
+        }
+        remaining--;
+      }
+      tick();
+      timerCountdown = setInterval(tick, 1000);
+    }
+
+    function startPollingCodi(qrId) {
+      clearInterval(pollingInterval);
+      pollingInterval = setInterval(async () => {
+        try {
+          const res = await fetch(`/api/payment/codi/${encodeURIComponent(qrId)}/status`);
+          if (!res.ok) return;
+          const data = await res.json();
+
+          if (data.status === 'PAID') {
+            clearInterval(pollingInterval);
+            clearInterval(timerCountdown);
+            onPaymentConfirmed(data.amount || currentPayment.amount);
+          }
+        } catch (e) {
+          console.warn('Polling check error', e);
+        }
+      }, 5000);
+    }
+
+    function onPaymentConfirmed(amount) {
+      playSuccessChime();
+
+      // Guardar en historial local
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      todayPayments.unshift({
+        amount: Number(amount),
+        time: timeStr,
+        status: 'Pagado'
+      });
+
+      // Transición al Estado 3: Pagado
+      document.getElementById('b-state-waiting').classList.add('hidden');
+      document.getElementById('c-state-ready').classList.add('hidden');
+      
+      const paidScreen = document.getElementById('b-state-paid');
+      document.getElementById('b-paid-amount').textContent = `$${Number(amount).toFixed(2)}`;
+      paidScreen.classList.remove('hidden');
+
+      if (activeScreen === 'C') {
+        document.getElementById('screen-c').classList.add('hidden');
+        document.getElementById('screen-b').classList.remove('hidden');
+      }
+    }
+
+    function cancelPayment() {
+      clearInterval(pollingInterval);
+      clearInterval(timerCountdown);
+      goToScreenA();
+    }
+
+    function regenerateQr() {
+      goToScreenB();
+    }
+
+    // ==========================================
+    // COBRO A DISTANCIA: GENERAR LINK Y POLLING
+    // ==========================================
+    async function generatePaymentLink() {
+      const amount = currentInputCents / 100;
+      if (amount <= 0) {
+        alert('Por favor escribe un monto válido.');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/payment-link', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount,
+            concept: 'Cobro a distancia',
+            merchantId: currentMerchantId || '01JBAVWE4NS5TGXHWGMX3KH23Q'
+          })
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error?.message || 'Error al generar el link');
+        }
+
+        currentPayment = data;
+        document.getElementById('c-ready-amount').textContent = `$${amount.toFixed(2)}`;
+        document.getElementById('c-generated-url').textContent = data.url;
+
+        document.getElementById('c-state-keypad').classList.add('hidden');
+        document.getElementById('c-state-ready').classList.remove('hidden');
+
+        // Polling de enlace remoto
+        startPollingLink(data.paymentLinkId);
+
+      } catch (err) {
+        alert(err.message || 'Error al generar link de pago');
+      }
+    }
+
+    function startPollingLink(linkId) {
+      clearInterval(pollingInterval);
+      pollingInterval = setInterval(async () => {
+        try {
+          const res = await fetch(`/api/payment/link/${encodeURIComponent(linkId)}`);
+          if (!res.ok) return;
+          const data = await res.json();
+
+          if (data.status === 'PAID') {
+            clearInterval(pollingInterval);
+            onPaymentConfirmed(data.amount || currentPayment.amount);
+          }
+        } catch (e) {
+          console.warn('Polling link error', e);
+        }
+      }, 5000);
+    }
+
+    function copyGeneratedLink() {
+      const url = document.getElementById('c-generated-url').textContent.trim();
+      navigator.clipboard.writeText(url).then(() => {
+        const btn = document.getElementById('btn-copy-link');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '✓ ¡Copiado al portapapeles!';
+        setTimeout(() => { btn.innerHTML = originalText; }, 2000);
+      });
+    }
+
+    function shareWhatsApp() {
+      const url = document.getElementById('c-generated-url').textContent.trim();
+      const amount = (currentInputCents / 100).toFixed(2);
+      const message = encodeURIComponent(`Hola! Aquí tienes el link para pagar $${amount} con CoDi o tarjeta de forma segura: ${url}`);
+      window.open(`https://wa.me/?text=${message}`, '_blank');
+    }
+
+    // ==========================================
+    // PANTALLA A: LISTA DE PAGOS Y CORTE DEL DÍA
+    // ==========================================
+    async function loadTodayPayments() {
+      const mId = currentMerchantId || '01JBAVWE4NS5TGXHWGMX3KH23Q';
+      try {
+        const res = await fetch(`/api/merchant/${encodeURIComponent(mId)}/payments`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.payments && data.payments.length > 0) {
+            todayPayments = data.payments.map(p => ({
+              amount: p.amount,
+              time: new Date(p.date_created * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              status: p.status === 'PAID' ? 'Pagado' : p.status
+            }));
+          } else {
+            todayPayments = [];
+          }
+        }
+      } catch (e) {
+        console.warn('Error fetching remote payments', e);
+      }
+      renderPaymentsList();
+    }
+
+    function renderPaymentsList() {
+      const container = document.getElementById('payment-list-container');
+      const badge = document.getElementById('sales-count-badge');
+
+      if (todayPayments.length === 0) {
+        container.innerHTML = '<div class="p-6 text-center text-[#6B7A99] text-sm bg-white">Aún no hay pagos hoy</div>';
+        badge.textContent = '0 pagos';
+        return;
+      }
+
+      badge.textContent = `${todayPayments.length} pago${todayPayments.length > 1 ? 's' : ''}`;
+      container.innerHTML = todayPayments.slice(0, 8).map(item => `
+        <div class="cash-payment-item">
+          <div>
+            <div class="font-orbitron font-bold text-[18px] text-[#121A2E]">$${Number(item.amount).toFixed(2)}</div>
+            <div class="text-[12px] font-medium text-[#6B7A99]">${item.time}</div>
+          </div>
+          <span class="cash-payment-badge">${item.status}</span>
+        </div>
+      `).join('');
+    }
+
+    function openCloseDayModal() {
+      const modal = document.getElementById('modal-close-day');
+      const total = todayPayments.reduce((acc, curr) => acc + (curr.status === 'Pagado' ? curr.amount : 0), 0);
+      document.getElementById('cut-total-amount').textContent = `$${total.toFixed(2)}`;
+      document.getElementById('cut-total-tx').textContent = todayPayments.filter(p => p.status === 'Pagado').length;
+      document.getElementById('cut-date-label').textContent = new Date().toLocaleDateString('es-MX', { month: 'short', day: 'numeric', year: 'numeric' });
+      modal.classList.remove('hidden');
+    }
+
+    async function confirmCloseDay() {
+      const mId = currentMerchantId || '01JBAVWE4NS5TGXHWGMX3KH23Q';
+      try {
+        const res = await fetch(`/api/merchant/${encodeURIComponent(mId)}/close-day`, {
+          method: 'POST'
+        });
+        if (res.ok) {
+          const data = await res.json();
+          alert(`✓ Corte #${data.closeId.slice(-6)} registrado con éxito.\nTotal recaudado: $${Number(data.totalAmount).toFixed(2)} MXN (${data.totalTransactions} ventas).\nSe generó póliza contable para ARK Ledger.`);
+          todayPayments = [];
+          renderPaymentsList();
+        }
+      } catch (err) {
+        console.error('Error al realizar corte del día', err);
+      }
+      document.getElementById('modal-close-day').classList.add('hidden');
+    }
+
+    // Service Worker Registration (Offline First)
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(err => {
+          console.log('SW registration error', err);
+        });
+      });
+    }
+
+    // Inicialización al cargar: Resolución de tenant y mostrador
+    window.addEventListener('DOMContentLoaded', () => {
+      initTenant();
+    });
+  </script>
+</body>
+</html>

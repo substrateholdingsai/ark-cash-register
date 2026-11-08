@@ -1,0 +1,35 @@
+name = "ark-cash-register"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+workers_dev = true
+
+routes = [
+  { pattern = "caja.arksystems.site", custom_domain = true }
+]
+
+# Servir Frontend Estático / PWA (Mostrador + QR + Remoto)
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
+# Base de Datos D1 Relacional (merchants, payments, ledger_entries, logs)
+[[d1_databases]]
+binding = "DB"
+database_name = "ark_caja_db"
+database_id = "0d7fdfd5-8544-401b-9f28-2df47c91dd06"
+
+# KV Cache (Merchant config, sesiones, rate limiting)
+[[kv_namespaces]]
+binding = "KV"
+id = "2d95ac6f8ad94667a59d32dcbd5cae41"
+
+# Variables de entorno públicas
+[vars]
+PEY_API_URL = "https://api.pey.mx"
+ENVIRONMENT = "production"
+APP_NAME = "Ark-cajaregistradora"
+APP_VERSION = "2.0.0"
+
+# Secrets requeridos en producción vía wrangler secret put:
+# - PEY_API_KEY
+# - PEY_WEBHOOK_SECRET

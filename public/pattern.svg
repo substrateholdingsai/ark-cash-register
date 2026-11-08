@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" >
+  <g fill="#002B7F" opacity="0.06">
+    <!-- Grid de puntos -->
+    <circle cx="10" cy="10" r="1"/>
+    <circle cx="50" cy="10" r="1"/>
+    <circle cx="10" cy="50" r="1"/>
+    <circle cx="50" cy="50" r="1"/>
+    <!-- QR dots en esquinas de celda -->
+    <rect x="20" y="20" width="3" height="3"/>
+    <rect x="60" y="20" width="3" height="3"/>
+    <rect x="20" y="60" width="3" height="3"/>
+    <rect x="60" y="60" width="3" height="3"/>
+  </g>
+</svg>
