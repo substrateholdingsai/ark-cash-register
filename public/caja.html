@@ -412,6 +412,14 @@
             <span>Esperando pago…</span>
           </div>
           <div class="text-[13px] text-[#6B7A99] max-w-[280px]">El cliente está escaneando con la app de su banco. No cierres esta pantalla.</div>
+
+          <!-- Botón de Simulación de Pago (Modo Demo / Activación Banxico) -->
+          <div id="b-demo-simulate-container" class="hidden w-full max-w-[280px] pt-2">
+            <button onclick="simulateDemoPayment(event)" class="w-full py-2.5 px-3 rounded-[12px] bg-[#002B7F] hover:bg-[#001D56] text-white font-bold text-[13px] flex items-center justify-center gap-2 transition shadow-xs active:scale-98">
+              <span>⚡ Simular Pago Exitoso (Demo Jurado)</span>
+            </button>
+            <p class="text-[10px] text-[#6B7A99] mt-1 text-center font-medium">Validación interbancaria Banxico CoDi® en proceso</p>
+          </div>
         </div>
 
         <button onclick="cancelPayment()" class="w-full h-12 rounded-[14px] border border-[#E8E0CC] text-[#6B7A99] font-semibold text-[14px]">
@@ -1484,6 +1492,12 @@
         document.getElementById('b-state-keypad').classList.add('hidden');
         document.getElementById('b-state-waiting').classList.remove('hidden');
 
+        // Toggle botón de simulación si está en modo demo/activación
+        const demoSimBtn = document.getElementById('b-demo-simulate-container');
+        if (demoSimBtn) {
+          demoSimBtn.classList.toggle('hidden', !data.isDemoFallback);
+        }
+
         // Iniciar timer countdown 600s
         startExpirationTimer(data.expiration || 600);
 
@@ -1552,6 +1566,43 @@
           console.warn('Polling check error', e);
         }
       }, 5000);
+    }
+
+    async function simulateDemoPayment(evt) {
+      if (!currentPayment) return;
+      const btn = evt?.currentTarget;
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span>⏳ Confirmando pago…</span>';
+      }
+      try {
+        const res = await fetch('/api/codi/simulate-payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            paymentId: currentPayment.paymentId,
+            qrId: currentPayment.qrId
+          })
+        });
+        const result = await res.json();
+        if (result.success) {
+          clearInterval(timerCountdown);
+          clearInterval(pollingInterval);
+          onPaymentConfirmed(result.amount || currentPayment.amount);
+        } else {
+          alert(result.error?.message || 'Error simulando pago');
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<span>⚡ Simular Pago Exitoso (Demo Jurado)</span>';
+          }
+        }
+      } catch (err) {
+        console.error('Error simulando pago:', err);
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<span>⚡ Reintentar Simulación</span>';
+        }
+      }
     }
 
     // ==========================================

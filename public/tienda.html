@@ -239,6 +239,13 @@
         <p class="text-[11px] text-slate-500 leading-snug">
           Abre la app de tu banco (BBVA, Banamex, Santander, Nu, etc.) y escanea este código.
         </p>
+
+        <!-- Botón Demo Simulación en Tienda -->
+        <div id="tienda-demo-simulate-container" class="hidden pt-2">
+          <button onclick="simulateStorefrontDemoPayment(event)" class="w-full py-2 px-3 rounded-lg bg-blue-900 hover:bg-blue-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition">
+            <span>⚡ Simular Pago Aprobado (Demo)</span>
+          </button>
+        </div>
       </div>
 
       <!-- Estado: PAGO CONFIRMADO -->
@@ -579,6 +586,10 @@
         });
 
         openCodiModalState('waiting');
+        const demoBtn = document.getElementById('tienda-demo-simulate-container');
+        if (demoBtn) {
+          demoBtn.classList.toggle('hidden', !data.isDemoFallback);
+        }
         startTimer(600);
         startPolling(currentPaymentId, total);
 
@@ -649,6 +660,32 @@
           }
         } catch {}
       }, 4000);
+    }
+
+    async function simulateStorefrontDemoPayment(evt) {
+      if (!currentPaymentId) return;
+      const btn = evt?.currentTarget;
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Confirmando…';
+      }
+      try {
+        const res = await fetch('/api/codi/simulate-payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ paymentId: currentPaymentId })
+        });
+        const result = await res.json();
+        if (result.success) {
+          if (pollInterval) clearInterval(pollInterval);
+          if (timerInterval) clearInterval(timerInterval);
+          document.getElementById('paid-folio').textContent = currentPaymentId;
+          document.getElementById('paid-amount').textContent = `$${(result.amount || 0).toFixed(2)} MXN`;
+          openCodiModalState('paid');
+        }
+      } catch (e) {
+        console.error('Error simulando pago en tienda:', e);
+      }
     }
 
     // 4. CHECKOUT WHATSAPP (Ticket detallado en texto)

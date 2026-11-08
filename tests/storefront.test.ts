@@ -182,4 +182,67 @@ _Pedido generado vía Ark Cash Register_`;
     });
   });
 
+  describe('6. Fallback resiliente CoDi para cuentas en validación y simulación de pagos', () => {
+    it('activa fallback Banxico si Pey devuelve Bank Account not found o CoDi no habilitado', async () => {
+      const env = createMockEnv();
+      vi.spyOn(PeyClient.prototype, 'createCodiQr').mockRejectedValueOnce(
+        new Error('Bank Account not found')
+      );
+
+      const res = await worker.request('/api/codi/qr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: 299.00,
+          concept: 'Playera Ola Nocturna',
+          merchantId: '01JBAVSKINLAB0000000000000'
+        })
+      }, env);
+
+      expect(res.status).toBe(201);
+      const data: any = await res.json();
+      expect(data.success).toBe(true);
+      expect(data.isDemoFallback).toBe(true);
+      expect(data.qrString).toContain('"TYP":1');
+      expect(data.qrString).toContain('"v":"01"');
+      expect(data.qrString).toContain('"m":299');
+    });
+
+    it('endpoint /api/codi/simulate-payment aprueba el pago para demos', async () => {
+      let paymentRecord: any = {
+        id: 'PAY_123',
+        payable_id: 'IDC_123',
+        amount: 299.00,
+        merchant_id: '01JBAVSKINLAB0000000000000',
+        status: 'WAITING'
+      };
+
+      const env: any = {
+        PEY_API_URL: 'https://api.pey.mx',
+        PEY_API_KEY: 'test_pey_key',
+        DB: {
+          prepare: (query: string) => ({
+            bind: (...params: any[]) => ({
+              run: async () => ({ success: true, meta: { changes: 1 } }),
+              first: async () => paymentRecord,
+              all: async () => ({ results: [] })
+            })
+          })
+        }
+      };
+
+      const res = await worker.request('/api/codi/simulate-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paymentId: 'PAY_123' })
+      }, env);
+
+      expect(res.status).toBe(200);
+      const data: any = await res.json();
+      expect(data.success).toBe(true);
+      expect(data.status).toBe('PAID');
+      expect(data.transactionId).toContain('TX_DEMO_');
+    });
+  });
+
 });
