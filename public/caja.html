@@ -159,36 +159,27 @@
 <body class="min-h-screen flex flex-col justify-between max-w-md mx-auto shadow-2xl relative bg-white pb-6">
 
   <!-- 5.5 CASH-HEADER PERSISTENTE -->
-  <header class="cash-header px-4 py-3 border-b border-[#E8E0CC] flex flex-col gap-2 sticky top-0 bg-white z-40">
-    <div class="flex items-center justify-between">
-      <div onclick="openOnboardingModal(true)" class="cursor-pointer group flex items-center gap-1.5" title="Configurar o cambiar comercio">
-        <div>
-          <div class="flex items-center gap-1">
-            <span id="header-merchant-name" class="font-bold text-[16px] text-[#121A2E] leading-tight group-hover:text-[#002B7F] transition">Cargando mostrador...</span>
-            <svg class="w-3.5 h-3.5 text-[#6B7A99] group-hover:text-[#002B7F] transition" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-          </div>
-          <div id="header-merchant-location" class="text-[12px] font-medium text-[#6B7A99]">Riel CoDi® Banxico</div>
-        </div>
+  <header class="cash-header px-4 py-3 border-b border-[#E8E0CC] flex items-center justify-between sticky top-0 bg-white z-40">
+    <div onclick="openOnboardingModal(true)" class="cursor-pointer group flex items-center gap-2.5" title="Configurar comercio o cambiar de caja">
+      <div class="w-9 h-9 rounded-xl bg-[#E8EEF9] border border-[#C5D7F2] flex items-center justify-center text-[#002B7F] font-bold text-sm shadow-2xs">
+        🏛️
       </div>
+      <div>
+        <div class="flex items-center gap-1">
+          <span id="header-merchant-name" class="font-bold text-[15px] text-[#121A2E] leading-tight group-hover:text-[#002B7F] transition truncate max-w-[210px]">Cargando mostrador...</span>
+          <svg class="w-3.5 h-3.5 text-[#6B7A99] group-hover:text-[#002B7F] transition shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </div>
+        <div id="header-merchant-location" class="text-[11px] font-medium text-[#6B7A99]">Riel CoDi® Banxico</div>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
       <div id="network-status-badge" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#DCFCE7] text-[#166534]">
         <span class="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse"></span>
         <span id="network-status-text">🟢 CoDi activo</span>
       </div>
-    </div>
-    <!-- Selector rápido de demostración: Taquería El Güero vs SkinLab Clothing -->
-    <div class="flex items-center justify-between pt-1 border-t border-[#F1EFE8] text-[11px]">
-      <span class="text-[#6B7A99] font-medium">Demostración:</span>
-      <div class="flex items-center gap-1.5">
-        <button onclick="switchTenant('01JBAVWE4NS5TGXHWGMX3KH23Q')" id="btn-demo-tq" class="px-2.5 py-1 rounded-full border border-[#E8E0CC] text-[#121A2E] font-medium transition active:scale-95 flex items-center gap-1">
-          <span>🌮</span> Taquería
-        </button>
-        <button onclick="switchTenant('01JBAVSKINLAB0000000000000')" id="btn-demo-sl" class="px-2.5 py-1 rounded-full border border-[#E8E0CC] text-[#121A2E] font-medium transition active:scale-95 flex items-center gap-1">
-          <span>🌊</span> SkinLab
-        </button>
-        <button onclick="openOnboardingModal(true)" class="px-2 py-1 rounded-full bg-[#E8EEF9] text-[#002B7F] font-bold hover:bg-[#D4E3F7] transition" title="Registrar nuevo comercio">
-          + Nuevo
-        </button>
-      </div>
+      <button onclick="openOnboardingModal(true)" class="w-8 h-8 rounded-lg border border-[#E8E0CC] flex items-center justify-center text-[#6B7A99] hover:text-[#002B7F] hover:bg-slate-50 transition" title="Configurar cuenta o registrar nueva">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      </button>
     </div>
   </header>
 
@@ -667,6 +658,18 @@
 
         <div class="text-[11px] text-[#6B7A99] pt-1">
           ¿Ya tienes cuenta? <button onclick="promptExistingMerchantId()" class="text-[#002B7F] font-semibold underline">Ingresar código de comercio</button>
+        </div>
+
+        <div class="pt-3 border-t border-[#F1EFE8] text-[11px] text-[#6B7A99]">
+          <span class="block mb-1.5 font-medium">¿Estás evaluando el sistema?</span>
+          <div class="flex items-center justify-center gap-2">
+            <button onclick="switchTenant('01JBAVWE4NS5TGXHWGMX3KH23Q'); closeOnboardingModal();" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold transition">
+              🌮 Probar Taquería
+            </button>
+            <button onclick="switchTenant('01JBAVSKINLAB0000000000000'); closeOnboardingModal();" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold transition">
+              🌊 Probar SkinLab
+            </button>
+          </div>
         </div>
       </div>
 
