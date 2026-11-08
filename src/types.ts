@@ -2,6 +2,8 @@ export interface Env {
   DB: D1Database;
   KV: KVNamespace;
   R2?: R2Bucket;
+  // Workers AI
+  AI?: { run: (model: string, input: any) => Promise<any> };
   PEY_API_URL: string;
   PEY_API_KEY?: string;
   PEY_WEBHOOK_SECRET?: string;

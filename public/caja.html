@@ -602,6 +602,10 @@
         </div>
       </div>
 
+      <div id="ai-close-summary" class="hidden bg-[#F8FAFC] border border-[#E8E0CC] rounded-[16px] p-4 text-left text-[12px] text-[#121A2E] whitespace-pre-wrap max-h-40 overflow-auto"></div>
+      <button onclick="generateAICloseSummary()" class="w-full h-12 rounded-[16px] border border-[#002B7F] text-[#002B7F] font-bold text-[14px]">
+        ✨ Resumen IA del corte
+      </button>
       <button onclick="confirmCloseDay()" class="w-full h-14 rounded-[16px] btn-navy-primary font-bold text-[16px]">
         Aceptar y nuevo turno
       </button>
@@ -1805,6 +1809,25 @@
           <span class="cash-payment-badge">${item.status}</span>
         </div>
       `).join('');
+    }
+
+    async function generateAICloseSummary() {
+      const mId = currentMerchantId || '01JBAVWE4NS5TGXHWGMX3KH23Q';
+      const box = document.getElementById('ai-close-summary');
+      box.classList.remove('hidden');
+      box.textContent = 'Generando resumen IA...';
+      try {
+        const res = await fetch('/api/ai/close-summary', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ merchantId: mId })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error?.message || 'Error IA');
+        box.textContent = data.summary || 'Sin resumen.';
+      } catch (err) {
+        box.textContent = 'No se pudo generar el resumen: ' + (err?.message || err);
+      }
     }
 
     function openCloseDayModal() {

@@ -28,6 +28,10 @@ id = "2d95ac6f8ad94667a59d32dcbd5cae41"
 binding = "R2"
 bucket_name = "ark-cash-invoices"
 
+# Workers AI (inferencia en el edge)
+[ai]
+binding = "AI"
+
 # Variables de entorno públicas
 [vars]
 PEY_API_URL = "https://api.pey.mx"

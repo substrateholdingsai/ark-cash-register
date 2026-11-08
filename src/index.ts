@@ -10,6 +10,7 @@ import { internalRouter } from './routes/internal';
 import { authRouter } from './routes/auth';
 import { complianceRouter } from './routes/compliance';
 import { invoiceRouter } from './routes/invoices';
+import { aiRouter } from './routes/ai';
 import { generateUlid } from './utils/ulid';
 import { runBackup } from './services/backup';
 
@@ -48,8 +49,9 @@ app.get('/api/health', (c) => {
       kv: Boolean(c.env.KV),
       peyApiConfigured: Boolean(c.env.PEY_API_KEY),
       authConfigured: Boolean(c.env.AUTH_JWT_SECRET),
-      resendConfigured: Boolean(c.env.RESEND_API_KEY)
-    }
+       resendConfigured: Boolean(c.env.RESEND_API_KEY),
+       aiConfigured: Boolean(c.env.AI)
+     }
   });
 });
 
@@ -75,6 +77,7 @@ app.route('/api/merchant', merchantRouter);
 app.route('/api/auth', authRouter);
 app.route('/api', complianceRouter);
 app.route('/api', invoiceRouter);
+app.route('/api/ai', aiRouter);
 app.route('/webhooks', webhookRouter);
 
 // Conector Interno StayPuft (/api/internal/*)
