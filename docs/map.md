@@ -621,7 +621,7 @@ docs/auth-plan.md, docs/compliance-plan.md, docs/dr-plan.md, docs/dpo.md, docs/d
    - Tolerancia a duplicados (HTTP 200 `{ received: true, duplicate: true }`) y reintentos automáticos con HTTP 500 ante fallas transitorias de base de datos.
 
 ### 15.2. Verificación y Auditoría en Vivo
-- **Suite de Pruebas:** 50/50 tests pasando al 100% (`internal.test.ts` 14, `auth.test.ts` 15, `ai.test.ts` 3, `p0_auth_pagination_idempotency.test.ts` 18).
+- **Suite de Pruebas:** 60/60 tests pasando al 100% (`internal.test.ts` 14, `auth.test.ts` 15, `ai.test.ts` 3, `p0_auth_pagination_idempotency.test.ts` 18).
 - **TypeScript:** `tsc --noEmit` con 0 errores.
 - **Diagnóstico en Vivo (`https://caja.arksystems.site/api/health`):**
   - `status: "ok"`
@@ -630,3 +630,29 @@ docs/auth-plan.md, docs/compliance-plan.md, docs/dr-plan.md, docs/dpo.md, docs/d
   - `peyApiConfigured: true`
   - `authConfigured: true`
   - `aiConfigured: true`
+
+
+---
+
+## 16. Storefront del Cliente — Catálogo Dinámico, Carrito y Checkout CoDi/WhatsApp
+
+**Fecha:** 2026-11-08  
+**Aprobación:** Pablo y StayPuft  
+**Ruta:** `/tienda` (acepta `?m=MERCHANT_ID` y alias `?m=taqueria` / `?m=skinlab`)  
+**Archivos:** `public/tienda.html`, `src/data/catalogs.ts`, `tests/storefront.test.ts`  
+
+### 16.1. Funcionalidades Entregadas
+1. **Catálogo Aislado y Dinámico:**
+   - Consumo vía API en `/api/merchant/:id/catalog` (sin hardcodear en HTML).
+   - Aislamiento estricto por `merchant_id`: Taquería El Güero (`01JBAVWE4NS5TGXHWGMX3KH23Q`) y SkinLab Clothing (`01JBAVSKINLAB0000000000000`).
+   - Carrito aislado en `localStorage` (`ark_cart_${merchantId}`).
+2. **Checkout CoDi® Banxico Dinámico:**
+   - QR negro puro sobre blanco (`#000000` sobre `#ffffff`), nivel de corrección H (`QRCode.CorrectLevel.H`) y zona tranquila de 18px.
+   - Temporizador de 10 minutos (600s) sincronizado con el parámetro `expiration: 600` de Banxico.
+   - Polling de estado contra `/api/payment/codi/status/:id` protegido por identificador ULID de alta entropía.
+   - Estados visuales: Cargando QR, Esperando Pago, Pago Confirmado, Pago Expirado y Error.
+3. **Checkout WhatsApp:**
+   - Mensaje prellenado con desglose del pedido (productos, cantidades, variantes/tallas, subtotal y total).
+   - Incluye nombre del cliente y notas opcionales. Sin crear cobros ni pagos en D1.
+4. **Pruebas Automatizadas:**
+   - 10 tests unitarios en `tests/storefront.test.ts` (60 tests en total en la suite completa, 100% verde).
