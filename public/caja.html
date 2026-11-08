@@ -849,8 +849,8 @@
       const btnStore = document.getElementById('btn-open-store');
       const isSkinLab = currentMerchantId === '01JBAVSKINLAB0000000000000';
 
-      if (btnStore) {
-        btnStore.href = `/tienda?m=${isSkinLab ? 'skinlab' : 'taqueria'}`;
+      if (btnStore && currentMerchantId) {
+        btnStore.href = `/tienda?m=${encodeURIComponent(currentMerchantId)}`;
       }
 
       if (!btnTq || !btnSl) return;
