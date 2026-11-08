@@ -33,6 +33,9 @@ codiRouter.post('/qr', async (c) => {
   };
 
   const client = new PeyClient(c.env.PEY_API_URL, c.env.PEY_API_KEY);
+  // Si el comercio fue registrado en Pey, su merchantId es el bankAccountId en Pey.
+  // Si no se especifica o es el comercio seed de prueba, se omite para usar la cuenta default de la API Key.
+  const targetBankAccountId = body.bankAccountId || (merchantId !== '01JBAVWE4NS5TGXHWGMX3KH23Q' ? merchantId : undefined);
 
   try {
     const peyRes = await client.createCodiQr({
@@ -40,7 +43,7 @@ codiRouter.post('/qr', async (c) => {
       concept,
       expiration,
       numRef,
-      bankAccountId: body.bankAccountId,
+      bankAccountId: targetBankAccountId,
       metadata
     });
 
@@ -190,13 +193,16 @@ codiRouter.post('/pn', async (c) => {
   }
 
   const client = new PeyClient(c.env.PEY_API_URL, c.env.PEY_API_KEY);
+  const merchantId = body.merchantId || c.req.query('merchantId');
+  const targetBankAccountId = body.bankAccountId || (merchantId && merchantId !== '01JBAVWE4NS5TGXHWGMX3KH23Q' ? merchantId : undefined);
+
   try {
     const res = await client.createCodiPn({
       amount,
       phoneNumber,
       concept: body.concept || 'Cobro CoDi Móvil',
       numRef: body.numRef,
-      bankAccountId: body.bankAccountId
+      bankAccountId: targetBankAccountId
     });
 
     return c.json({
