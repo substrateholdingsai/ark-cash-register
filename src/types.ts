@@ -1,6 +1,7 @@
 export interface Env {
   DB: D1Database;
   KV: KVNamespace;
+  R2?: R2Bucket;
   PEY_API_URL: string;
   PEY_API_KEY?: string;
   PEY_WEBHOOK_SECRET?: string;
@@ -8,7 +9,23 @@ export interface Env {
   ENVIRONMENT?: string;
   APP_NAME?: string;
   APP_VERSION?: string;
-}
+    // Auth soberano
+    AUTH_JWT_SECRET?: string;
+    AUTH_JWT_SECRET_PREV?: string;
+    AUTH_COOKIE_DOMAIN?: string;
+    RESEND_API_KEY?: string;
+    RESEND_FROM_EMAIL?: string;
+    APP_BASE_URL?: string;
+    AUTH_MODE?: string;
+    PASSWORD_MIN_LENGTH?: string;
+    // Compliance
+    PRIVACY_NOTICE_VERSION?: string;
+    TERMS_VERSION?: string;
+    DATA_RETENTION_DAYS?: string;
+    // Facturación (Facturapi)
+    FACTURAPI_API_KEY?: string;
+    FACTURAPI_BASE_URL?: string;
+  }
 
 export type CodiStatus = 'PENDING' | 'PROCESSING' | 'ACTIVE' | 'ERROR';
 export type PaymentStatus = 'WAITING' | 'PAID' | 'EXPIRED' | 'CANCELLED';

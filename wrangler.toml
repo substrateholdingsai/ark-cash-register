@@ -23,13 +23,29 @@ database_id = "0d7fdfd5-8544-401b-9f28-2df47c91dd06"
 binding = "KV"
 id = "2d95ac6f8ad94667a59d32dcbd5cae41"
 
+# R2 para XML de facturas (CFDI) y backups
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "ark-cash-invoices"
+
 # Variables de entorno públicas
 [vars]
 PEY_API_URL = "https://api.pey.mx"
 ENVIRONMENT = "production"
 APP_NAME = "Ark-cajaregistradora"
 APP_VERSION = "2.0.0"
+APP_BASE_URL = "https://caja.arksystems.site"
+RESEND_FROM_EMAIL = "Ark Cash Register <noreply@arksystems.site>"
+AUTH_MODE = "full"
+PASSWORD_MIN_LENGTH = "12"
+PRIVACY_NOTICE_VERSION = "1.0"
+TERMS_VERSION = "1.0"
+FACTURAPI_BASE_URL = "https://www.facturapi.io/v2"
 
 # Secrets requeridos en producción vía wrangler secret put:
 # - PEY_API_KEY
 # - PEY_WEBHOOK_SECRET
+# - CAJA_STAYPUFT_API_KEY
+# - AUTH_JWT_SECRET
+# - RESEND_API_KEY
+# - FACTURAPI_API_KEY

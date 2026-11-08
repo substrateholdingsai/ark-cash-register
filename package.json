@@ -12,8 +12,8 @@
     "build": "tsc --noEmit",
     "test": "vitest run",
     "deploy": "wrangler deploy",
-    "d1:local": "wrangler d1 execute ark_caja_db --local --file=./migrations/0001_initial_schema.sql",
-    "d1:remote": "wrangler d1 execute ark_caja_db --remote --file=./migrations/0001_initial_schema.sql"
+    "d1:local": "wrangler d1 execute ark_caja_db --local --file=./migrations/0001_initial_schema.sql && wrangler d1 execute ark_caja_db --local --file=./migrations/0002_operator_audit_and_closes.sql && wrangler d1 execute ark_caja_db --local --file=./migrations/0003_auth.sql && wrangler d1 execute ark_caja_db --local --file=./migrations/0004_compliance.sql && wrangler d1 execute ark_caja_db --local --file=./migrations/0005_mfa.sql && wrangler d1 execute ark_caja_db --local --file=./migrations/0006_invoices.sql",
+    "d1:remote": "wrangler d1 execute ark_caja_db --remote --file=./migrations/0001_initial_schema.sql && wrangler d1 execute ark_caja_db --remote --file=./migrations/0002_operator_audit_and_closes.sql && wrangler d1 execute ark_caja_db --remote --file=./migrations/0003_auth.sql && wrangler d1 execute ark_caja_db --remote --file=./migrations/0004_compliance.sql && wrangler d1 execute ark_caja_db --remote --file=./migrations/0005_mfa.sql && wrangler d1 execute ark_caja_db --remote --file=./migrations/0006_invoices.sql"
   },
   "keywords": [],
   "author": "",

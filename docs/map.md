@@ -1,10 +1,10 @@
-# 🗺️ MAPA DEL PROYECTO — ARK CASH REGISTER (v2.0)
+﻿# ðŸ—ºï¸ MAPA DEL PROYECTO â€” ARK CASH REGISTER (v2.0)
 
 **Producto:** Ark-cajaregistradora (`pey-worker`)  
 **Ecosistema:** ARK Systems (Substrate Holdings LLC)  
-**Integración Bancaria:** Pey CoDi API (OpenAPI v2026-10-20 / Banxico)  
+**IntegraciÃ³n Bancaria:** Pey CoDi API (OpenAPI v2026-10-20 / Banxico)  
 **Infraestructura:** Cloudflare Workers + D1 Database + KV Cache + PWA  
-**Última actualización:** Noviembre 2026  
+**Ãšltima actualizaciÃ³n:** Noviembre 2026  
 
 ---
 
@@ -12,51 +12,51 @@
 
 ```
 ark-cash-register/
-├── docs/
-│   ├── ark-cash-register.md     # Documento maestro (22 secciones de diseño y técnica)
-│   └── map.md                   # Este documento: mapa integral y checklist de pendientes
-├── migrations/
-│   ├── 0001_initial_schema.sql  # Esquema D1 SQLite: merchants, payments, ledger_entries, webhook_events
-│   └── 0002_operator_audit_and_closes.sql # Auditoría operador (StayPuft) y tabla daily_closes
-├── public/                      # Assets servidos desde el Edge (PWA Frontend)
-│   ├── index.html               # UI autocontenida: Mostrador (A), QR CoDi (B), Link Remoto (C), Corte de Día
-│   ├── sw.js                    # Service Worker para caché offline
-│   ├── favicon.svg              # Ícono oficial de la caja registradora
-│   └── logo.svg                 # Branding institucional ARK Caja Registradora
-├── src/                         # Código fuente del Cloudflare Worker (TypeScript)
-│   ├── index.ts                 # Router principal Hono, CORS, logger, healthcheck y dispatch
-│   ├── types.ts                 # Tipos TypeScript sincronizados con OpenAPI Pey v2026-10-20
-│   ├── middleware/
-│   │   └── staypuftAuth.ts      # Auth fail-closed con X-StayPuft-Key y log inmutable en operator_audit_log
-│   ├── routes/
-│   │   ├── codi.ts              # Endpoints CoDi QR (/api/codi/qr) y Push Notification (/api/codi/pn)
-│   │   ├── paymentLink.ts       # Endpoints Cobro Remoto (/api/payment-link)
-│   │   ├── merchant.ts          # Registro de CLABE, status Banxico, lista de pagos y corte de caja
-│   │   ├── webhooks.ts          # Receptor /webhooks/pey con validación HMAC-SHA256 y anti-replay
-│   │   └── internal.ts          # Conector Interno StayPuft (/api/internal/*) solo lectura y diagnóstico
-│   ├── services/
-│   │   └── peyClient.ts         # Cliente HTTP tipado contra api.pey.mx con retry exponencial y mock local
-│   └── utils/
-│       └── ulid.ts              # Generador ULID criptográfico Crockford Base32
-├── tests/
-│   └── internal.test.ts         # Suite de pruebas unitarias Vitest (Auth, Cuotas, Enmascaramiento, HMAC)
-├── forge_pey.py                 # Generador Python de assets SVG institucionales
-├── package.json                 # Configuración de dependencias (Hono, Wrangler, TypeScript)
-├── tsconfig.json                # Configuración de compilación TS para Worker runtime
-└── wrangler.toml                # Configuración de Cloudflare Workers, bindings D1, KV y variables
+â”œâ”€â”€ docs/
+â”‚   â”œâ”€â”€ ark-cash-register.md     # Documento maestro (22 secciones de diseÃ±o y tÃ©cnica)
+â”‚   â””â”€â”€ map.md                   # Este documento: mapa integral y checklist de pendientes
+â”œâ”€â”€ migrations/
+â”‚   â”œâ”€â”€ 0001_initial_schema.sql  # Esquema D1 SQLite: merchants, payments, ledger_entries, webhook_events
+â”‚   â””â”€â”€ 0002_operator_audit_and_closes.sql # AuditorÃ­a operador (StayPuft) y tabla daily_closes
+â”œâ”€â”€ public/                      # Assets servidos desde el Edge (PWA Frontend)
+â”‚   â”œâ”€â”€ index.html               # UI autocontenida: Mostrador (A), QR CoDi (B), Link Remoto (C), Corte de DÃ­a
+â”‚   â”œâ”€â”€ sw.js                    # Service Worker para cachÃ© offline
+â”‚   â”œâ”€â”€ favicon.svg              # Ãcono oficial de la caja registradora
+â”‚   â””â”€â”€ logo.svg                 # Branding institucional ARK Caja Registradora
+â”œâ”€â”€ src/                         # CÃ³digo fuente del Cloudflare Worker (TypeScript)
+â”‚   â”œâ”€â”€ index.ts                 # Router principal Hono, CORS, logger, healthcheck y dispatch
+â”‚   â”œâ”€â”€ types.ts                 # Tipos TypeScript sincronizados con OpenAPI Pey v2026-10-20
+â”‚   â”œâ”€â”€ middleware/
+â”‚   â”‚   â””â”€â”€ staypuftAuth.ts      # Auth fail-closed con X-StayPuft-Key y log inmutable en operator_audit_log
+â”‚   â”œâ”€â”€ routes/
+â”‚   â”‚   â”œâ”€â”€ codi.ts              # Endpoints CoDi QR (/api/codi/qr) y Push Notification (/api/codi/pn)
+â”‚   â”‚   â”œâ”€â”€ paymentLink.ts       # Endpoints Cobro Remoto (/api/payment-link)
+â”‚   â”‚   â”œâ”€â”€ merchant.ts          # Registro de CLABE, status Banxico, lista de pagos y corte de caja
+â”‚   â”‚   â”œâ”€â”€ webhooks.ts          # Receptor /webhooks/pey con validaciÃ³n HMAC-SHA256 y anti-replay
+â”‚   â”‚   â””â”€â”€ internal.ts          # Conector Interno StayPuft (/api/internal/*) solo lectura y diagnÃ³stico
+â”‚   â”œâ”€â”€ services/
+â”‚   â”‚   â””â”€â”€ peyClient.ts         # Cliente HTTP tipado contra api.pey.mx con retry exponencial y mock local
+â”‚   â””â”€â”€ utils/
+â”‚       â””â”€â”€ ulid.ts              # Generador ULID criptogrÃ¡fico Crockford Base32
+â”œâ”€â”€ tests/
+â”‚   â””â”€â”€ internal.test.ts         # Suite de pruebas unitarias Vitest (Auth, Cuotas, Enmascaramiento, HMAC)
+â”œâ”€â”€ forge_pey.py                 # Generador Python de assets SVG institucionales
+â”œâ”€â”€ package.json                 # ConfiguraciÃ³n de dependencias (Hono, Wrangler, TypeScript)
+â”œâ”€â”€ tsconfig.json                # ConfiguraciÃ³n de compilaciÃ³n TS para Worker runtime
+â””â”€â”€ wrangler.toml                # ConfiguraciÃ³n de Cloudflare Workers, bindings D1, KV y variables
 ```
 
 ---
 
-## 2. Mapa de Integración y Flujo de Datos
+## 2. Mapa de IntegraciÃ³n y Flujo de Datos
 
 ```mermaid
 flowchart TD
     subgraph FRONTEND["Frontend PWA (Edge Assets)"]
-        UI_A["Pantalla A: El Mostrador\n(Lista de hoy, Cobrar aquí, Cobrar a distancia)"]
-        UI_B["Pantalla B: Cobrar aquí\n(Teclado Orbitron 72px + QR client-side qrcode.js)"]
+        UI_A["Pantalla A: El Mostrador\n(Lista de hoy, Cobrar aquÃ­, Cobrar a distancia)"]
+        UI_B["Pantalla B: Cobrar aquÃ­\n(Teclado Orbitron 72px + QR client-side qrcode.js)"]
         UI_C["Pantalla C: Cobro a distancia\n(Link remoto + Copiar + WhatsApp)"]
-        UI_CUT["Modal: Corte del Día\n(Playfair 900 ceremonial)"]
+        UI_CUT["Modal: Corte del DÃ­a\n(Playfair 900 ceremonial)"]
     end
 
     subgraph WORKER["Cloudflare Worker (pey-worker)"]
@@ -65,7 +65,7 @@ flowchart TD
         LINK_API["Ruta Link (/api/payment-link)"]
         POLL_API["Polling (/api/payment/:id)"]
         WH_API["Webhooks (/webhooks/pey)"]
-        CLIENT["PeyClient (Retry + Sanitización)"]
+        CLIENT["PeyClient (Retry + SanitizaciÃ³n)"]
     end
 
     subgraph STORAGE["Cloudflare Storage"]
@@ -80,9 +80,9 @@ flowchart TD
     end
 
     subgraph ARK_ECOSYSTEM["Ecosistema ARK (Compliance)"]
-        ARK_LEDGER["ARK Ledger\n(Pólizas contables en ledger_entries)"]
-        ARK_CONTAGRAM["Contagram\n(CFDI Global al corte del día)"]
-        ARK_ARKANGEL["Arkangel\n(Gestión de cobranza)"]
+        ARK_LEDGER["ARK Ledger\n(PÃ³lizas contables en ledger_entries)"]
+        ARK_CONTAGRAM["Contagram\n(CFDI Global al corte del dÃ­a)"]
+        ARK_ARKANGEL["Arkangel\n(GestiÃ³n de cobranza)"]
     end
 
     UI_B -->|1. POST /api/codi/qr| CODI_API
@@ -110,19 +110,19 @@ flowchart TD
 
 ## 3. Matriz de Endpoints y Mapeo Pey
 
-| Endpoint Worker | Método | Destino Pey | Propósito | Estado |
+| Endpoint Worker | MÃ©todo | Destino Pey | PropÃ³sito | Estado |
 |---|---|---|---|:---:|
-| `/api/health` | `GET` | Local / Worker | Diagnóstico de bindings D1 y KV | ✅ Listo |
-| `/api/codi/qr` | `POST` | `/codi/qr` | Genera QR CoDi con `generateImage: false` | ✅ Listo |
-| `/api/codi/pn` | `POST` | `/codi/pn` | Envía Push Notification a celular (10 dígitos) | ✅ Listo |
-| `/api/payment/codi/:id` | `GET` | `/transaction/codi/qr/:id` | Polling dual de estado de QR | ✅ Listo |
-| `/api/payment-link` | `POST` | `/payment-link/create` | Crea enlace para cobro remoto | ✅ Listo |
-| `/api/payment/link/:id` | `GET` | `/payment-link/:id` | Polling de estado de enlace remoto | ✅ Listo |
-| `/api/merchant/register` | `POST` | `/bank-account` | Onboarding de cuenta CLABE (Banxico) | ✅ Listo |
-| `/api/merchant/:id` | `GET` | `/bank-account/:id` | Consulta estado CoDi (`PENDING` / `ACTIVE`) | ✅ Listo |
-| `/api/merchant/:id/payments` | `GET` | D1 Local | Historial de pagos para el mostrador | ✅ Listo |
-| `/api/merchant/:id/close-day` | `POST` | D1 Local | Corte de caja ceremonial del turno | ✅ Listo |
-| `/webhooks/pey` | `POST` | Webhook Receptor | Ingesta de `payment.confirmed` con HMAC | ✅ Listo |
+| `/api/health` | `GET` | Local / Worker | DiagnÃ³stico de bindings D1 y KV | âœ… Listo |
+| `/api/codi/qr` | `POST` | `/codi/qr` | Genera QR CoDi con `generateImage: false` | âœ… Listo |
+| `/api/codi/pn` | `POST` | `/codi/pn` | EnvÃ­a Push Notification a celular (10 dÃ­gitos) | âœ… Listo |
+| `/api/payment/codi/:id` | `GET` | `/transaction/codi/qr/:id` | Polling dual de estado de QR | âœ… Listo |
+| `/api/payment-link` | `POST` | `/payment-link/create` | Crea enlace para cobro remoto | âœ… Listo |
+| `/api/payment/link/:id` | `GET` | `/payment-link/:id` | Polling de estado de enlace remoto | âœ… Listo |
+| `/api/merchant/register` | `POST` | `/bank-account` | Onboarding de cuenta CLABE (Banxico) | âœ… Listo |
+| `/api/merchant/:id` | `GET` | `/bank-account/:id` | Consulta estado CoDi (`PENDING` / `ACTIVE`) | âœ… Listo |
+| `/api/merchant/:id/payments` | `GET` | D1 Local | Historial de pagos para el mostrador | âœ… Listo |
+| `/api/merchant/:id/close-day` | `POST` | D1 Local | Corte de caja ceremonial del turno | âœ… Listo |
+| `/webhooks/pey` | `POST` | Webhook Receptor | Ingesta de `payment.confirmed` con HMAC | âœ… Listo |
 
 ---
 
@@ -130,39 +130,39 @@ flowchart TD
 
 - [x] **Documento enriquecido oficial:** `docs/ark-cash-register.md` con las 22 secciones.
 - [x] **Proyecto Wrangler inicializado:** `wrangler.toml`, `package.json`, `tsconfig.json`.
-- [x] **Esquema de base de datos D1:** Migración `0001_initial_schema.sql` ejecutada localmente con tablas `merchants`, `payments`, `ledger_entries` y `webhook_events`.
-- [x] **Cliente Pey HTTP tipado:** `PeyClient` con soporte completo OpenAPI v2026-10-20, retry con backoff exponencial, sanitización de metadata y simulador de desarrollo local.
+- [x] **Esquema de base de datos D1:** MigraciÃ³n `0001_initial_schema.sql` ejecutada localmente con tablas `merchants`, `payments`, `ledger_entries` y `webhook_events`.
+- [x] **Cliente Pey HTTP tipado:** `PeyClient` con soporte completo OpenAPI v2026-10-20, retry con backoff exponencial, sanitizaciÃ³n de metadata y simulador de desarrollo local.
 - [x] **Controladores del Worker:**
   - [x] Endpoints CoDi QR con almacenamiento local de IDCs y folios.
   - [x] Endpoints de Payment Links remotos.
-  - [x] Receptor de webhooks con verificación de firma HMAC-SHA256 (`crypto.subtle`) y anti-replay.
-  - [x] Integración con Ledger contable automático al confirmar pago.
+  - [x] Receptor de webhooks con verificaciÃ³n de firma HMAC-SHA256 (`crypto.subtle`) y anti-replay.
+  - [x] IntegraciÃ³n con Ledger contable automÃ¡tico al confirmar pago.
 - [x] **Frontend PWA de Mostrador:**
   - [x] Cumplimiento estricto de paleta (`--navy`, `--gold`, `--paid`, `--waiting`, `--expired`).
-  - [x] Tipografía `Orbitron 700` para montos, `Inter` para texto, `Playfair Display 900` para corte del día.
-  - [x] Teclado numérico táctil de 72px de altura mínima.
+  - [x] TipografÃ­a `Orbitron 700` para montos, `Inter` para texto, `Playfair Display 900` para corte del dÃ­a.
+  - [x] Teclado numÃ©rico tÃ¡ctil de 72px de altura mÃ­nima.
   - [x] Renderizado de QR client-side con `qrcode.js` desde `qrString`.
-  - [x] Countdown timer de 600 segundos con spinner ámbar.
-  - [x] Feedback sonoro (Web Audio API synth) y háptico (`navigator.vibrate`).
+  - [x] Countdown timer de 600 segundos con spinner Ã¡mbar.
+  - [x] Feedback sonoro (Web Audio API synth) y hÃ¡ptico (`navigator.vibrate`).
   - [x] Botones de "Copiar link" y "Compartir por WhatsApp" en cobro a distancia.
-  - [x] Modal de corte del día.
-  - [x] Service worker `public/sw.js` para caching estático.
+  - [x] Modal de corte del dÃ­a.
+  - [x] Service worker `public/sw.js` para caching estÃ¡tico.
 - [x] **Assets visuales:** `public/favicon.svg` y `public/logo.svg` creados con `forge_pey.py`.
 
 ---
 
 ## 5. Checklist de Faltantes y Siguientes Pasos (Roadmap)
 
-### Fase A — Despliegue y Conexión Cloudflare (Inmediato)
-- [ ] **Crear base de datos D1 en Cloudflare Producción:**
+### Fase A â€” Despliegue y ConexiÃ³n Cloudflare (Inmediato)
+- [ ] **Crear base de datos D1 en Cloudflare ProducciÃ³n:**
   - Comando: `npx wrangler d1 create ark_caja_db`
   - Vincular el `database_id` real generado en `wrangler.toml`.
-- [ ] **Crear KV Namespace en Cloudflare Producción:**
+- [ ] **Crear KV Namespace en Cloudflare ProducciÃ³n:**
   - Comando: `npx wrangler kv namespace create ark-caja-kv-cache`
   - Vincular el `id` en `wrangler.toml`.
-- [ ] **Aplicar migraciones D1 en producción:**
+- [ ] **Aplicar migraciones D1 en producciÃ³n:**
   - Comando: `npm run d1:remote`
-- [ ] **Configurar Secretos de Producción en Cloudflare:**
+- [ ] **Configurar Secretos de ProducciÃ³n en Cloudflare:**
   - `npx wrangler secret put PEY_API_KEY` (Key real proporcionada por Pey)
   - `npx wrangler secret put PEY_WEBHOOK_SECRET` (Secreto HMAC configurado en el dashboard de Pey)
 - [ ] **Despliegue inicial a Cloudflare:**
@@ -171,80 +171,80 @@ flowchart TD
 
 ---
 
-### Fase B — Certificación y Pruebas Reales con Pey (24 - 48h)
+### Fase B â€” CertificaciÃ³n y Pruebas Reales con Pey (24 - 48h)
 - [ ] **Configurar URL de Webhook en Dashboard de Pey:**
   - Apuntar a `https://<tu-worker>.workers.dev/webhooks/pey`
   - Seleccionar eventos: `payment.confirmed` y `bank-account.updated`.
-- [ ] **Prueba de cobro real de micro-monto en producción ($0.01 o $1.00 MXN):**
-  - Abrir la caja desde un teléfono móvil.
+- [ ] **Prueba de cobro real de micro-monto en producciÃ³n ($0.01 o $1.00 MXN):**
+  - Abrir la caja desde un telÃ©fono mÃ³vil.
   - Generar QR por $1.00 MXN.
-  - Escanear con una app bancaria mexicana real (BBVA, Banorte, Santander, Hey Banco, Mercado Pago, etc.) vía sección CoDi.
-  - Validar recepción del webhook y disparo inmediato de pantalla "¡Pagado!" + chime sonoro.
+  - Escanear con una app bancaria mexicana real (BBVA, Banorte, Santander, Hey Banco, Mercado Pago, etc.) vÃ­a secciÃ³n CoDi.
+  - Validar recepciÃ³n del webhook y disparo inmediato de pantalla "Â¡Pagado!" + chime sonoro.
 - [ ] **Prueba de cobro a distancia por WhatsApp:**
   - Generar link remoto por $1.00 MXN.
   - Pagar mediante tarjeta o CoDi en el checkout oficial de Pey.
-  - Validar que el polling detecte la acreditación.
+  - Validar que el polling detecte la acreditaciÃ³n.
 
 ---
 
-### Fase C — Resiliencia Offline Completa (Frontend)
-- [ ] **Implementación de IndexedDB en cliente (`public/index.html`):**
-  - Crear almacén `offline_sales_queue` en IndexedDB para registrar ventas cuando `navigator.onLine === false`.
-  - Mecanismo de sincronización automática en evento `window.addEventListener('online', syncQueue)`.
-  - Badge visual dinámico en el header: alternar entre `🟢 CoDi activo` y `🟡 Modo Offline (Ventas en cola)`.
+### Fase C â€” Resiliencia Offline Completa (Frontend)
+- [ ] **ImplementaciÃ³n de IndexedDB en cliente (`public/index.html`):**
+  - Crear almacÃ©n `offline_sales_queue` en IndexedDB para registrar ventas cuando `navigator.onLine === false`.
+  - Mecanismo de sincronizaciÃ³n automÃ¡tica en evento `window.addEventListener('online', syncQueue)`.
+  - Badge visual dinÃ¡mico en el header: alternar entre `ðŸŸ¢ CoDi activo` y `ðŸŸ¡ Modo Offline (Ventas en cola)`.
 
 ---
 
-### Fase D — Onboarding y Operación de Comercios
+### Fase D â€” Onboarding y OperaciÃ³n de Comercios
 - [ ] **Pantalla o Modal de Onboarding de Comercio:**
   - Formulario en UI para que un nuevo comerciante ingrese:
-    - Razón Social / Nombre legal
+    - RazÃ³n Social / Nombre legal
     - RFC con homoclave
-    - CLABE interbancaria (18 dígitos)
-    - Tipo de persona (Física / Moral)
-  - Envío a `POST /api/merchant/register` y visualización de estatus (`PENDING` ➔ `ACTIVE`).
-- [ ] **Exportación o Ticket del Corte de Caja:**
-  - Botón para compartir resumen del corte del día por WhatsApp al dueño del negocio.
-  - Opción de impresión térmica (formato ESC/POS o PDF de recibo de 58mm/80mm).
+    - CLABE interbancaria (18 dÃ­gitos)
+    - Tipo de persona (FÃ­sica / Moral)
+  - EnvÃ­o a `POST /api/merchant/register` y visualizaciÃ³n de estatus (`PENDING` âž” `ACTIVE`).
+- [ ] **ExportaciÃ³n o Ticket del Corte de Caja:**
+  - BotÃ³n para compartir resumen del corte del dÃ­a por WhatsApp al dueÃ±o del negocio.
+  - OpciÃ³n de impresiÃ³n tÃ©rmica (formato ESC/POS o PDF de recibo de 58mm/80mm).
 
 ---
 
-### Fase E — Integración Profunda con Ecosistema ARK
-- [ ] **Sincronización con ARK Ledger:**
+### Fase E â€” IntegraciÃ³n Profunda con Ecosistema ARK
+- [ ] **SincronizaciÃ³n con ARK Ledger:**
   - Enviar asiento contable mediante webhook/API interna a la contabilidad general de Ledger.
-- [ ] **Sincronización con Contagram (CFDI):**
-  - Generar factura global del día ante el SAT a partir del endpoint `/api/merchant/:id/close-day`.
-- [ ] **Sincronización con Arkangel:**
-  - Si el pago incluye metadata `deudorId`, liquidar automáticamente la deuda en Arkangel Cobranza.
+- [ ] **SincronizaciÃ³n con Contagram (CFDI):**
+  - Generar factura global del dÃ­a ante el SAT a partir del endpoint `/api/merchant/:id/close-day`.
+- [ ] **SincronizaciÃ³n con Arkangel:**
+  - Si el pago incluye metadata `deudorId`, liquidar automÃ¡ticamente la deuda en Arkangel Cobranza.
 
 ---
 
 ## 6. Comandos Operativos de Referencia
 
-| Acción | Comando |
+| AcciÃ³n | Comando |
 |---|---|
 | **Iniciar servidor de desarrollo local** | `npm run dev` |
 | **Ejecutar migraciones en BD local D1** | `npm run d1:local` |
 | **Verificar tipos TypeScript** | `npm run build` |
 | **Ejecutar migraciones en Cloudflare remoto** | `npm run d1:remote` |
-| **Desplegar Worker a producción** | `npm run deploy` |
-| **Ver logs en tiempo real de producción** | `npx wrangler tail` |
+| **Desplegar Worker a producciÃ³n** | `npm run deploy` |
+| **Ver logs en tiempo real de producciÃ³n** | `npx wrangler tail` |
 | **Consultar registros de Ledger en D1 local** | `npx wrangler d1 execute ark_caja_db --local --command="SELECT * FROM ledger_entries"` |
 | **Consultar pagos registrados en D1 local** | `npx wrangler d1 execute ark_caja_db --local --command="SELECT id, amount, status FROM payments"` |
 | **Correr suite de tests Vitest** | `npm test` |
 
 ---
 
-## 7. Operador StayPuft (Conector Interno de Diagnóstico y Lectura)
+## 7. Operador StayPuft (Conector Interno de DiagnÃ³stico y Lectura)
 
-### 7.1. Propósito y Límites Operativos
+### 7.1. PropÃ³sito y LÃ­mites Operativos
 El conector `/api/internal/*` permite a StayPuft inspeccionar y diagnosticar la salud operativa de **Ark Cash Register** en vivo.
 - **Solo lectura (`GET` exclusivamente):** No crea cobros, no registra CLABEs, no mueve dinero y no altera estados de pagos.
-- **Fail-Closed:** Protegido por el header `X-StayPuft-Key`. Si la clave es errónea o está ausente, responde `401 Unauthorized`.
-- **Enmascaramiento de Datos Sensibles:** La CLABE interbancaria nunca se expone completa (solo los últimos 4 dígitos: `**************5678`). El RFC se enmascara parcialmente.
-- **Secretos Protegidos:** `PEY_API_KEY`, `PEY_WEBHOOK_SECRET` y `CAJA_STAYPUFT_API_KEY` jamás se devuelven en respuestas ni se escriben en logs.
-- **Protección de Cuotas D1:** Paginación obligatoria (máximo 100 registros por llamada, default 20). Si se solicita `limit > 100`, se rechaza con `400 Bad Request`.
-- **Auditoría Inmutable:** Cada llamada al conector queda asentada en la tabla `operator_audit_log` con endpoint, método, duración y código HTTP.
+- **Fail-Closed:** Protegido por el header `X-StayPuft-Key`. Si la clave es errÃ³nea o estÃ¡ ausente, responde `401 Unauthorized`.
+- **Enmascaramiento de Datos Sensibles:** La CLABE interbancaria nunca se expone completa (solo los Ãºltimos 4 dÃ­gitos: `**************5678`). El RFC se enmascara parcialmente.
+- **Secretos Protegidos:** `PEY_API_KEY`, `PEY_WEBHOOK_SECRET` y `CAJA_STAYPUFT_API_KEY` jamÃ¡s se devuelven en respuestas ni se escriben en logs.
+- **ProtecciÃ³n de Cuotas D1:** PaginaciÃ³n obligatoria (mÃ¡ximo 100 registros por llamada, default 20). Si se solicita `limit > 100`, se rechaza con `400 Bad Request`.
+- **AuditorÃ­a Inmutable:** Cada llamada al conector queda asentada en la tabla `operator_audit_log` con endpoint, mÃ©todo, duraciÃ³n y cÃ³digo HTTP.
 
 ---
 
@@ -253,7 +253,7 @@ El conector `/api/internal/*` permite a StayPuft inspeccionar y diagnosticar la 
 Para todas las llamadas, define la variable de entorno:
 ```bash
 export CAJA_STAYPUFT_API_KEY="tu_llave_interna_registrada_en_wrangler"
-export CAJA_HOST="http://127.0.0.1:8787" # O host de producción una vez desplegado
+export CAJA_HOST="http://127.0.0.1:8787" # O host de producciÃ³n una vez desplegado
 ```
 
 #### 1. Salud del Worker y alcanzabilidad Pey
@@ -299,8 +299,8 @@ curl -X GET "$CAJA_HOST/api/internal/merchants?limit=20&offset=0" \
   "merchants": [
     {
       "id": "01JBAVWE4NS5TGXHWGMX3KH23Q",
-      "alias": "Taquería El Güero",
-      "name": "Taquería El Güero S.A. de C.V.",
+      "alias": "TaquerÃ­a El GÃ¼ero",
+      "name": "TaquerÃ­a El GÃ¼ero S.A. de C.V.",
       "maskedClabe": "**************7899",
       "entity": "BUSINESS",
       "maskedTaxId": "XAX****000",
@@ -324,7 +324,7 @@ curl -X GET "$CAJA_HOST/api/internal/merchants/01JBAVWE4NS5TGXHWGMX3KH23Q" \
 curl -X GET "$CAJA_HOST/api/internal/payments?merchant_id=01JBAVWE4NS5TGXHWGMX3KH23Q&status=PAID&limit=20" \
   -H "X-StayPuft-Key: $CAJA_STAYPUFT_API_KEY"
 ```
-*Nota: No devuelve `qrString` para evitar congestión de payload.*
+*Nota: No devuelve `qrString` para evitar congestiÃ³n de payload.*
 
 #### 5. Detalle de Pago y Webhooks Relacionados
 ```bash
@@ -338,7 +338,7 @@ curl -X GET "$CAJA_HOST/api/internal/ledger?merchant_id=01JBAVWE4NS5TGXHWGMX3KH2
   -H "X-StayPuft-Key: $CAJA_STAYPUFT_API_KEY"
 ```
 
-#### 7. Registro de Webhooks de Pey (Auditoría)
+#### 7. Registro de Webhooks de Pey (AuditorÃ­a)
 ```bash
 curl -X GET "$CAJA_HOST/api/internal/webhooks?status=ok&limit=20" \
   -H "X-StayPuft-Key: $CAJA_STAYPUFT_API_KEY"
@@ -350,7 +350,7 @@ curl -X GET "$CAJA_HOST/api/internal/close-days?merchant_id=01JBAVWE4NS5TGXHWGMX
   -H "X-StayPuft-Key: $CAJA_STAYPUFT_API_KEY"
 ```
 
-#### 9. Métricas Globales del Operador
+#### 9. MÃ©tricas Globales del Operador
 ```bash
 curl -X GET "$CAJA_HOST/api/internal/metrics" \
   -H "X-StayPuft-Key: $CAJA_STAYPUFT_API_KEY"
@@ -358,7 +358,7 @@ curl -X GET "$CAJA_HOST/api/internal/metrics" \
 
 ---
 
-### 7.3. Cómo Probar el Flujo Completo con un Pago de Prueba en Local
+### 7.3. CÃ³mo Probar el Flujo Completo con un Pago de Prueba en Local
 
 1. **Asegurar la base de datos D1 local migrada:**
    ```bash
@@ -368,7 +368,7 @@ curl -X GET "$CAJA_HOST/api/internal/metrics" \
    ```bash
    npx wrangler dev --port 8787 --var CAJA_STAYPUFT_API_KEY:test_staypuft_key_caja_12345
    ```
-3. **Generar un cobro QR desde el endpoint público:**
+3. **Generar un cobro QR desde el endpoint pÃºblico:**
    ```bash
    curl -X POST http://127.0.0.1:8787/api/codi/qr \
      -H "Content-Type: application/json" \
@@ -382,7 +382,7 @@ curl -X GET "$CAJA_HOST/api/internal/metrics" \
      -H "X-StayPuft-Key: test_staypuft_key_caja_12345"
    ```
 
-5. **Simular confirmación vía Webhook:**
+5. **Simular confirmaciÃ³n vÃ­a Webhook:**
    ```bash
    curl -X POST http://127.0.0.1:8787/webhooks/pey \
      -H "Content-Type: application/json" \
@@ -395,32 +395,193 @@ curl -X GET "$CAJA_HOST/api/internal/metrics" \
    curl -X GET "http://127.0.0.1:8787/api/internal/payments?status=PAID" \
      -H "X-StayPuft-Key: test_staypuft_key_caja_12345"
 
-   # Ver póliza en ARK Ledger
+   # Ver pÃ³liza en ARK Ledger
    curl -X GET "http://127.0.0.1:8787/api/internal/ledger" \
      -H "X-StayPuft-Key: test_staypuft_key_caja_12345"
    ```
 
-7. **¿Qué hacer si falla?**
+7. **Â¿QuÃ© hacer si falla?**
    - **Error 401:** Verifica que el header `X-StayPuft-Key` coincida exactamente con la variable `CAJA_STAYPUFT_API_KEY`.
    - **Error 404 al consultar un merchant:** El ID solicitado no existe en la tabla `merchants`.
-   - **Error 400 en paginación:** El parámetro `limit` excede el tope de 100.
-   - **Consulta la tabla de auditoría:**
+   - **Error 400 en paginaciÃ³n:** El parÃ¡metro `limit` excede el tope de 100.
+   - **Consulta la tabla de auditorÃ­a:**
      `npx wrangler d1 execute ark_caja_db --local --command="SELECT * FROM operator_audit_log ORDER BY created_at DESC LIMIT 5"`
 
 ---
 
-### 7.4. Estado de Bloqueos para Verificación en Vivo
+### 7.4. Estado de Bloqueos para VerificaciÃ³n en Vivo
 
-| Fase | Tarea | Estado Actual | ¿Bloquea al Conector en Vivo? |
+| Fase | Tarea | Estado Actual | Â¿Bloquea al Conector en Vivo? |
 |---|---|:---:|:---:|
-| **Fase A** | Crear D1 `ark_caja_db` en Cloudflare Producción | ✅ Completada (`0d7fdfd5-8544-401b-9f28-2df47c91dd06`) | No |
-| **Fase A** | Crear KV `ark-caja-kv-cache` en Cloudflare Producción | ✅ Completada (`2d95ac6f8ad94667a59d32dcbd5cae41`) | No |
-| **Fase A** | Aplicar migraciones en remoto D1 (`0001` y `0002`) | ✅ Completada (6 tablas creadas) | No |
-| **Fase A** | Desplegar Worker y vincular `caja.arksystems.site` | ✅ Completada (En vivo y verificado) | No |
-| **Fase A** | Registrar secret `CAJA_STAYPUFT_API_KEY` en Cloudflare | ⏳ Pendiente (registro interactivo por Pablo) | Requiere valor seguro |
-| **Fase A** | Registrar secrets `PEY_API_KEY` y `PEY_WEBHOOK_SECRET` | ⏳ Pendiente (registro interactivo por Pablo) | Para cobros reales |
-| **Fase B** | Pruebas reales de $1.00 MXN con app bancaria | ⏳ Pendiente (operado solo por Pablo) | No para diagnóstico de lectura |
-| **Fase C** | IndexedDB Offline en frontend | ⏳ Pendiente | No para el conector |
-| **Fase D** | UI Onboarding y recibos térmicos | ⏳ Pendiente | No para el conector |
-| **Fase E** | Enlace webhook a Contagram / Arkangel | ⏳ Pendiente | No para el conector |
+| **Fase A** | Crear D1 `ark_caja_db` en Cloudflare ProducciÃ³n | âœ… Completada (`0d7fdfd5-8544-401b-9f28-2df47c91dd06`) | No |
+| **Fase A** | Crear KV `ark-caja-kv-cache` en Cloudflare ProducciÃ³n | âœ… Completada (`2d95ac6f8ad94667a59d32dcbd5cae41`) | No |
+| **Fase A** | Aplicar migraciones en remoto D1 (`0001` y `0002`) | âœ… Completada (6 tablas creadas) | No |
+| **Fase A** | Desplegar Worker y vincular `caja.arksystems.site` | âœ… Completada (En vivo y verificado) | No |
+| **Fase A** | Registrar secret `CAJA_STAYPUFT_API_KEY` en Cloudflare | â³ Pendiente (registro interactivo por Pablo) | Requiere valor seguro |
+| **Fase A** | Registrar secrets `PEY_API_KEY` y `PEY_WEBHOOK_SECRET` | â³ Pendiente (registro interactivo por Pablo) | Para cobros reales |
+| **Fase B** | Pruebas reales de $1.00 MXN con app bancaria | â³ Pendiente (operado solo por Pablo) | No para diagnÃ³stico de lectura |
+| **Fase C** | IndexedDB Offline en frontend | â³ Pendiente | No para el conector |
+| **Fase D** | UI Onboarding y recibos tÃ©rmicos | â³ Pendiente | No para el conector |
+| **Fase E** | Enlace webhook a Contagram / Arkangel | â³ Pendiente | No para el conector |
 
+
+
+---
+
+## 8. Auth Soberano (Implementado)
+
+### 8.1. Archivos nuevos
+- migrations/0003_auth.sql — tablas users, uth_sessions, email_verification_tokens, password_reset_tokens, uth_rate_limits, uth_audit_log.
+- src/utils/crypto.ts — PBKDF2 (100k iter), JWT HS256, tokens opacos, comparación constante, rotación de secretos.
+- src/utils/rateLimit.ts — sliding window en KV.
+- src/services/resendClient.ts — cliente REST Resend + plantillas de email (verificación y reset).
+- src/middleware/auth.ts — 
+equireAuth, 
+equireRole, optionalAuth.
+- src/routes/auth.ts — router /api/auth/*.
+- 	ests/auth.test.ts — suite Vitest (25 tests).
+- public/verify-email.html, public/reset-password.html.
+
+### 8.2. Endpoints
+| Método | Ruta | Descripción |
+|---|---|---|
+| POST | /api/auth/register | Registro (pending + email verificación) |
+| GET | /api/auth/verify-email?token= | Verifica cuenta |
+| POST | /api/auth/resend-verification | Reenvío de verificación |
+| POST | /api/auth/login | Login (access JWT + refresh cookie) |
+| POST | /api/auth/refresh | Rotación de refresh token |
+| POST | /api/auth/logout | Revoca sesión actual |
+| POST | /api/auth/logout-all | Revoca todas las sesiones |
+| POST | /api/auth/forgot-password | Solicitud de reset (respuesta genérica) |
+| POST | /api/auth/reset-password | Aplica nuevo password |
+| GET | /api/auth/me | Perfil autenticado |
+| PUT | /api/auth/me | Actualiza perfil / password |
+| GET | /api/auth/sessions | Sesiones activas |
+| DELETE | /api/auth/sessions/:id | Revoca sesión |
+
+### 8.3. Variables y secretos
+- Vars: APP_BASE_URL, RESEND_FROM_EMAIL, AUTH_MODE, PASSWORD_MIN_LENGTH.
+- Secrets: AUTH_JWT_SECRET, RESEND_API_KEY.
+
+### 8.4. Seguridad
+PBKDF2, JWT HS256 firmado con Web Crypto, refresh tokens opacos hasheados (SHA-256) con rotación y detección de reutilización, lockout progresivo, rate limiting por IP/email, anti-enumeración, cookies __Host- (HttpOnly/Secure/SameSite=Strict), auditoría en uth_audit_log.
+
+### 8.5. Tests
+
+pm run typecheck y 
+pm test (25 tests) pasan.
+---
+
+## 9. Compliance P0 (Implementado)
+
+### Archivos nuevos
+- migrations/0004_compliance.sql — consent_records, arco_requests, privacy/terms versions, retention policies, purge_log.
+- migrations/0005_mfa.sql — user_mfa.
+- src/routes/compliance.ts — /api/legal/versions, /api/privacy/*, /api/internal/privacy-requests.
+- src/utils/totp.ts — TOTP RFC 6238 soberano.
+
+### Endpoints compliance
+- GET /api/legal/versions
+- POST /api/privacy/export|rectify|cancel|oppose
+- GET /api/privacy/requests
+- POST /api/auth/mfa/setup|verify|disable (MFA TOTP)
+- Login acepta mfaCode.
+
+### Seguridad
+- CSP, X-Frame-Options, Permissions-Policy, HSTS (prod).
+- Binding de sesión por User-Agent.
+- Purga programada (scheduled) de sesiones/tokens/cuentas desactivadas.
+- Consentimiento versionado obligatorio en registro.
+
+### Tests
+29 tests pasando, typecheck OK.
+
+---
+
+## 10. P1 Facturación CFDI (Facturapi) — Implementado
+
+### Archivos
+- migrations/0006_invoices.sql — fiscal_profiles, invoices.
+- src/services/facturapiClient.ts — cliente REST Facturapi (create/get/cancel/download XML).
+- src/routes/invoices.ts — /api/fiscal/profile, /api/invoice/issue|cancel|:id|:id/xml.
+
+### Almacenamiento
+- XML en R2 (binding R2, bucket rk-cash-invoices), metadata en D1.
+
+### Env
+- Vars: FACTURAPI_BASE_URL.
+- Secret: FACTURAPI_API_KEY.
+
+### Tests
+Typecheck OK, 29 tests pasan.
+
+
+---
+
+## 11. AML/PLD — Fuera de alcance v1 (decision)
+
+- La verificacion de identidad y de cuenta la realiza **Pey** (CoDi ACTIVE como puerta de cobro).
+- Solo comercios con CoDi ACTIVE pueden cobrar (gate operativo).
+- Rastro listo para futuro: log inmutable de pagos, webhooks y altas, retencion de datos.
+- Anomalias se marcan para revision humana; no se bloquea automaticamente.
+- AML/PLD (KYC, monitoreo, ROS) queda fuera de alcance v1; se retomara cuando aplique.
+
+## 12. Operativo — Cerrado
+
+- Backups D1 a R2 (snapshot JSON) + endpoint /api/internal/backup/run.
+- Plan de DR: docs/dr-plan.md.
+- DPO designado: docs/dpo.md.
+- DPAs: docs/dpa-pey.md, docs/dpa-facturapi.md.
+- R2 binding para facturas y backups.
+
+## 13. Documentos legales/compliance
+
+- docs/compliance-plan.md
+- docs/dr-plan.md
+- docs/dpo.md
+- docs/dpa-pey.md
+- docs/dpa-facturapi.md
+
+
+---
+
+## 14. Implementacion actual — resumen completo
+
+### Archivos fuente nuevos
+- src/utils/crypto.ts (PBKDF2, JWT HS256, tokens, timing-safe)
+- src/utils/rateLimit.ts (sliding window KV)
+- src/utils/totp.ts (TOTP RFC 6238)
+- src/services/resendClient.ts (email transaccional)
+- src/services/facturapiClient.ts (CFDI)
+- src/services/backup.ts (snapshot D1 -> R2)
+- src/middleware/auth.ts (requireAuth, requireRole, optionalAuth)
+- src/routes/auth.ts (/api/auth/*)
+- src/routes/compliance.ts (/api/legal/*, /api/privacy/*, backups)
+- src/routes/invoices.ts (/api/fiscal/*, /api/invoice/*)
+
+### Migraciones
+- 0003_auth.sql
+- 0004_compliance.sql
+- 0005_mfa.sql
+- 0006_invoices.sql
+
+### Endpoints totales agregados
+Auth: register, verify-email, resend-verification, login, refresh, logout, logout-all, forgot-password, reset-password, me (GET/PUT), sessions (GET/DELETE), mfa (setup/verify/disable).
+Compliance: legal/versions, privacy/export, rectify, cancel, oppose, requests, internal/privacy-requests, internal/backup/run.
+Invoices: fiscal/profile (GET/POST), invoice/issue, cancel, :id, list, :id/xml.
+
+### Variables/secrets
+Vars: APP_BASE_URL, RESEND_FROM_EMAIL, AUTH_MODE, PASSWORD_MIN_LENGTH, PRIVACY_NOTICE_VERSION, TERMS_VERSION, FACTURAPI_BASE_URL.
+Secrets: AUTH_JWT_SECRET, RESEND_API_KEY, FACTURAPI_API_KEY (+ existentes Pey/StayPuft).
+
+### Bindings
+D1 (DB), KV, R2 (facturas/backups).
+
+### Frontend
+public/verify-email.html, reset-password.html, terms.html, privacy.html; enlaces discretos en footer de index.html y landing.html.
+
+### Tests
+29 tests (Vitest) + typecheck (tsc --noEmit) OK.
+
+### Docs
+docs/auth-plan.md, docs/compliance-plan.md, docs/dr-plan.md, docs/dpo.md, docs/dpa-pey.md, docs/dpa-facturapi.md.

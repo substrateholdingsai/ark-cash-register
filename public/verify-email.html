@@ -1,0 +1,18 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Verificar correo — Ark Cash Register</title>
+<style>body{font-family:Inter,Arial,sans-serif;background:#f5f7fa;padding:24px;color:#1e293b}.card{max-width:480px;margin:40px auto;background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:32px;text-align:center}h1{color:#002B7F;font-size:22px}button{background:#002B7F;color:#fff;border:0;padding:12px 24px;border-radius:6px;font-weight:600;cursor:pointer;margin-top:16px}.msg{margin-top:16px;font-size:14px;color:#64748b}</style></head><body><div class="card"><h1>Verificación de correo</h1><p id="status">Verificando...</p><p class="msg" id="detail"></p><a href="/caja" style="display:none" id="go">Ir a la caja</a></div>
+<script>
+const params=new URLSearchParams(location.search);
+const token=params.get('token');
+const status=document.getElementById('status');
+const detail=document.getElementById('detail');
+const go=document.getElementById('go');
+if(!token){status.textContent='Token faltante';detail.textContent='El enlace no contiene un token válido.';}
+else{
+  fetch('/api/auth/verify-email?token='+encodeURIComponent(token))
+    .then(r=>r.json().then(d=>({ok:r.ok,d})))
+    .then(({ok,d})=>{
+      if(ok){status.textContent='¡Cuenta verificada!';detail.textContent=d.message||'Ya puedes iniciar sesión.';go.style.display='inline-block';}
+      else{status.textContent='No se pudo verificar';detail.textContent=d?.error?.message||'Token inválido o expirado.';}
+    }).catch(()=>{status.textContent='Error de red';});
+}
+</script></body></html>
