@@ -3,6 +3,7 @@ import { Env } from '../types';
 import { PeyClient } from '../services/peyClient';
 import { generateUlid } from '../utils/ulid';
 import { validateClabe, getBankFromClabe } from '../utils/clabe';
+import { getCatalogForMerchant } from '../data/catalogs';
 
 export const merchantRouter = new Hono<{ Bindings: Env }>();
 
@@ -11,6 +12,17 @@ merchantRouter.get('/validate-clabe/:clabe', (c) => {
   const clabe = c.req.param('clabe');
   const result = validateClabe(clabe);
   return c.json(result);
+});
+
+// Catálogo de productos rápidos y reglas de negocio para el carrito de mostrador
+merchantRouter.get('/:id/catalog', async (c) => {
+  const merchantId = c.req.param('id');
+  if (c.env.KV) {
+    const cached = await c.env.KV.get(`catalog:${merchantId}`, 'json');
+    if (cached) return c.json(cached);
+  }
+  const catalog = getCatalogForMerchant(merchantId);
+  return c.json(catalog);
 });
 
 // Registrar cuenta bancaria para CoDi (Onboarding)

@@ -159,19 +159,36 @@
 <body class="min-h-screen flex flex-col justify-between max-w-md mx-auto shadow-2xl relative bg-white pb-6">
 
   <!-- 5.5 CASH-HEADER PERSISTENTE -->
-  <header class="cash-header px-5 py-4 border-b border-[#E8E0CC] flex items-center justify-between sticky top-0 bg-white z-40">
-    <div onclick="openOnboardingModal(true)" class="cursor-pointer group flex items-center gap-1.5" title="Configurar o cambiar comercio">
-      <div>
-        <div class="flex items-center gap-1">
-          <span id="header-merchant-name" class="font-bold text-[16px] text-[#121A2E] leading-tight group-hover:text-[#002B7F] transition">Cargando mostrador...</span>
-          <svg class="w-3.5 h-3.5 text-[#6B7A99] group-hover:text-[#002B7F] transition" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+  <header class="cash-header px-4 py-3 border-b border-[#E8E0CC] flex flex-col gap-2 sticky top-0 bg-white z-40">
+    <div class="flex items-center justify-between">
+      <div onclick="openOnboardingModal(true)" class="cursor-pointer group flex items-center gap-1.5" title="Configurar o cambiar comercio">
+        <div>
+          <div class="flex items-center gap-1">
+            <span id="header-merchant-name" class="font-bold text-[16px] text-[#121A2E] leading-tight group-hover:text-[#002B7F] transition">Cargando mostrador...</span>
+            <svg class="w-3.5 h-3.5 text-[#6B7A99] group-hover:text-[#002B7F] transition" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+          <div id="header-merchant-location" class="text-[12px] font-medium text-[#6B7A99]">Riel CoDi® Banxico</div>
         </div>
-        <div id="header-merchant-location" class="text-[12px] font-medium text-[#6B7A99]">Riel CoDi® Banxico</div>
+      </div>
+      <div id="network-status-badge" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#DCFCE7] text-[#166534]">
+        <span class="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse"></span>
+        <span id="network-status-text">🟢 CoDi activo</span>
       </div>
     </div>
-    <div id="network-status-badge" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#DCFCE7] text-[#166534]">
-      <span class="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse"></span>
-      <span id="network-status-text">🟢 CoDi activo</span>
+    <!-- Selector rápido de demostración: Taquería El Güero vs SkinLab Clothing -->
+    <div class="flex items-center justify-between pt-1 border-t border-[#F1EFE8] text-[11px]">
+      <span class="text-[#6B7A99] font-medium">Demostración:</span>
+      <div class="flex items-center gap-1.5">
+        <button onclick="switchTenant('01JBAVWE4NS5TGXHWGMX3KH23Q')" id="btn-demo-tq" class="px-2.5 py-1 rounded-full border border-[#E8E0CC] text-[#121A2E] font-medium transition active:scale-95 flex items-center gap-1">
+          <span>🌮</span> Taquería
+        </button>
+        <button onclick="switchTenant('01JBAVSKINLAB0000000000000')" id="btn-demo-sl" class="px-2.5 py-1 rounded-full border border-[#E8E0CC] text-[#121A2E] font-medium transition active:scale-95 flex items-center gap-1">
+          <span>🌊</span> SkinLab
+        </button>
+        <button onclick="openOnboardingModal(true)" class="px-2 py-1 rounded-full bg-[#E8EEF9] text-[#002B7F] font-bold hover:bg-[#D4E3F7] transition" title="Registrar nuevo comercio">
+          + Nuevo
+        </button>
+      </div>
     </div>
   </header>
 
@@ -246,9 +263,9 @@
     <!-- ========================================== -->
     <section id="screen-b" class="hidden flex-1 flex flex-col justify-between">
       
-      <!-- ESTADO 1: TECLADO -->
+      <!-- ESTADO 1: TECLADO O CATÁLOGO -->
       <div id="b-state-keypad" class="flex-1 flex flex-col justify-between">
-        <div class="flex items-center justify-between pb-3">
+        <div class="flex items-center justify-between pb-2">
           <button onclick="goToScreenA()" class="text-[#002B7F] font-semibold text-[15px] flex items-center py-1">
             <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
             Cobrar aquí
@@ -256,35 +273,107 @@
           <span class="text-[11px] font-bold uppercase tracking-[0.16em] text-[#6B7A99]">Paso 1 de 2</span>
         </div>
 
-        <!-- Monto operativo -->
-        <div class="my-auto py-4">
-          <div class="text-[11px] font-bold uppercase tracking-[0.16em] text-[#6B7A99] text-center mb-1">Monto a cobrar</div>
-          <div class="flex items-baseline justify-center">
-            <span class="text-[24px] font-normal text-[#6B7A99] mr-2">$</span>
-            <div id="b-amount-display" class="cash-amount">0.00</div>
+        <!-- Segmented Mode Control: Teclado vs Catálogo -->
+        <div class="flex bg-[#F1EFE8] p-1 rounded-xl mb-3">
+          <button onclick="setBMode('keypad')" id="tab-mode-keypad" class="flex-1 py-1.5 rounded-lg text-[13px] font-bold text-[#002B7F] bg-white shadow-xs transition flex items-center justify-center gap-1.5">
+            <span>🔢</span> Teclado Libre
+          </button>
+          <button onclick="setBMode('catalog')" id="tab-mode-catalog" class="flex-1 py-1.5 rounded-lg text-[13px] font-medium text-[#6B7A99] hover:text-[#121A2E] transition flex items-center justify-center gap-1.5">
+            <span>🛒</span> Catálogo Rápido
+            <span id="tab-cart-badge" class="hidden px-1.5 py-0.2 bg-[#002B7F] text-white text-[10px] rounded-full font-bold font-orbitron">0</span>
+          </button>
+        </div>
+
+        <!-- MODO 1: TECLADO LIBRE -->
+        <div id="b-view-keypad" class="flex-1 flex flex-col justify-between">
+          <!-- Monto operativo -->
+          <div class="my-auto py-2">
+            <div class="text-[11px] font-bold uppercase tracking-[0.16em] text-[#6B7A99] text-center mb-1">Monto a cobrar</div>
+            <div class="flex items-baseline justify-center">
+              <span class="text-[24px] font-normal text-[#6B7A99] mr-2">$</span>
+              <div id="b-amount-display" class="cash-amount">0.00</div>
+            </div>
+          </div>
+
+          <!-- Teclado Numérico -->
+          <div class="cash-keypad mb-3">
+            <button onclick="keypadPress('1')">1</button>
+            <button onclick="keypadPress('2')">2</button>
+            <button onclick="keypadPress('3')">3</button>
+            <button onclick="keypadPress('4')">4</button>
+            <button onclick="keypadPress('5')">5</button>
+            <button onclick="keypadPress('6')">6</button>
+            <button onclick="keypadPress('7')">7</button>
+            <button onclick="keypadPress('8')">8</button>
+            <button onclick="keypadPress('9')">9</button>
+            <button onclick="keypadBackspace()" class="key-action">⌫</button>
+            <button onclick="keypadPress('0')">0</button>
+            <button onclick="keypadPress('00')">00</button>
+          </div>
+
+          <!-- Botón Generar QR -->
+          <button id="btn-generate-qr" onclick="generateCodiQr()" class="w-full h-14 rounded-[16px] btn-navy-primary font-bold text-[16px] flex items-center justify-center">
+            Generar QR
+          </button>
+        </div>
+
+        <!-- MODO 2: CATÁLOGO RÁPIDO & CARRITO DE MOSTRADOR -->
+        <div id="b-view-catalog" class="hidden flex-1 flex flex-col justify-between space-y-3">
+          <!-- Categorías Chips -->
+          <div id="catalog-category-chips" class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-[12px]">
+            <!-- Chips inyectados por JS -->
+          </div>
+
+          <!-- Cuadrícula de Productos -->
+          <div id="catalog-items-grid" class="grid grid-cols-2 gap-2 max-h-[220px] overflow-y-auto pr-0.5">
+            <!-- Tarjetas inyectadas por JS -->
+          </div>
+
+          <!-- Mini Carrito Reactivo -->
+          <div class="bg-[#F8FAFC] border border-[#E8E0CC] rounded-2xl p-3 flex flex-col justify-between shadow-xs">
+            <div class="flex items-center justify-between border-b border-[#E8E0CC] pb-1.5 mb-1.5">
+              <div class="flex items-center gap-1.5">
+                <span class="text-[12px] font-bold text-[#121A2E]">Orden Actual</span>
+                <span id="cart-item-count" class="text-[11px] font-bold text-[#002B7F] bg-[#E8EEF9] px-2 py-0.5 rounded-full">0 ítems</span>
+              </div>
+              <button onclick="clearCart()" class="text-[11px] text-[#6B7A99] hover:text-red-600 font-semibold transition">
+                Vaciar
+              </button>
+            </div>
+
+            <!-- Lista de Ítems en Carrito -->
+            <div id="cart-items-list" class="max-h-[110px] overflow-y-auto space-y-1.5 pr-1 text-[12px]">
+              <div class="text-center py-4 text-[#6B7A99] italic">Toca un producto arriba para agregarlo al ticket</div>
+            </div>
+
+            <!-- Descuento / Promo Notificación -->
+            <div id="cart-promo-banner" class="hidden mt-2 p-1.5 rounded-lg bg-[#DCFCE7] border border-[#86EFAC] text-[#166534] text-[11px] font-semibold flex items-center justify-between">
+              <span id="cart-promo-text">✨ Promo aplicada</span>
+              <span id="cart-promo-discount" class="font-bold">-$0.00</span>
+            </div>
+
+            <!-- Resumen Total -->
+            <div class="pt-2 mt-2 border-t border-[#E8E0CC] flex items-baseline justify-between">
+              <div>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-[#6B7A99]">Total a Cobrar</span>
+                <div id="cart-total-display" class="font-orbitron font-bold text-[24px] text-[#121A2E] leading-tight">$0.00</div>
+              </div>
+              <div class="text-right text-[11px] text-[#6B7A99]">
+                <span>CoDi® Banxico</span>
+              </div>
+            </div>
+
+            <!-- Botones de Acción: Cobrar con CoDi o Ticket WhatsApp Directo -->
+            <div class="grid grid-cols-5 gap-2 mt-2.5">
+              <button id="btn-cart-checkout" onclick="checkoutCartCodi()" class="col-span-4 h-12 rounded-[14px] btn-navy-primary font-bold text-[15px] flex items-center justify-center shadow-xs">
+                <span>Cobrar con CoDi</span>
+              </button>
+              <button onclick="shareCartTicketWhatsApp()" title="Enviar ticket previo por WhatsApp" class="col-span-1 h-12 rounded-[14px] bg-[#25D366] text-white font-bold flex items-center justify-center hover:bg-[#1EBE5D] transition active:scale-95 shadow-xs">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
+              </button>
+            </div>
           </div>
         </div>
-
-        <!-- Teclado Numérico -->
-        <div class="cash-keypad mb-3">
-          <button onclick="keypadPress('1')">1</button>
-          <button onclick="keypadPress('2')">2</button>
-          <button onclick="keypadPress('3')">3</button>
-          <button onclick="keypadPress('4')">4</button>
-          <button onclick="keypadPress('5')">5</button>
-          <button onclick="keypadPress('6')">6</button>
-          <button onclick="keypadPress('7')">7</button>
-          <button onclick="keypadPress('8')">8</button>
-          <button onclick="keypadPress('9')">9</button>
-          <button onclick="keypadBackspace()" class="key-action">⌫</button>
-          <button onclick="keypadPress('0')">0</button>
-          <button onclick="keypadPress('00')">00</button>
-        </div>
-
-        <!-- Botón Generar QR -->
-        <button id="btn-generate-qr" onclick="generateCodiQr()" class="w-full h-14 rounded-[16px] btn-navy-primary font-bold text-[16px] flex items-center justify-center">
-          Generar QR
-        </button>
       </div>
 
       <!-- ESTADO 2: ESPERANDO PAGO (QR + TIMER) -->
@@ -337,23 +426,43 @@
       </div>
 
       <!-- ESTADO 3: PAGADO (CHECK VERDE) -->
-      <div id="b-state-paid" class="hidden flex-1 flex flex-col justify-between items-center text-center py-6">
+      <div id="b-state-paid" class="hidden flex-1 flex flex-col justify-between items-center text-center py-4">
         <div></div>
-        <div class="space-y-4 my-auto">
+        <div class="space-y-3 my-auto w-full max-w-[340px]">
           <!-- Check 80px Verde -->
-          <div class="w-20 h-20 bg-[#DCFCE7] text-[#16A34A] rounded-full flex items-center justify-center mx-auto shadow-inner">
-            <svg class="w-12 h-12" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          <div class="w-16 h-16 bg-[#DCFCE7] text-[#16A34A] rounded-full flex items-center justify-center mx-auto shadow-inner">
+            <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
           </div>
 
-          <div class="text-[26px] font-bold text-[#121A2E]">¡Pagado!</div>
-          <div id="b-paid-amount" class="font-orbitron font-bold text-[48px] text-[#121A2E] leading-none">$150.00</div>
-          <div class="text-[13px] text-[#16A34A] font-semibold flex items-center justify-center">
-            <span>✓ Confirmado en Banxico CoDi</span>
+          <div class="text-[24px] font-bold text-[#121A2E]">¡Cobro Confirmado!</div>
+          <div id="b-paid-amount" class="font-orbitron font-bold text-[44px] text-[#121A2E] leading-none">$150.00</div>
+          
+          <div class="text-[12px] text-[#16A34A] font-semibold flex items-center justify-center gap-1">
+            <span>✓ Fondos acreditados vía Banxico CoDi</span>
           </div>
+
+          <!-- Recibo Resumen Desglosado -->
+          <div id="b-paid-details-box" class="hidden bg-[#F8FAFC] border border-[#E8E0CC] rounded-2xl p-3 text-left space-y-1.5 text-[12px] mt-2">
+            <div class="flex justify-between font-bold text-[#121A2E] border-b border-[#E8E0CC] pb-1">
+              <span id="b-paid-merchant-label">Comercio</span>
+              <span id="b-paid-time-label">12:00</span>
+            </div>
+            <div id="b-paid-items-summary" class="space-y-1 text-[#6B7A99]"></div>
+            <div class="border-t border-[#E8E0CC] pt-1 flex justify-between font-bold text-[#121A2E]">
+              <span>Total Pagado:</span>
+              <span id="b-paid-final-amount" class="font-orbitron">$0.00</span>
+            </div>
+          </div>
+
+          <!-- Botón Enviar Ticket por WhatsApp -->
+          <button onclick="sharePaidTicketWhatsApp()" class="w-full h-12 rounded-[14px] bg-[#25D366] text-white font-bold text-[14px] flex items-center justify-center shadow-xs hover:bg-[#1EBE5D] transition active:scale-98">
+            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
+            Enviar Ticket por WhatsApp
+          </button>
         </div>
 
         <!-- Botón Siguiente Venta -->
-        <button onclick="goToScreenA()" class="w-full h-16 rounded-[16px] btn-navy-primary font-bold text-[17px]">
+        <button onclick="goToScreenA()" class="w-full h-14 rounded-[16px] btn-navy-primary font-bold text-[16px]">
           Siguiente venta
         </button>
       </div>
@@ -650,6 +759,12 @@
     let currentMerchant = null;
     let newRegisteredMerchantId = null;
 
+    // Catálogo y Carrito Simplificado de Mostrador
+    let currentCatalog = null;
+    let activeCatalogCategory = 'all';
+    let cart = []; // Array<{ id, name, price, icon, category, qty }>
+    let lastCartCheckout = null; // Snapshot de la última venta para ticket
+
     // Variables de Estado Operativo
     let activeScreen = 'A'; // 'A', 'B', 'C'
     let currentInputCents = 0;
@@ -699,9 +814,35 @@
       if (loaded) {
         currentMerchantId = targetId;
         localStorage.setItem('ark_merchant_id', targetId);
+        await loadCatalog(targetId);
         await loadTodayPayments();
+        updateDemoButtons();
       } else {
         openOnboardingModal(false);
+      }
+    }
+
+    async function switchTenant(mId) {
+      currentMerchantId = mId;
+      localStorage.setItem('ark_merchant_id', mId);
+      window.history.replaceState({}, '', `/caja?m=${encodeURIComponent(mId)}`);
+      await loadMerchantProfile(mId);
+      await loadCatalog(mId);
+      clearCart();
+      await loadTodayPayments();
+      updateDemoButtons();
+    }
+
+    function updateDemoButtons() {
+      const btnTq = document.getElementById('btn-demo-tq');
+      const btnSl = document.getElementById('btn-demo-sl');
+      if (!btnTq || !btnSl) return;
+      if (currentMerchantId === '01JBAVSKINLAB0000000000000') {
+        btnSl.className = 'px-2.5 py-1 rounded-full bg-[#002B7F] text-white font-bold transition flex items-center gap-1 shadow-2xs';
+        btnTq.className = 'px-2.5 py-1 rounded-full border border-[#E8E0CC] text-[#121A2E] font-medium transition active:scale-95 flex items-center gap-1 hover:bg-gray-50';
+      } else {
+        btnTq.className = 'px-2.5 py-1 rounded-full bg-[#002B7F] text-white font-bold transition flex items-center gap-1 shadow-2xs';
+        btnSl.className = 'px-2.5 py-1 rounded-full border border-[#E8E0CC] text-[#121A2E] font-medium transition active:scale-95 flex items-center gap-1 hover:bg-gray-50';
       }
     }
 
@@ -992,6 +1133,14 @@
       document.getElementById('b-state-waiting').classList.add('hidden');
       document.getElementById('b-state-paid').classList.add('hidden');
       document.getElementById('b-state-expired').classList.add('hidden');
+
+      if (!currentCatalog) {
+        loadCatalog(currentMerchantId || '01JBAVWE4NS5TGXHWGMX3KH23Q');
+      } else {
+        renderCatalogCategories();
+        renderCatalogGrid();
+        renderCart();
+      }
     }
 
     function goToScreenC() {
@@ -1005,18 +1154,280 @@
     }
 
     // ==========================================
-    // COBRO AQUÍ: GENERAR QR CLIENT-SIDE Y POLLING
+    // MODO CATÁLOGO RÁPIDO & CARRITO DE MOSTRADOR
     // ==========================================
-    async function generateCodiQr() {
-      const amount = currentInputCents / 100;
-      if (amount <= 0) {
-        alert('Por favor escribe un monto válido para cobrar.');
+    async function loadCatalog(mId) {
+      try {
+        const res = await fetch(`/api/merchant/${encodeURIComponent(mId)}/catalog`);
+        if (res.ok) {
+          currentCatalog = await res.json();
+          renderCatalogCategories();
+          renderCatalogGrid();
+          renderCart();
+        }
+      } catch (err) {
+        console.warn('Error loading catalog', err);
+      }
+    }
+
+    function setBMode(mode) {
+      const tabKeypad = document.getElementById('tab-mode-keypad');
+      const tabCatalog = document.getElementById('tab-mode-catalog');
+      const viewKeypad = document.getElementById('b-view-keypad');
+      const viewCatalog = document.getElementById('b-view-catalog');
+
+      if (mode === 'catalog') {
+        tabCatalog.className = 'flex-1 py-1.5 rounded-lg text-[13px] font-bold text-[#002B7F] bg-white shadow-xs transition flex items-center justify-center gap-1.5';
+        tabKeypad.className = 'flex-1 py-1.5 rounded-lg text-[13px] font-medium text-[#6B7A99] hover:text-[#121A2E] transition flex items-center justify-center gap-1.5';
+        viewKeypad.classList.add('hidden');
+        viewCatalog.classList.remove('hidden');
+        if (!currentCatalog) {
+          loadCatalog(currentMerchantId || '01JBAVWE4NS5TGXHWGMX3KH23Q');
+        } else {
+          renderCatalogCategories();
+          renderCatalogGrid();
+          renderCart();
+        }
+      } else {
+        tabKeypad.className = 'flex-1 py-1.5 rounded-lg text-[13px] font-bold text-[#002B7F] bg-white shadow-xs transition flex items-center justify-center gap-1.5';
+        tabCatalog.className = 'flex-1 py-1.5 rounded-lg text-[13px] font-medium text-[#6B7A99] hover:text-[#121A2E] transition flex items-center justify-center gap-1.5';
+        viewCatalog.classList.add('hidden');
+        viewKeypad.classList.remove('hidden');
+      }
+    }
+
+    function renderCatalogCategories() {
+      const container = document.getElementById('catalog-category-chips');
+      if (!container || !currentCatalog || !currentCatalog.items) return;
+
+      const categories = ['all', ...new Set(currentCatalog.items.map(i => i.category))];
+      container.innerHTML = categories.map(cat => {
+        const isActive = activeCatalogCategory === cat;
+        const label = cat === 'all' ? '✨ Todos' : cat;
+        return `
+          <button onclick="filterCatalogCategory('${cat}')" class="px-2.5 py-1 rounded-full whitespace-nowrap font-medium text-[11px] transition ${
+            isActive 
+              ? 'bg-[#002B7F] text-white font-bold shadow-2xs' 
+              : 'bg-[#F1EFE8] text-[#6B7A99] hover:text-[#121A2E]'
+          }">
+            ${label}
+          </button>
+        `;
+      }).join('');
+    }
+
+    function filterCatalogCategory(cat) {
+      activeCatalogCategory = cat;
+      renderCatalogCategories();
+      renderCatalogGrid();
+    }
+
+    function renderCatalogGrid() {
+      const container = document.getElementById('catalog-items-grid');
+      if (!container || !currentCatalog || !currentCatalog.items) return;
+
+      const items = activeCatalogCategory === 'all'
+        ? currentCatalog.items
+        : currentCatalog.items.filter(i => i.category === activeCatalogCategory);
+
+      container.innerHTML = items.map(item => {
+        const inCart = cart.find(c => c.id === item.id);
+        const qty = inCart ? inCart.qty : 0;
+        return `
+          <div onclick="addToCart('${item.id}')" class="p-2.5 bg-white border border-[#E8E0CC] rounded-xl hover:border-[#002B7F] cursor-pointer transition flex flex-col justify-between active:scale-98 group select-none shadow-2xs">
+            <div class="flex items-start justify-between">
+              <span class="text-2xl">${item.icon || '📦'}</span>
+              ${qty > 0 ? `<span class="bg-[#002B7F] text-white text-[10px] font-bold font-orbitron px-1.5 py-0.5 rounded-full">${qty}</span>` : ''}
+            </div>
+            <div class="mt-1">
+              <div class="font-bold text-[12px] text-[#121A2E] leading-tight group-hover:text-[#002B7F] transition line-clamp-2">${item.name}</div>
+              <div class="text-[10px] text-[#6B7A99] mt-0.5">${item.category}</div>
+            </div>
+            <div class="mt-2 pt-1 border-t border-[#F1EFE8] flex items-center justify-between">
+              <span class="font-orbitron font-bold text-[13px] text-[#121A2E]">$${item.price.toFixed(2)}</span>
+              <button onclick="event.stopPropagation(); addToCart('${item.id}')" class="w-6 h-6 rounded-lg bg-[#E8EEF9] text-[#002B7F] font-bold text-[13px] flex items-center justify-center hover:bg-[#002B7F] hover:text-white transition">
+                +
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function addToCart(itemId) {
+      if (!currentCatalog) return;
+      const product = currentCatalog.items.find(i => i.id === itemId);
+      if (!product) return;
+
+      const existing = cart.find(c => c.id === itemId);
+      if (existing) {
+        existing.qty++;
+      } else {
+        cart.push({ ...product, qty: 1 });
+      }
+
+      if (navigator.vibrate) navigator.vibrate(30);
+
+      renderCatalogGrid();
+      renderCart();
+    }
+
+    function changeCartQty(itemId, delta) {
+      const idx = cart.findIndex(c => c.id === itemId);
+      if (idx === -1) return;
+
+      cart[idx].qty += delta;
+      if (cart[idx].qty <= 0) {
+        cart.splice(idx, 1);
+      }
+
+      renderCatalogGrid();
+      renderCart();
+    }
+
+    function clearCart() {
+      cart = [];
+      renderCatalogGrid();
+      renderCart();
+    }
+
+    function calculateCartTotals() {
+      let subtotal = 0;
+      let totalQty = 0;
+
+      cart.forEach(item => {
+        subtotal += item.price * item.qty;
+        totalQty += item.qty;
+      });
+
+      let discount = 0;
+      let promoActive = false;
+      let promoText = '';
+
+      if (currentCatalog && currentCatalog.promoRule && totalQty >= currentCatalog.promoRule.minQty) {
+        discount = currentCatalog.promoRule.discountAmount;
+        promoActive = true;
+        promoText = currentCatalog.promoRule.description;
+      }
+
+      const total = Math.max(0, subtotal - discount);
+
+      return {
+        subtotal,
+        discount,
+        total,
+        totalQty,
+        promoActive,
+        promoText
+      };
+    }
+
+    function renderCart() {
+      const listContainer = document.getElementById('cart-items-list');
+      const countBadge = document.getElementById('cart-item-count');
+      const tabBadge = document.getElementById('tab-cart-badge');
+      const totalDisplay = document.getElementById('cart-total-display');
+      const promoBanner = document.getElementById('cart-promo-banner');
+      const promoTextEl = document.getElementById('cart-promo-text');
+      const promoDiscountEl = document.getElementById('cart-promo-discount');
+      const btnCheckout = document.getElementById('btn-cart-checkout');
+
+      const totals = calculateCartTotals();
+
+      if (tabBadge) {
+        if (totals.totalQty > 0) {
+          tabBadge.textContent = totals.totalQty;
+          tabBadge.classList.remove('hidden');
+        } else {
+          tabBadge.classList.add('hidden');
+        }
+      }
+
+      if (countBadge) countBadge.textContent = `${totals.totalQty} ítem${totals.totalQty !== 1 ? 's' : ''}`;
+      if (totalDisplay) totalDisplay.textContent = `$${totals.total.toFixed(2)}`;
+
+      if (promoBanner) {
+        if (totals.promoActive) {
+          promoBanner.classList.remove('hidden');
+          promoTextEl.textContent = `✨ ${totals.promoText}`;
+          promoDiscountEl.textContent = `-$${totals.discount.toFixed(2)}`;
+        } else {
+          promoBanner.classList.add('hidden');
+        }
+      }
+
+      if (!listContainer || !btnCheckout) return;
+
+      if (cart.length === 0) {
+        listContainer.innerHTML = '<div class="text-center py-4 text-[#6B7A99] italic">Toca un producto arriba para agregarlo al ticket</div>';
+        btnCheckout.disabled = true;
+        btnCheckout.classList.add('opacity-50', 'pointer-events-none');
+        btnCheckout.innerHTML = '<span>Carrito vacío</span>';
         return;
       }
 
+      btnCheckout.disabled = false;
+      btnCheckout.classList.remove('opacity-50', 'pointer-events-none');
+      btnCheckout.innerHTML = `<span>Cobrar $${totals.total.toFixed(2)} con CoDi</span>`;
+
+      listContainer.innerHTML = cart.map(item => `
+        <div class="flex items-center justify-between p-1.5 bg-white border border-[#E8E0CC] rounded-xl">
+          <div class="flex items-center gap-2 flex-1 min-w-0 pr-1">
+            <span class="text-base">${item.icon || '📦'}</span>
+            <div class="truncate">
+              <div class="font-bold text-[12px] text-[#121A2E] truncate">${item.name}</div>
+              <div class="text-[10px] text-[#6B7A99] font-orbitron">$${item.price.toFixed(2)} c/u</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <button onclick="changeCartQty('${item.id}', -1)" class="w-6 h-6 rounded-md bg-[#F1EFE8] text-[#121A2E] font-bold text-[12px] flex items-center justify-center hover:bg-gray-200 active:scale-95 transition">
+              -
+            </button>
+            <span class="font-orbitron font-bold text-[12px] w-5 text-center">${item.qty}</span>
+            <button onclick="changeCartQty('${item.id}', 1)" class="w-6 h-6 rounded-md bg-[#F1EFE8] text-[#121A2E] font-bold text-[12px] flex items-center justify-center hover:bg-gray-200 active:scale-95 transition">
+              +
+            </button>
+            <span class="font-orbitron font-bold text-[12px] text-[#002B7F] w-14 text-right">$${(item.price * item.qty).toFixed(2)}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function checkoutCartCodi() {
+      const totals = calculateCartTotals();
+      if (totals.total <= 0) {
+        alert('Agrega al menos un producto al carrito para cobrar.');
+        return;
+      }
+
+      lastCartCheckout = {
+        items: JSON.parse(JSON.stringify(cart)),
+        subtotal: totals.subtotal,
+        discount: totals.discount,
+        total: totals.total,
+        promoText: totals.promoText,
+        merchant: currentMerchant?.alias || currentMerchant?.name || 'Ark Cash Register'
+      };
+
+      const concept = cart.map(i => `${i.qty}x ${i.name}`).join(', ').slice(0, 40);
+      currentInputCents = Math.round(totals.total * 100);
+      await generateCodiQrWithConcept(totals.total, concept);
+    }
+
+    // ==========================================
+    // COBRO AQUÍ: GENERAR QR CLIENT-SIDE Y POLLING
+    // ==========================================
+    async function generateCodiQrWithConcept(amount, customConcept) {
       const btn = document.getElementById('btn-generate-qr');
-      btn.disabled = true;
-      btn.textContent = 'Generando CoDi…';
+      const btnCart = document.getElementById('btn-cart-checkout');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Generando CoDi…';
+      }
+      if (btnCart) {
+        btnCart.disabled = true;
+        btnCart.textContent = 'Generando CoDi…';
+      }
 
       try {
         const res = await fetch('/api/codi/qr', {
@@ -1024,7 +1435,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             amount,
-            concept: 'Venta mostrador',
+            concept: customConcept || 'Venta mostrador',
             expiration: 600,
             merchantId: currentMerchantId || '01JBAVWE4NS5TGXHWGMX3KH23Q'
           })
@@ -1065,9 +1476,25 @@
       } catch (err) {
         alert(err.message || 'No se pudo conectar con el servicio CoDi.');
       } finally {
-        btn.disabled = false;
-        btn.textContent = 'Generar QR';
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Generar QR';
+        }
+        if (btnCart) {
+          btnCart.disabled = false;
+          renderCart();
+        }
       }
+    }
+
+    async function generateCodiQr() {
+      const amount = currentInputCents / 100;
+      if (amount <= 0) {
+        alert('Por favor escribe un monto válido para cobrar.');
+        return;
+      }
+      lastCartCheckout = null; // Cobro libre sin carrito
+      await generateCodiQrWithConcept(amount, 'Venta mostrador');
     }
 
     function startExpirationTimer(durationSeconds) {
@@ -1110,6 +1537,85 @@
       }, 5000);
     }
 
+    // ==========================================
+    // TICKETS DIGITALES OFICIALES VÍA WHATSAPP
+    // (Abre WhatsApp nativo con cero dependencias externas)
+    // ==========================================
+    function formatWhatsAppTicket(ticketData) {
+      const { merchantName, bank, items, subtotal, discount, total, promoText, qrId, timeStr, isPaid } = ticketData;
+
+      let msg = `🧾 *ARK CASH REGISTER — TICKET DIGITAL*\n`;
+      msg += `📍 *${merchantName}*\n`;
+      if (bank) msg += `🏦 *Destino directo:* ${bank}\n`;
+      msg += `📅 *Fecha:* ${new Date().toLocaleDateString('es-MX')} ${timeStr || ''}\n`;
+      if (qrId) msg += `🆔 *Folio CoDi:* \`${qrId}\`\n`;
+      msg += `────────────────────────────\n`;
+
+      if (items && items.length > 0) {
+        items.forEach(it => {
+          msg += `${it.icon || '▪️'} *${it.qty}x ${it.name}*\n   $${(it.price * it.qty).toFixed(2)} ($${it.price.toFixed(2)} c/u)\n`;
+        });
+        msg += `────────────────────────────\n`;
+        if (discount > 0) {
+          msg += `*Subtotal:* $${subtotal.toFixed(2)} MXN\n`;
+          msg += `*Descuento (${promoText || 'Promo'}):* -$${discount.toFixed(2)} MXN\n`;
+        }
+      }
+
+      msg += `*TOTAL ${isPaid ? 'PAGADO' : 'A PAGAR'}:* *$${Number(total).toFixed(2)} MXN*\n`;
+      msg += `────────────────────────────\n`;
+      if (isPaid) {
+        msg += `✅ *Estado:* Pago confirmado en Banxico CoDi®\n`;
+        msg += `🛡️ *Seguridad:* Riel oficial Banco de México · Cero contracargos\n`;
+      } else {
+        msg += `⚡ *Método de Cobro:* CoDi® Banxico (QR en mostrador)\n`;
+      }
+      msg += `🚀 *Infraestructura:* Powered by Pey CoDi\n`;
+      msg += `¡Gracias por tu compra! ✨`;
+
+      return msg;
+    }
+
+    function shareCartTicketWhatsApp() {
+      const totals = calculateCartTotals();
+      if (totals.total <= 0) {
+        alert('El carrito está vacío. Agrega productos para generar el ticket.');
+        return;
+      }
+
+      const ticketText = formatWhatsAppTicket({
+        merchantName: currentMerchant?.alias || currentMerchant?.name || 'Ark Cash Register',
+        bank: currentMerchant?.bank || 'Banco Autorizado Banxico',
+        items: cart,
+        subtotal: totals.subtotal,
+        discount: totals.discount,
+        total: totals.total,
+        promoText: totals.promoText,
+        timeStr: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        isPaid: false
+      });
+
+      window.open(`https://wa.me/?text=${encodeURIComponent(ticketText)}`, '_blank');
+    }
+
+    function sharePaidTicketWhatsApp() {
+      const amount = currentPayment?.amount || (currentInputCents / 100);
+      const ticketText = formatWhatsAppTicket({
+        merchantName: currentMerchant?.alias || currentMerchant?.name || 'Ark Cash Register',
+        bank: currentMerchant?.bank || 'Banco Autorizado Banxico',
+        items: lastCartCheckout ? lastCartCheckout.items : [],
+        subtotal: lastCartCheckout ? lastCartCheckout.subtotal : amount,
+        discount: lastCartCheckout ? lastCartCheckout.discount : 0,
+        total: amount,
+        promoText: lastCartCheckout ? lastCartCheckout.promoText : '',
+        qrId: currentPayment?.qrId || currentPayment?.id || 'CODI-PAGO',
+        timeStr: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        isPaid: true
+      });
+
+      window.open(`https://wa.me/?text=${encodeURIComponent(ticketText)}`, '_blank');
+    }
+
     function onPaymentConfirmed(amount) {
       playSuccessChime();
 
@@ -1128,6 +1634,38 @@
       
       const paidScreen = document.getElementById('b-state-paid');
       document.getElementById('b-paid-amount').textContent = `$${Number(amount).toFixed(2)}`;
+
+      // Resumen visual si vino de carrito
+      const detailsBox = document.getElementById('b-paid-details-box');
+      if (lastCartCheckout && lastCartCheckout.items && lastCartCheckout.items.length > 0) {
+        document.getElementById('b-paid-merchant-label').textContent = lastCartCheckout.merchant;
+        document.getElementById('b-paid-time-label').textContent = timeStr;
+        document.getElementById('b-paid-final-amount').textContent = `$${Number(amount).toFixed(2)}`;
+        
+        const summaryEl = document.getElementById('b-paid-items-summary');
+        summaryEl.innerHTML = lastCartCheckout.items.map(it => `
+          <div class="flex justify-between">
+            <span>${it.icon || '▪️'} ${it.qty}x ${it.name}</span>
+            <span class="font-orbitron font-semibold text-[#121A2E]">$${(it.price * it.qty).toFixed(2)}</span>
+          </div>
+        `).join('');
+
+        if (lastCartCheckout.discount > 0) {
+          summaryEl.innerHTML += `
+            <div class="flex justify-between text-[#16A34A] font-semibold pt-1 border-t border-dashed border-[#E8E0CC]">
+              <span>${lastCartCheckout.promoText || 'Descuento'}:</span>
+              <span>-$${lastCartCheckout.discount.toFixed(2)}</span>
+            </div>
+          `;
+        }
+        detailsBox.classList.remove('hidden');
+      } else {
+        detailsBox.classList.add('hidden');
+      }
+
+      // Vaciar carrito para la próxima venta
+      clearCart();
+
       paidScreen.classList.remove('hidden');
 
       if (activeScreen === 'C') {
