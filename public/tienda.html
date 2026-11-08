@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Tienda Digital — Ark Cash Register</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <meta name="theme-color" content="#002B7F">
+  
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Tienda Digital — Ark Cash Register">
+  <meta property="og:description" content="Pide en línea con carrito inteligente y paga seguro con CoDi® Banxico o WhatsApp.">
+  <meta property="og:image" content="/og-image.svg">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
+  <style>
+    :root {
+      --navy: #002B7F;
+      --navy-dark: #001A4D;
+      --navy-soft: #E8EEF9;
+      --gold: #D4AF37;
+      --gold-light: #F5D97A;
+      --ink: #121A2E;
+      --muted: #6B7A99;
+      --line: #E8E0CC;
+      --surface: #FFFFFF;
+      --bg: #F8FAFC;
+      --paid: #16A34A;
+      --codi-blue: #0067F1;
+    }
+    body {
+      background-color: var(--bg);
+      color: var(--ink);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .font-orbitron { font-family: 'Orbitron', monospace; font-variant-numeric: tabular-nums; }
+    .font-serif-brand { font-family: 'Playfair Display', serif; }
+    .safe-bottom { padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)); }
+    .glass-bar {
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .badge-codi {
+      background: linear-gradient(135deg, #002B7F 0%, #0067F1 100%);
+    }
+    /* Animaciones suaves */
+    @keyframes slideUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .animate-slide-up {
+      animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased">
+
+  <!-- Switch Superior de Tenants Demo -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
+    <div class="max-w-2xl mx-auto px-4 py-2.5 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <a href="/" class="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+          Ark Register
+        </a>
+        <span class="text-slate-300">|</span>
+        <span class="text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full flex items-center gap-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> CoDi® Activo
+        </span>
+      </div>
+
+      <!-- Selector de Demo -->
+      <div class="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg text-xs font-medium">
+        <button id="btn-demo-taqueria" onclick="switchTenant('taqueria')" class="px-2.5 py-1 rounded-md transition shadow-xs bg-white text-slate-900 font-semibold">
+          🌮 Taquería
+        </button>
+        <button id="btn-demo-skinlab" onclick="switchTenant('skinlab')" class="px-2.5 py-1 rounded-md transition text-slate-600 hover:text-slate-900">
+          👕 SkinLab
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero del Comercio -->
+  <section id="merchant-hero" class="bg-gradient-to-b from-white to-slate-50 border-b border-slate-200 py-6 px-4">
+    <div class="max-w-2xl mx-auto">
+      <div class="flex items-start gap-4">
+        <div id="merchant-avatar" class="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-sm border border-slate-200 bg-amber-50">
+          🌮
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <h1 id="merchant-name" class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 font-serif-brand">
+              Taquería El Güero
+            </h1>
+            <span class="badge-codi text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+              CoDi® Directo
+            </span>
+          </div>
+          <p id="merchant-desc" class="text-xs sm:text-sm text-slate-600 mt-1">
+            Tacos de pastor al carbón, bistec y gringas con tortillas hechas a mano.
+          </p>
+          <div class="flex items-center gap-3 mt-2 text-xs text-slate-500">
+            <span class="flex items-center gap-1">
+              <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              Abierto ahora
+            </span>
+            <span>•</span>
+            <span id="merchant-loc" class="flex items-center gap-1">
+              📍 Mérida, Yucatán
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contenedor Principal de Catálogo -->
+  <main class="max-w-2xl mx-auto px-4 py-6 flex-1 safe-bottom w-full">
+    
+    <!-- Filtros de categoría -->
+    <div id="category-tabs" class="flex items-center gap-2 overflow-x-auto pb-3 mb-4 scrollbar-none">
+      <!-- Inyectado por JS -->
+    </div>
+
+    <!-- Grid de Productos -->
+    <div id="products-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+      <!-- Inyectado dinámicamente -->
+    </div>
+
+  </main>
+
+  <!-- Barra Flotante Inferior de Carrito -->
+  <div id="cart-float-bar" class="fixed bottom-0 inset-x-0 z-40 p-3 sm:p-4 glass-bar border-t border-slate-200 transition-transform duration-300 translate-y-full">
+    <div class="max-w-2xl mx-auto flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="relative">
+          <div class="w-11 h-11 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+            🛒
+          </div>
+          <span id="cart-float-count" class="absolute -top-1.5 -right-1.5 bg-[#D4AF37] text-slate-950 text-xs font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">
+            0
+          </span>
+        </div>
+        <div>
+          <div class="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Total a pagar</div>
+          <div id="cart-float-total" class="text-lg font-black font-orbitron text-slate-900 leading-tight">
+            $0.00 <span class="text-xs font-normal text-slate-500">MXN</span>
+          </div>
+        </div>
+      </div>
+
+      <button onclick="openCartModal()" class="flex-1 sm:flex-initial px-5 py-3 rounded-xl bg-[#002B7F] hover:bg-[#001A4D] active:scale-98 text-white font-bold text-sm shadow-md flex items-center justify-center gap-2 transition">
+        <span>Ver Carrito</span>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal / Drawer de Carrito y Checkout -->
+  <div id="cart-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+    <div class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-2xl max-h-[92vh] flex flex-col shadow-2xl animate-slide-up overflow-hidden">
+      
+      <!-- Encabezado Modal -->
+      <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+        <div class="flex items-center gap-2">
+          <h2 class="text-base font-bold text-slate-900">Tu Pedido</h2>
+          <span id="modal-item-badge" class="bg-slate-200 text-slate-700 text-xs font-semibold px-2 py-0.5 rounded-full">
+            0 productos
+          </span>
+        </div>
+        <button onclick="closeCartModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition">
+          ✕
+        </button>
+      </div>
+
+      <!-- Cuerpo del Carrito -->
+      <div class="p-5 overflow-y-auto space-y-4 flex-1">
+        
+        <!-- Lista de Items -->
+        <div id="cart-items-list" class="divide-y divide-slate-100">
+          <!-- Inyectado por JS -->
+        </div>
+
+        <!-- Campos del Cliente -->
+        <div class="pt-3 border-t border-slate-100 space-y-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Tu Nombre (opcional)</label>
+            <input type="text" id="order-customer-name" placeholder="Ej. Juan Pérez" class="w-full text-sm px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:border-[#002B7F] focus:ring-1 focus:ring-[#002B7F]">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Notas especiales</label>
+            <input type="text" id="order-notes" placeholder="Ej. Mucha salsa verde, limones extras..." class="w-full text-sm px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:border-[#002B7F] focus:ring-1 focus:ring-[#002B7F]">
+          </div>
+        </div>
+
+        <!-- Resumen de Costos -->
+        <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-200/80 space-y-1.5 text-xs text-slate-600">
+          <div class="flex justify-between">
+            <span>Subtotal</span>
+            <span id="modal-subtotal" class="font-semibold text-slate-900">$0.00 MXN</span>
+          </div>
+          <div class="flex justify-between text-emerald-700">
+            <span>Comisión de cobro CoDi® (0%)</span>
+            <span class="font-semibold">$0.00 MXN</span>
+          </div>
+          <div class="flex justify-between pt-2 border-t border-slate-200 text-sm font-bold text-slate-900">
+            <span>Total a Pagar</span>
+            <span id="modal-total" class="font-orbitron text-base text-[#002B7F]">$0.00 MXN</span>
+          </div>
+        </div>
+
+        <!-- Métodos de Checkout -->
+        <div class="space-y-2.5 pt-2">
+          <!-- Botón 1: Pagar con CoDi -->
+          <button onclick="handleCheckoutCoDi()" id="btn-pay-codi" class="w-full py-3.5 px-4 rounded-xl badge-codi text-white font-bold text-sm shadow-md hover:brightness-110 active:scale-98 flex items-center justify-center gap-2 transition">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+            <span>Generar QR CoDi® Banxico</span>
+          </button>
+
+          <!-- Botón 2: Pedir por WhatsApp -->
+          <button onclick="handleCheckoutWhatsApp()" id="btn-pay-wa" class="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-bold text-sm shadow-sm flex items-center justify-center gap-2 transition">
+            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+            <span>Pedir por WhatsApp (Ticket de Compra)</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Pantalla CoDi QR en Vivo -->
+  <div id="codi-screen-modal" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl text-center space-y-4 animate-slide-up relative">
+      <button onclick="closeCodiScreen()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition">
+        ✕
+      </button>
+
+      <div class="badge-codi text-white text-[11px] font-black px-3 py-1 rounded-full uppercase tracking-wider inline-flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+        CoDi® Banxico En Vivo
+      </div>
+
+      <div>
+        <div class="text-xs text-slate-500">Escanea desde tu app bancaria</div>
+        <div id="codi-display-amount" class="text-3xl font-black font-orbitron text-slate-900 mt-1">
+          $0.00
+        </div>
+      </div>
+
+      <!-- Contenedor QR -->
+      <div class="p-3 bg-white border-2 border-slate-900 rounded-2xl inline-block shadow-inner">
+        <div id="qrcode-container" class="flex items-center justify-center min-w-[200px] min-h-[200px]">
+          <!-- Canvas generado por QRCode.js -->
+        </div>
+      </div>
+
+      <div id="codi-status-banner" class="bg-amber-50 text-amber-800 text-xs py-2 px-3 rounded-xl border border-amber-200 flex items-center justify-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+        <span>Esperando confirmación de Banxico...</span>
+      </div>
+
+      <p class="text-[11px] text-slate-400">
+        Abre BBVA, Banamex, Santander, Nu o cualquier banco con CoDi y escanea este código.
+      </p>
+    </div>
+  </div>
+
+  <!-- Notificación Toast -->
+  <div id="toast" class="fixed top-5 inset-x-0 mx-auto w-max max-w-[90vw] z-50 bg-slate-900 text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow-lg transition-transform duration-300 -translate-y-20 pointer-events-none flex items-center gap-2">
+    <span id="toast-icon">✓</span>
+    <span id="toast-msg">Mensaje</span>
+  </div>
+
+  <script>
+    // Catálogos de los 2 Comercios Demo
+    const CATALOGS = {
+      taqueria: {
+        id: 'taqueria',
+        name: 'Taquería El Güero',
+        tagline: 'Tacos al carbón, trompo al pastor y gringas con tortillas hechas a mano.',
+        avatar: '🌮',
+        location: '📍 Mérida, Yucatán',
+        phone: '5219992968446',
+        merchantId: '01JBAVWE4NS5TGXHWGMX3KH23Q', // Merchant CoDi en D1
+        categories: ['Todos', 'Tacos', 'Gringas', 'Bebidas'],
+        products: [
+          {
+            id: 'tac-pastor',
+            name: 'Tacos al Pastor',
+            category: 'Tacos',
+            price: 22.00,
+            desc: 'Carne adobada al trompo, piña asada, cilantro y cebolla.',
+            emoji: '🌮',
+            variantType: 'Preparación',
+            variants: ['Con todo', 'Sin cebolla', 'Pura carne']
+          },
+          {
+            id: 'tac-bistec',
+            name: 'Taco de Bistec',
+            category: 'Tacos',
+            price: 28.00,
+            desc: 'Corte fino de res a la plancha con cebollita asada.',
+            emoji: '🥩',
+            variantType: 'Preparación',
+            variants: ['Con todo', 'Sin cilantro', 'Con queso (+$10)']
+          },
+          {
+            id: 'tac-suadero',
+            name: 'Taco de Suadero',
+            category: 'Tacos',
+            price: 26.00,
+            desc: 'Suadero suave confitado en su propio jugo.',
+            emoji: '🍖',
+            variantType: 'Preparación',
+            variants: ['Con todo', 'Dorado', 'Suave']
+          },
+          {
+            id: 'gringa-pastor',
+            name: 'Gringa de Pastor con Queso',
+            category: 'Gringas',
+            price: 45.00,
+            desc: 'Doble tortilla de harina con queso gouda fundido y pastor.',
+            emoji: '🧀',
+            variantType: 'Tamaño',
+            variants: ['Normal', 'Doble queso (+$15)']
+          },
+          {
+            id: 'cebollitas',
+            name: 'Orden de Cebollitas Cambray',
+            category: 'Tacos',
+            price: 30.00,
+            desc: 'Cebollitas tiernas asadas al carbón con salsa Maggi e inglesa.',
+            emoji: '🧅'
+          },
+          {
+            id: 'refresco-coca',
+            name: 'Coca-Cola 600ml',
+            category: 'Bebidas',
+            price: 25.00,
+            desc: 'Botella de vidrio bien fría.',
+            emoji: '🥤'
+          },
+          {
+            id: 'agua-jamaica',
+            name: 'Agua de Jamaica / Horchata 1L',
+            category: 'Bebidas',
+            price: 35.00,
+            desc: 'Agua fresca artesanal del día.',
+            emoji: '🍹',
+            variantType: 'Sabor',
+            variants: ['Horchata', 'Jamaica']
+          }
+        ]
+      },
+      skinlab: {
+        id: 'skinlab',
+        name: 'SkinLab Clothing Club',
+        tagline: 'Streetwear y moda urbana mexicana confeccionada en algodón pesado 240 GSM.',
+        avatar: '👕',
+        location: '📍 CDMX / Envíos a todo México',
+        phone: '5219992968446',
+        merchantId: '01JBAVSKINLAB0000000000000',
+        categories: ['Todos', 'Playeras', 'Hoodies', 'Accesorios'],
+        products: [
+          {
+            id: 'tee-ola-nocturna',
+            name: 'Playera Ola Nocturna',
+            category: 'Playeras',
+            price: 299.00,
+            desc: 'Serigrafía al tacto cero. Algodón peinado premium 100%.',
+            emoji: '🌊',
+            variantType: 'Talla',
+            variants: ['S', 'M', 'L', 'XL']
+          },
+          {
+            id: 'tee-sol-tulum',
+            name: 'Playera Sol de Tulum',
+            category: 'Playeras',
+            price: 299.00,
+            desc: 'Corte oversize moderno con estampa dorsal inspirada en la costa.',
+            emoji: '☀️',
+            variantType: 'Talla',
+            variants: ['S', 'M', 'L', 'XL']
+          },
+          {
+            id: 'tee-tricolor',
+            name: 'Playera SkinLab Tricolor Club',
+            category: 'Playeras',
+            price: 349.00,
+            desc: 'Edición conmemorativa con bordado frontal en alta definición.',
+            emoji: '🇲🇽',
+            variantType: 'Talla',
+            variants: ['S', 'M', 'L', 'XL']
+          },
+          {
+            id: 'hoodie-heavyweight',
+            name: 'Hoodie Heavyweight Oversize',
+            category: 'Hoodies',
+            price: 599.00,
+            desc: 'Felpa perchada de 380 GSM con gorro doble y bolsillo canguro.',
+            emoji: '🧥',
+            variantType: 'Talla',
+            variants: ['M', 'L', 'XL']
+          },
+          {
+            id: 'gorra-dad-hat',
+            name: 'Gorra Vintage Dad Hat',
+            category: 'Accesorios',
+            price: 220.00,
+            desc: 'Algodón deslavado con hebilla metálica ajustable y logo bordado.',
+            emoji: '🧢'
+          }
+        ]
+      }
+    };
+
+    // Estado Reactivo
+    let currentTenantKey = 'taqueria';
+    let currentCategory = 'Todos';
+    let cart = []; // [{ key, id, name, price, variant, qty }]
+    let pollInterval = null;
+
+    // Inicialización al cargar
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const mParam = urlParams.get('m') || '';
+      
+      if (mParam.includes('skinlab') || mParam.includes('marea') || mParam.includes('ropa')) {
+        currentTenantKey = 'skinlab';
+      } else {
+        currentTenantKey = 'taqueria';
+      }
+      
+      loadCartFromStorage();
+      renderStore();
+    });
+
+    function switchTenant(key) {
+      if (!CATALOGS[key]) return;
+      currentTenantKey = key;
+      currentCategory = 'Todos';
+      
+      // Actualizar botones de switch
+      document.getElementById('btn-demo-taqueria').className = key === 'taqueria'
+        ? 'px-2.5 py-1 rounded-md transition shadow-xs bg-white text-slate-900 font-semibold'
+        : 'px-2.5 py-1 rounded-md transition text-slate-600 hover:text-slate-900';
+      document.getElementById('btn-demo-skinlab').className = key === 'skinlab'
+        ? 'px-2.5 py-1 rounded-md transition shadow-xs bg-white text-slate-900 font-semibold'
+        : 'px-2.5 py-1 rounded-md transition text-slate-600 hover:text-slate-900';
+      
+      // Actualizar URL sin recargar
+      const newUrl = new URL(window.location);
+      newUrl.searchParams.set('m', key);
+      window.history.replaceState({}, '', newUrl);
+
+      renderStore();
+    }
+
+    function renderStore() {
+      const tenant = CATALOGS[currentTenantKey];
+      
+      // Hero
+      document.getElementById('merchant-name').textContent = tenant.name;
+      document.getElementById('merchant-desc').textContent = tenant.tagline;
+      document.getElementById('merchant-avatar').textContent = tenant.avatar;
+      document.getElementById('merchant-loc').textContent = tenant.location;
+
+      // Categorías
+      const catContainer = document.getElementById('category-tabs');
+      catContainer.innerHTML = tenant.categories.map(cat => `
+        <button onclick="setCategory('${cat}')" class="px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition ${
+          currentCategory === cat 
+            ? 'bg-slate-900 text-white shadow-xs' 
+            : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+        }">
+          ${cat}
+        </button>
+      `).join('');
+
+      // Productos
+      const prodContainer = document.getElementById('products-container');
+      const filtered = currentCategory === 'Todos' 
+        ? tenant.products 
+        : tenant.products.filter(p => p.category === currentCategory);
+
+      prodContainer.innerHTML = filtered.map(prod => {
+        // Encontrar cantidad actual en carrito
+        const totalInCart = cart
+          .filter(item => item.id === prod.id)
+          .reduce((sum, item) => sum + item.qty, 0);
+
+        return `
+          <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-2xs hover:shadow-sm transition flex flex-col justify-between">
+            <div>
+              <div class="flex items-start justify-between gap-2">
+                <div class="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-2xl">
+                  ${prod.emoji}
+                </div>
+                <div class="text-right">
+                  <span class="text-base font-extrabold font-orbitron text-slate-900">
+                    $${prod.price.toFixed(2)}
+                  </span>
+                  <div class="text-[10px] text-slate-400 font-medium">MXN</div>
+                </div>
+              </div>
+
+              <h3 class="font-bold text-sm text-slate-900 mt-2.5 leading-snug">
+                ${prod.name}
+              </h3>
+              <p class="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+                ${prod.desc}
+              </p>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+              ${prod.variants ? `
+                <select id="var-${prod.id}" class="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 font-medium text-slate-700 focus:outline-hidden">
+                  ${prod.variants.map(v => `<option value="${v}">${prod.variantType}: ${v}</option>`).join('')}
+                </select>
+              ` : `
+                <span class="text-[11px] font-medium text-slate-400">Pieza única</span>
+              `}
+
+              <button onclick="addToCart('${prod.id}')" class="px-3.5 py-1.5 rounded-xl bg-[#002B7F] hover:bg-[#001A4D] active:scale-95 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition">
+                <span>+ Agregar</span>
+                ${totalInCart > 0 ? `<span class="bg-[#D4AF37] text-slate-950 font-black rounded-full px-1.5 text-[10px]">${totalInCart}</span>` : ''}
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      updateCartUI();
+    }
+
+    function setCategory(cat) {
+      currentCategory = cat;
+      renderStore();
+    }
+
+    // Lógica del Carrito
+    function addToCart(productId) {
+      const tenant = CATALOGS[currentTenantKey];
+      const prod = tenant.products.find(p => p.id === productId);
+      if (!prod) return;
+
+      let variant = 'Estándar';
+      if (prod.variants) {
+        const selectEl = document.getElementById(`var-${prod.id}`);
+        if (selectEl) variant = selectEl.value;
+      }
+
+      const itemKey = `${currentTenantKey}_${prod.id}_${variant}`;
+      const existing = cart.find(i => i.key === itemKey);
+
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        cart.push({
+          key: itemKey,
+          id: prod.id,
+          name: prod.name,
+          price: prod.price,
+          variant: variant,
+          emoji: prod.emoji,
+          qty: 1
+        });
+      }
+
+      saveCartToStorage();
+      updateCartUI();
+      renderStore();
+      showToast(`Agregaste ${prod.name}`);
+    }
+
+    function changeItemQty(key, delta) {
+      const item = cart.find(i => i.key === key);
+      if (!item) return;
+
+      item.qty += delta;
+      if (item.qty <= 0) {
+        cart = cart.filter(i => i.key !== key);
+      }
+
+      saveCartToStorage();
+      updateCartUI();
+      renderStore();
+      renderCartModalItems();
+    }
+
+    function updateCartUI() {
+      const totalCount = cart.reduce((sum, item) => sum + item.qty, 0);
+      const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
+      const floatBar = document.getElementById('cart-float-bar');
+      document.getElementById('cart-float-count').textContent = totalCount;
+      document.getElementById('cart-float-total').innerHTML = `$${totalPrice.toFixed(2)} <span class="text-xs font-normal text-slate-500">MXN</span>`;
+
+      if (totalCount > 0) {
+        floatBar.classList.remove('translate-y-full');
+      } else {
+        floatBar.classList.add('translate-y-full');
+        closeCartModal();
+      }
+
+      document.getElementById('modal-item-badge').textContent = `${totalCount} ${totalCount === 1 ? 'producto' : 'productos'}`;
+      document.getElementById('modal-subtotal').textContent = `$${totalPrice.toFixed(2)} MXN`;
+      document.getElementById('modal-total').textContent = `$${totalPrice.toFixed(2)} MXN`;
+    }
+
+    function renderCartModalItems() {
+      const listEl = document.getElementById('cart-items-list');
+      if (cart.length === 0) {
+        listEl.innerHTML = '<div class="py-8 text-center text-xs text-slate-400">Tu carrito está vacío</div>';
+        return;
+      }
+
+      listEl.innerHTML = cart.map(item => `
+        <div class="py-3 flex items-center justify-between gap-3">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <span class="text-xl">${item.emoji}</span>
+            <div class="min-w-0">
+              <div class="font-bold text-xs text-slate-900 truncate">${item.name}</div>
+              <div class="text-[11px] text-slate-500 truncate">${item.variant} • $${item.price.toFixed(2)} c/u</div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <div class="flex items-center border border-slate-200 rounded-lg bg-slate-50">
+              <button onclick="changeItemQty('${item.key}', -1)" class="w-7 h-7 flex items-center justify-center text-slate-600 hover:text-slate-900 font-bold active:bg-slate-200 rounded-l-lg">
+                -
+              </button>
+              <span class="w-6 text-center text-xs font-bold text-slate-900">${item.qty}</span>
+              <button onclick="changeItemQty('${item.key}', 1)" class="w-7 h-7 flex items-center justify-center text-slate-600 hover:text-slate-900 font-bold active:bg-slate-200 rounded-r-lg">
+                +
+              </button>
+            </div>
+            <div class="w-16 text-right font-extrabold text-xs font-orbitron text-slate-900">
+              $${(item.price * item.qty).toFixed(2)}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openCartModal() {
+      if (cart.length === 0) return;
+      renderCartModalItems();
+      document.getElementById('cart-modal').classList.remove('hidden');
+    }
+
+    function closeCartModal() {
+      document.getElementById('cart-modal').classList.add('hidden');
+    }
+
+    // CHECKOUT 1: CoDi Banxico en Vivo
+    async function handleCheckoutCoDi() {
+      const tenant = CATALOGS[currentTenantKey];
+      const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      if (totalPrice <= 0) return;
+
+      const customerName = document.getElementById('order-customer-name').value.trim() || 'Cliente Mostrador';
+      const orderSummary = cart.map(i => `${i.qty}x ${i.name}`).join(', ');
+
+      const btn = document.getElementById('btn-pay-codi');
+      const originalText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<span class="animate-spin">⏳</span> Generando QR CoDi...`;
+
+      try {
+        const res = await fetch('/api/codi/qr', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount: totalPrice,
+            concept: `Pedido: ${orderSummary.substring(0, 30)}`,
+            merchantId: tenant.merchantId
+          })
+        });
+
+        const data = await res.json();
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+
+        if (!res.ok || !data.qrString) {
+          throw new Error(data?.error?.message || 'No se pudo generar el QR CoDi');
+        }
+
+        // Mostrar pantalla de CoDi
+        closeCartModal();
+        showCodiScreen(data, totalPrice);
+
+      } catch (err) {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        showToast(err.message || 'Error de conexión', true);
+      }
+    }
+
+    function showCodiScreen(codiData, amount) {
+      const modal = document.getElementById('codi-screen-modal');
+      document.getElementById('codi-display-amount').textContent = `$${amount.toFixed(2)}`;
+      
+      const qrContainer = document.getElementById('qrcode-container');
+      qrContainer.innerHTML = '';
+
+      new QRCode(qrContainer, {
+        text: codiData.qrString,
+        width: 200,
+        height: 200,
+        colorDark: '#001A4D',
+        colorLight: '#FFFFFF',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+
+      modal.classList.remove('hidden');
+
+      // Iniciar polling
+      const paymentId = codiData.paymentId || codiData.payableId;
+      startPaymentPolling(paymentId);
+    }
+
+    function closeCodiScreen() {
+      document.getElementById('codi-screen-modal').classList.add('hidden');
+      if (pollInterval) clearInterval(pollInterval);
+    }
+
+    function startPaymentPolling(paymentId) {
+      if (!paymentId) return;
+      if (pollInterval) clearInterval(pollInterval);
+
+      let attempts = 0;
+      pollInterval = setInterval(async () => {
+        attempts++;
+        if (attempts > 60) { // 5 minutos máx
+          clearInterval(pollInterval);
+          return;
+        }
+
+        try {
+          const res = await fetch(`/api/payment/codi/status/${paymentId}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.status === 'PAID') {
+              clearInterval(pollInterval);
+              onPaymentSuccess();
+            }
+          }
+        } catch {
+          // ignore
+        }
+      }, 5000);
+    }
+
+    function onPaymentSuccess() {
+      const banner = document.getElementById('codi-status-banner');
+      banner.className = 'bg-emerald-100 text-emerald-900 text-xs py-3 px-4 rounded-xl border border-emerald-300 font-bold';
+      banner.innerHTML = '🎉 ¡Pago confirmado por tu banco! Tu pedido está listo.';
+
+      cart = [];
+      saveCartToStorage();
+      updateCartUI();
+      renderStore();
+      showToast('¡Pago exitoso con CoDi!', false);
+
+      setTimeout(() => {
+        closeCodiScreen();
+      }, 3500);
+    }
+
+    // CHECKOUT 2: Ticket de WhatsApp desde el teléfono del cliente
+    function handleCheckoutWhatsApp() {
+      const tenant = CATALOGS[currentTenantKey];
+      const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      if (totalPrice <= 0) return;
+
+      const customerName = document.getElementById('order-customer-name').value.trim() || 'Cliente';
+      const notes = document.getElementById('order-notes').value.trim();
+
+      const folio = 'ARK-' + Math.floor(1000 + Math.random() * 9000);
+      const itemsText = cart.map(i => `• ${i.qty}x ${i.name} (${i.variant}) — $${(i.price * i.qty).toFixed(2)}`).join('\n');
+
+      const message = 
+`${tenant.avatar} *NUEVO PEDIDO — ${tenant.name.toUpperCase()}*
+*Folio:* #${folio}
+----------------------------------
+${itemsText}
+----------------------------------
+*Total:* $${totalPrice.toFixed(2)} MXN
+*Cliente:* ${customerName}
+${notes ? `*Notas:* ${notes}\n` : ''}*Método de pago:* Efectivo / CoDi al recibir
+----------------------------------
+_Generado desde Ark Cash Register (caja.arksystems.site)_`;
+
+      const waUrl = `https://wa.me/${tenant.phone}?text=${encodeURIComponent(message)}`;
+      window.open(waUrl, '_blank');
+
+      // Limpiar y cerrar
+      closeCartModal();
+      showToast('Abriendo WhatsApp con tu pedido...');
+    }
+
+    // Persistencia Local
+    function saveCartToStorage() {
+      try {
+        localStorage.setItem(`ark_cart_${currentTenantKey}`, JSON.stringify(cart));
+      } catch {}
+    }
+
+    function loadCartFromStorage() {
+      try {
+        const saved = localStorage.getItem(`ark_cart_${currentTenantKey}`);
+        if (saved) cart = JSON.parse(saved);
+      } catch {}
+    }
+
+    function showToast(msg, isError = false) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-msg').textContent = msg;
+      document.getElementById('toast-icon').textContent = isError ? '⚠️' : '✓';
+      toast.className = `fixed top-5 inset-x-0 mx-auto w-max max-w-[90vw] z-50 ${isError ? 'bg-rose-600' : 'bg-slate-900'} text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow-lg transition-transform duration-300 translate-y-0 pointer-events-none flex items-center gap-2`;
+      setTimeout(() => {
+        toast.className = toast.className.replace('translate-y-0', '-translate-y-20');
+      }, 2500);
+    }
+  </script>
+</body>
+</html>

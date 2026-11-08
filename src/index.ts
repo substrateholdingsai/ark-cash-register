@@ -55,13 +55,32 @@ app.get('/api/health', (c) => {
   });
 });
 
-// Rutas amigables para la Caja, Instructivo y Landing
+// Rutas amigables para la Caja, Instructivo, Tienda y Landing
 app.get('/caja', (c) => {
   const m = c.req.query('m');
   if (m) {
     return c.redirect(`/caja.html?m=${encodeURIComponent(m)}`, 302);
   }
   return c.redirect('/caja.html', 302);
+});
+app.get('/tienda', (c) => {
+  const m = c.req.query('m');
+  if (m) {
+    return c.redirect(`/tienda.html?m=${encodeURIComponent(m)}`, 302);
+  }
+  return c.redirect('/tienda.html', 302);
+});
+app.get('/menu', (c) => {
+  const m = c.req.query('m');
+  return c.redirect(m ? `/tienda.html?m=${encodeURIComponent(m)}` : '/tienda.html', 301);
+});
+app.get('/catalogo', (c) => {
+  const m = c.req.query('m');
+  return c.redirect(m ? `/tienda.html?m=${encodeURIComponent(m)}` : '/tienda.html', 301);
+});
+app.get('/store', (c) => {
+  const m = c.req.query('m');
+  return c.redirect(m ? `/tienda.html?m=${encodeURIComponent(m)}` : '/tienda.html', 301);
 });
 app.get('/app', (c) => c.redirect('/caja', 301));
 app.get('/instructivo', (c) => c.redirect('/index.html', 301));
