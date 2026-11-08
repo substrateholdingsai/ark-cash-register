@@ -461,6 +461,24 @@
             <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
             Enviar Ticket por WhatsApp
           </button>
+
+          <!-- Botón Emitir Factura Fiscal (CFDI 4.0) -->
+          <button id="btn-open-factura" onclick="openFacturaModal()" class="w-full h-11 rounded-[14px] bg-white border border-[#002B7F] text-[#002B7F] font-bold text-[13px] flex items-center justify-center shadow-2xs hover:bg-[#F0F4FA] transition active:scale-98">
+            <span class="mr-1.5">🧾</span> Emitir Factura Fiscal (CFDI 4.0)
+          </button>
+
+          <!-- Resumen de Factura Emitida -->
+          <div id="b-paid-invoice-status" class="hidden p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-left text-xs space-y-1.5">
+            <div class="flex items-center justify-between font-bold text-emerald-900">
+              <span class="flex items-center gap-1">✓ CFDI 4.0 Timbrado</span>
+              <span id="b-invoice-uuid-badge" class="font-mono text-[10px] bg-emerald-200 text-emerald-800 px-1.5 py-0.5 rounded">UUID</span>
+            </div>
+            <div class="text-[11px] text-emerald-700 font-medium">Receptor: <span id="b-invoice-rfc-label">XAXX010101000</span></div>
+            <div class="flex gap-2 pt-1">
+              <a id="btn-download-pdf" href="#" target="_blank" class="flex-1 py-1.5 text-center bg-white border border-emerald-300 rounded-lg text-emerald-800 font-bold hover:bg-emerald-100 shadow-2xs text-[11px]">📄 Ver Factura PDF</a>
+              <a id="btn-download-xml" href="#" target="_blank" class="flex-1 py-1.5 text-center bg-white border border-emerald-300 rounded-lg text-emerald-800 font-bold hover:bg-emerald-100 shadow-2xs text-[11px]">📥 Descargar XML</a>
+            </div>
+          </div>
         </div>
 
         <!-- Botón Siguiente Venta -->
@@ -765,6 +783,97 @@
         </button>
       </div>
 
+    </div>
+  </div>
+
+  <!-- MODAL: EMITIR FACTURA FISCAL CFDI 4.0 (FACTURAPI) -->
+  <div id="factura-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+    <div class="bg-white rounded-[24px] max-w-md w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">🧾</span>
+          <h3 class="font-bold text-[16px] text-[#121A2E]">Emitir Factura CFDI 4.0</h3>
+        </div>
+        <button onclick="closeFacturaModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+      </div>
+
+      <!-- Pestañas: Público en General vs Cliente con RFC -->
+      <div class="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+        <button id="tab-factura-general" onclick="switchFacturaTab('general')" class="py-2 rounded-lg bg-white text-slate-900 shadow-xs font-bold">
+          🌐 Público en General
+        </button>
+        <button id="tab-factura-cliente" onclick="switchFacturaTab('cliente')" class="py-2 rounded-lg text-slate-600 hover:text-slate-900 font-medium">
+          👤 Cliente con RFC
+        </button>
+      </div>
+
+      <!-- Resumen del Cobro -->
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs flex justify-between items-center">
+        <div>
+          <span class="text-slate-500">Monto del cobro:</span>
+          <div id="factura-modal-amount" class="text-base font-bold font-orbitron text-slate-900">$0.00 MXN</div>
+        </div>
+        <span class="text-[11px] bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full font-semibold border border-blue-200">
+          Pago 01 - CoDi SPEI
+        </span>
+      </div>
+
+      <!-- Formulario: Público en General -->
+      <div id="form-factura-general" class="space-y-3">
+        <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-[12px] text-amber-800 space-y-1">
+          <p class="font-bold">⚡ Facturación Rápida de Mostrador</p>
+          <p class="text-[11px]">Se timbrará con el RFC genérico <strong>XAXX010101000</strong>, Régimen Fiscal 616 (Sin obligaciones fiscales) y Uso de CFDI S01 (Sin efectos fiscales).</p>
+        </div>
+      </div>
+
+      <!-- Formulario: Cliente con RFC -->
+      <div id="form-factura-cliente" class="space-y-3 hidden">
+        <div>
+          <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">RFC del Cliente *</label>
+          <input id="inv-customer-rfc" type="text" placeholder="XAXX010101000" maxlength="13" class="w-full h-10 px-3 border border-slate-200 rounded-xl text-xs font-mono uppercase focus:border-blue-900 focus:outline-none" />
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">Nombre o Razón Social *</label>
+          <input id="inv-customer-name" type="text" placeholder="Nombre completo o Empresa" class="w-full h-10 px-3 border border-slate-200 rounded-xl text-xs focus:border-blue-900 focus:outline-none" />
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">Código Postal *</label>
+            <input id="inv-customer-cp" type="text" placeholder="00000" maxlength="5" class="w-full h-10 px-3 border border-slate-200 rounded-xl text-xs font-mono focus:border-blue-900 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">Régimen Fiscal *</label>
+            <select id="inv-customer-regimen" class="w-full h-10 px-2 border border-slate-200 rounded-xl text-xs focus:border-blue-900 focus:outline-none">
+              <option value="601">601 - General Morales</option>
+              <option value="612">612 - Personas Físicas Act. Emp.</option>
+              <option value="626">626 - RESICO Simplificado</option>
+              <option value="605">605 - Sueldos y Salarios</option>
+              <option value="616" selected>616 - Sin obligaciones</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">Correo para enviar CFDI</label>
+          <input id="inv-customer-email" type="email" placeholder="cliente@correo.com" class="w-full h-10 px-3 border border-slate-200 rounded-xl text-xs focus:border-blue-900 focus:outline-none" />
+        </div>
+      </div>
+
+      <!-- Sugerencia Clave SAT con Workers AI -->
+      <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs">
+        <div class="flex items-center gap-1.5">
+          <span class="text-sm">✨</span>
+          <span class="text-[11px] text-slate-600">Clave SAT Asistida por IA: <strong id="inv-sat-key-label" class="font-mono text-slate-900">84111506</strong></span>
+        </div>
+        <button type="button" onclick="suggestSatKeyWithAi()" class="text-[10px] text-blue-700 font-bold hover:underline">
+          Re-analizar
+        </button>
+      </div>
+
+      <!-- Botón de Acción -->
+      <button id="btn-submit-factura" onclick="submitFactura()" class="w-full h-12 rounded-[14px] bg-[#002B7F] text-white font-bold text-[14px] flex items-center justify-center hover:bg-[#001D56] transition shadow-xs active:scale-98">
+        <span>Timbrar Factura ante el SAT</span>
+      </button>
+      <div id="factura-modal-error" class="hidden text-center text-xs text-rose-600 font-medium"></div>
     </div>
   </div>
 
@@ -1158,6 +1267,8 @@
       document.getElementById('b-state-waiting').classList.add('hidden');
       document.getElementById('b-state-paid').classList.add('hidden');
       document.getElementById('b-state-expired').classList.add('hidden');
+      document.getElementById('btn-open-factura')?.classList.remove('hidden');
+      document.getElementById('b-paid-invoice-status')?.classList.add('hidden');
 
       if (!currentCatalog) {
         loadCatalog(currentMerchantId || '01JBAVWE4NS5TGXHWGMX3KH23Q');
@@ -1684,8 +1795,191 @@
       window.open(`https://wa.me/?text=${encodeURIComponent(ticketText)}`, '_blank');
     }
 
+    // ==========================================
+    // FACTURACIÓN ELECTRÓNICA CFDI 4.0 (FACTURAPI + SAT)
+    // ==========================================
+    let facturaTab = 'general';
+    let currentFacturaData = null;
+
+    function openFacturaModal() {
+      const amount = currentPayment?.amount || (currentInputCents / 100) || 0;
+      document.getElementById('factura-modal-amount').textContent = `$${Number(amount).toFixed(2)} MXN`;
+      document.getElementById('factura-modal-error').classList.add('hidden');
+      switchFacturaTab('general');
+      document.getElementById('factura-modal').classList.remove('hidden');
+      suggestSatKeyWithAi();
+    }
+
+    function closeFacturaModal() {
+      document.getElementById('factura-modal').classList.add('hidden');
+    }
+
+    function switchFacturaTab(tab) {
+      facturaTab = tab;
+      const btnGen = document.getElementById('tab-factura-general');
+      const btnCli = document.getElementById('tab-factura-cliente');
+      const formGen = document.getElementById('form-factura-general');
+      const formCli = document.getElementById('form-factura-cliente');
+
+      if (tab === 'general') {
+        btnGen.className = 'py-2 rounded-lg bg-white text-slate-900 shadow-xs font-bold';
+        btnCli.className = 'py-2 rounded-lg text-slate-600 hover:text-slate-900 font-medium';
+        formGen.classList.remove('hidden');
+        formCli.classList.add('hidden');
+      } else {
+        btnCli.className = 'py-2 rounded-lg bg-white text-slate-900 shadow-xs font-bold';
+        btnGen.className = 'py-2 rounded-lg text-slate-600 hover:text-slate-900 font-medium';
+        formCli.classList.remove('hidden');
+        formGen.classList.add('hidden');
+      }
+    }
+
+    async function suggestSatKeyWithAi() {
+      const label = document.getElementById('inv-sat-key-label');
+      if (!label) return;
+      label.textContent = 'Analizando con IA…';
+
+      const concept = lastCartCheckout?.items?.map(i => i.name).join(', ') || currentPayment?.concept || 'Venta en mostrador';
+
+      try {
+        const res = await fetch('/api/ai/suggest-sat-key', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ description: concept })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          let key = '84111506';
+          try {
+            const parsed = typeof data.suggestion === 'string' ? JSON.parse(data.suggestion) : data.suggestion;
+            key = parsed?.product_key || parsed?.clave_sat || '84111506';
+          } catch {
+            const match = String(data.suggestion).match(/\d{8}/);
+            if (match) key = match[0];
+          }
+          label.textContent = key;
+        } else {
+          label.textContent = '84111506';
+        }
+      } catch (e) {
+        label.textContent = '84111506';
+      }
+    }
+
+    async function submitFactura() {
+      const btn = document.getElementById('btn-submit-factura');
+      const errBox = document.getElementById('factura-modal-error');
+      errBox.classList.add('hidden');
+
+      let rfc = 'XAXX010101000';
+      let name = 'PUBLICO EN GENERAL';
+      let cp = '00000';
+      let regimen = '616';
+      let email = '';
+      let use = 'S01';
+
+      if (facturaTab === 'cliente') {
+        rfc = document.getElementById('inv-customer-rfc').value.trim().toUpperCase();
+        name = document.getElementById('inv-customer-name').value.trim().toUpperCase();
+        cp = document.getElementById('inv-customer-cp').value.trim();
+        regimen = document.getElementById('inv-customer-regimen').value;
+        email = document.getElementById('inv-customer-email').value.trim();
+        use = 'G03';
+
+        if (!rfc || rfc.length < 12) {
+          errBox.textContent = 'Por favor ingresa un RFC válido (12 o 13 caracteres)';
+          errBox.classList.remove('hidden');
+          return;
+        }
+        if (!name) {
+          errBox.textContent = 'Por favor ingresa la Razón Social o Nombre del cliente';
+          errBox.classList.remove('hidden');
+          return;
+        }
+        if (!cp || cp.length !== 5) {
+          errBox.textContent = 'El Código Postal debe tener 5 dígitos';
+          errBox.classList.remove('hidden');
+          return;
+        }
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span>⏳ Timbrando CFDI ante el SAT…</span>';
+
+      const paymentId = currentPayment?.paymentId || currentPayment?.id || null;
+      const amount = currentPayment?.amount || (currentInputCents / 100) || 0;
+      const satKey = document.getElementById('inv-sat-key-label').textContent.trim() || '84111506';
+
+      const items = lastCartCheckout?.items?.length > 0 
+        ? lastCartCheckout.items.map(i => ({
+            quantity: i.qty,
+            product: {
+              description: i.name,
+              product_key: satKey.length === 8 ? satKey : '84111506',
+              price: i.price,
+              tax_included: true
+            }
+          }))
+        : [{
+            quantity: 1,
+            product: {
+              description: currentPayment?.concept || 'Consumo mostrador',
+              product_key: satKey.length === 8 ? satKey : '84111506',
+              price: amount,
+              tax_included: true
+            }
+          }];
+
+      try {
+        const res = await fetch('/api/invoice/issue', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            merchantId: currentMerchantId,
+            paymentId: paymentId,
+            customerRfc: rfc,
+            customerName: name,
+            customerCp: cp,
+            customerRegimen: regimen,
+            customerEmail: email,
+            use: use,
+            items: items
+          })
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error?.message || 'Error al timbrar factura');
+        }
+
+        currentFacturaData = data;
+        closeFacturaModal();
+
+        // Mostrar status de factura en la pantalla de éxito
+        document.getElementById('btn-open-factura')?.classList.add('hidden');
+        const statusBox = document.getElementById('b-paid-invoice-status');
+        if (statusBox) statusBox.classList.remove('hidden');
+        document.getElementById('b-invoice-uuid-badge').textContent = (data.uuid || '').slice(0, 8) + '…';
+        document.getElementById('b-invoice-rfc-label').textContent = `${rfc} — ${name}`;
+        document.getElementById('btn-download-pdf').href = data.pdfUrl || `/api/invoice/${data.invoiceId}/pdf`;
+        document.getElementById('btn-download-xml').href = `/api/invoice/${data.invoiceId}/xml`;
+
+      } catch (err) {
+        errBox.textContent = err.message || 'Error comunicando con servicio de facturación';
+        errBox.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>Timbrar Factura ante el SAT</span>';
+      }
+    }
+
     function onPaymentConfirmed(amount) {
       playSuccessChime();
+
+      // Resetear estado de factura para este nuevo cobro
+      currentFacturaData = null;
+      document.getElementById('btn-open-factura')?.classList.remove('hidden');
+      document.getElementById('b-paid-invoice-status')?.classList.add('hidden');
 
       // Guardar en historial local
       const now = new Date();
