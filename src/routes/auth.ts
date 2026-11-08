@@ -106,13 +106,21 @@ authRouter.post('/register', async (c) => {
   if (r) return r;
 
   const body = await c.req.json().catch(() => ({}));
-  const { email, password, displayName } = body || {};
+  const { email, password, displayName, merchantId } = body || {};
 
   const emailErr = validateEmail(email);
   if (emailErr) return c.json({ error: { message: emailErr, type: 'VALIDATION_ERROR', fields: { email: emailErr } } }, 400);
   const minLen = minPasswordLength(c);
   const pwErr = validatePassword(password, minLen);
   if (pwErr) return c.json({ error: { message: pwErr, type: 'VALIDATION_ERROR', fields: { password: pwErr } } }, 400);
+
+  // Si se especifica un comercio, validar que exista
+  if (merchantId && c.env.DB) {
+    const merchant = await c.env.DB.prepare('SELECT id FROM merchants WHERE id = ? LIMIT 1').bind(merchantId).first();
+    if (!merchant) {
+      return c.json({ error: { message: 'El comercio especificado no existe', type: 'MERCHANT_NOT_FOUND' } }, 404);
+    }
+  }
 
   const acceptTerms = body?.acceptTerms === true;
   const acceptPrivacy = body?.acceptPrivacy === true;
@@ -150,9 +158,9 @@ authRouter.post('/register', async (c) => {
   const hash = await hashPassword(password);
   const now = nowSec();
   await c.env.DB.prepare(
-    `INSERT INTO users (id, email, email_verified, password_hash, password_updated_at, display_name, role, status, failed_login_count, created_at, updated_at)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?)`
-  ).bind(userId, ne, 0, hash, now, displayName || null, 'cashier', 'pending', 0, now, now).run();
+    `INSERT INTO users (id, email, email_verified, password_hash, password_updated_at, display_name, role, merchant_id, status, failed_login_count, created_at, updated_at)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`
+  ).bind(userId, ne, 0, hash, now, displayName || null, 'cashier', merchantId || null, 'pending', 0, now, now).run();
   // Registrar consentimiento versionado
   const ua = c.req.header('User-Agent') || null;
   await c.env.DB.prepare('INSERT INTO consent_records (id, user_id, document, version, accepted_at, ip_address, user_agent) VALUES (?,?,?,?,?,?,?)')
@@ -277,7 +285,7 @@ authRouter.post('/login', async (c) => {
   if (r2) return r2;
 
   const user: any = await c.env.DB.prepare(
-    'SELECT id, email, password_hash, role, display_name, email_verified, status, failed_login_count, locked_until, password_updated_at FROM users WHERE email = ? LIMIT 1'
+    'SELECT id, email, password_hash, role, display_name, email_verified, status, merchant_id, failed_login_count, locked_until, password_updated_at FROM users WHERE email = ? LIMIT 1'
   ).bind(ne).first();
 
   const now = nowSec();
@@ -338,12 +346,15 @@ authRouter.post('/login', async (c) => {
   ).bind(now, now, user.id).run();
 
   const secret = c.env.AUTH_JWT_SECRET;
-  if (!secret) return c.json({ error: { message: 'Auth no configurado', type: 'AUTH_NOT_CONFIGURED' } }, 503);
+  if (!secret || secret.trim() === '') {
+    await audit(c, 'login_fail_no_secret', user.id);
+    return c.json({ error: { message: 'Auth no configurado', type: 'AUTH_NOT_CONFIGURED' } }, 503);
+  }
 
   const accessExp = now + 15 * 60;
   const jti = generateUlid();
   const accessToken = await signJwt(
-    { sub: user.id, role: user.role, iat: now, exp: accessExp, jti },
+    { sub: user.id, role: user.role, merchant_id: user.merchant_id || null, iat: now, exp: accessExp, jti },
     secret
   );
 
@@ -369,6 +380,7 @@ authRouter.post('/login', async (c) => {
       id: user.id,
       email: user.email,
       role: user.role,
+      merchantId: user.merchant_id || null,
       displayName: user.display_name,
       emailVerified: Boolean(user.email_verified)
     }
@@ -419,7 +431,7 @@ authRouter.post('/refresh', async (c) => {
   }
 
   const user: any = await c.env.DB.prepare(
-    'SELECT id, email, role, display_name, email_verified, status, password_updated_at FROM users WHERE id = ? LIMIT 1'
+    'SELECT id, email, role, display_name, email_verified, status, merchant_id, password_updated_at FROM users WHERE id = ? LIMIT 1'
   ).bind(session.user_id).first();
   if (!user || user.status !== 'active') {
     clearRefreshCookie(c);
@@ -427,7 +439,7 @@ authRouter.post('/refresh', async (c) => {
   }
 
   const secret = c.env.AUTH_JWT_SECRET;
-  if (!secret) return c.json({ error: { message: 'Auth no configurado', type: 'AUTH_NOT_CONFIGURED' } }, 503);
+  if (!secret || secret.trim() === '') return c.json({ error: { message: 'Auth no configurado', type: 'AUTH_NOT_CONFIGURED' } }, 503);
 
   // rotar
   const newRefresh = generateToken(32);
@@ -442,12 +454,12 @@ authRouter.post('/refresh', async (c) => {
   await c.env.DB.prepare('UPDATE auth_sessions SET revoked_at = ?, replaced_by = ? WHERE id = ?').bind(now, newSessionId, session.id).run();
 
   const accessExp = now + 15 * 60;
-  const accessToken = await signJwt({ sub: user.id, role: user.role, iat: now, exp: accessExp, jti: generateUlid() }, secret);
+  const accessToken = await signJwt({ sub: user.id, role: user.role, merchant_id: user.merchant_id || null, iat: now, exp: accessExp, jti: generateUlid() }, secret);
 
   setRefreshCookie(c, newRefresh, newExp);
   setAccessCookie(c, accessToken, accessExp);
 
-  return c.json({ accessToken, expiresIn: 900, user: { id: user.id, email: user.email, role: user.role, displayName: user.display_name, emailVerified: Boolean(user.email_verified) } });
+  return c.json({ accessToken, expiresIn: 900, user: { id: user.id, email: user.email, role: user.role, merchantId: user.merchant_id || null, displayName: user.display_name, emailVerified: Boolean(user.email_verified) } });
 });
 
 // POST /logout
@@ -579,13 +591,14 @@ authRouter.get('/me', requireAuth, async (c) => {
   const user = c.get('user')!;
   if (!c.env.DB) return c.json({ error: { message: 'D1 no configurado', type: 'D1_UNAVAILABLE' } }, 503);
   const row: any = await c.env.DB.prepare(
-    'SELECT id, email, role, display_name, email_verified, status, created_at, last_login_at FROM users WHERE id = ? LIMIT 1'
+    'SELECT id, email, role, display_name, email_verified, merchant_id, status, created_at, last_login_at FROM users WHERE id = ? LIMIT 1'
   ).bind(user.id).first();
   if (!row) return c.json({ error: { message: 'Usuario no encontrado', type: 'USER_NOT_FOUND' } }, 404);
   return c.json({
     id: row.id,
     email: row.email,
     role: row.role,
+    merchantId: row.merchant_id || null,
     displayName: row.display_name,
     emailVerified: Boolean(row.email_verified),
     status: row.status,

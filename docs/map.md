@@ -494,7 +494,7 @@ pm test (25 tests) pasan.
 - Consentimiento versionado obligatorio en registro.
 
 ### Tests
-29 tests pasando, typecheck OK.
+50 tests pasando al 100%, typecheck OK.
 
 ---
 
@@ -581,7 +581,52 @@ D1 (DB), KV, R2 (facturas/backups).
 public/verify-email.html, reset-password.html, terms.html, privacy.html; enlaces discretos en footer de index.html y landing.html.
 
 ### Tests
-29 tests (Vitest) + typecheck (tsc --noEmit) OK.
+50 tests (Vitest) + typecheck (tsc --noEmit) OK (100% pasando: 14 internal, 15 auth, 3 ai, 18 P0 comercial).
 
 ### Docs
 docs/auth-plan.md, docs/compliance-plan.md, docs/dr-plan.md, docs/dpo.md, docs/dpa-pey.md, docs/dpa-facturapi.md.
+
+
+---
+
+## 15. P0 Comercial — Auth Fail-Closed, Scoping Multi-Tenant, Paginación e Idempotencia (Producción)
+
+**Fecha de Despliegue:** 2026-11-08  
+**Aprobación:** Pablo y StayPuft  
+**Version ID en Producción:** `debaad77-8549-4ed5-9c1f-a948b8027806`  
+**Endpoint Principal:** `https://caja.arksystems.site`  
+**Ruta Canónica de Webhook:** `https://caja.arksystems.site/webhooks/pey` (soporte dual también en `/api/webhooks/pey`)  
+
+### 15.1. Componentes P0 Implementados
+1. **AUTH_JWT_SECRET Soberano & Fail-Closed:**
+   - Inyectado en Cloudflare Workers Secrets (`wrangler secret put AUTH_JWT_SECRET`).
+   - Sin defaults ni fallbacks: si falta el secreto, el worker responde `503 Service Unavailable`.
+   - Firma criptográfica HS256 verificada con Web Crypto; rechazo de `alg: none` o tokens sin firma.
+   - Scoping estricto: el token JWT transporta `merchant_id`. Intentos cross-tenant devuelven `403 Forbidden` y se auditan en `operator_audit_log` sin exponer tokens ni secretos.
+
+2. **Paginación Segura en `/api/merchant/:id/payments`:**
+   - Protegida con `requireMerchantAuth`.
+   - Default: 20 registros; tope máximo: 100 registros.
+   - Peticiones con `limit > 100` devuelven `400 Bad Request`.
+   - Metadata: `{ items, total, limit, offset, hasMore, nextOffset }`.
+   - Ahorro de ancho de banda: `qr_string` omitido de las listas.
+
+3. **Idempotencia y Resiliencia en Webhooks (`POST /webhooks/pey`):**
+   - Validación HMAC-SHA256 y ventana anti-replay de 300 segundos.
+   - Migración `migrations/0007_webhook_idempotency.sql` aplicada en D1 remoto (`ark_caja_db`).
+   - Índice único `idx_webhook_events_idempotency` en `webhook_events(idempotency_key)`.
+   - Clave canónica: `payment.confirmed:<transactionId || payableId>` y `bank-account.updated:<bankAccountId>:<status>`.
+   - Transición atómica `UPDATE payments ... WHERE status != 'PAID'`.
+   - Asiento contable único en `ledger_entries` condicionado a cambio real de estado.
+   - Tolerancia a duplicados (HTTP 200 `{ received: true, duplicate: true }`) y reintentos automáticos con HTTP 500 ante fallas transitorias de base de datos.
+
+### 15.2. Verificación y Auditoría en Vivo
+- **Suite de Pruebas:** 50/50 tests pasando al 100% (`internal.test.ts` 14, `auth.test.ts` 15, `ai.test.ts` 3, `p0_auth_pagination_idempotency.test.ts` 18).
+- **TypeScript:** `tsc --noEmit` con 0 errores.
+- **Diagnóstico en Vivo (`https://caja.arksystems.site/api/health`):**
+  - `status: "ok"`
+  - `d1: true`
+  - `kv: true`
+  - `peyApiConfigured: true`
+  - `authConfigured: true`
+  - `aiConfigured: true`

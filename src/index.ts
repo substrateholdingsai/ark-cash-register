@@ -79,6 +79,7 @@ app.route('/api', complianceRouter);
 app.route('/api', invoiceRouter);
 app.route('/api/ai', aiRouter);
 app.route('/webhooks', webhookRouter);
+app.route('/api/webhooks', webhookRouter);
 
 // Conector Interno StayPuft (/api/internal/*)
 app.route('/api/internal', internalRouter);

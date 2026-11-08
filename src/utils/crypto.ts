@@ -135,15 +135,30 @@ export async function signJwt(payload: JwtPayload, secret: string): Promise<stri
 }
 
 export async function verifyJwt(token: string, secret: string): Promise<JwtPayload | null> {
+  if (!secret || typeof secret !== 'string' || secret.trim() === '') return null;
+  if (!token || typeof token !== 'string') return null;
+
   const parts = token.split('.');
   if (parts.length !== 3) return null;
   const [h, p, s] = parts;
+
+  // Verificar explícitamente algoritmo HS256 en header (prohibir 'none' u otros)
+  let header: any;
+  try {
+    header = JSON.parse(new TextDecoder().decode(b64urlDecode(h)));
+    if (!header || header.alg !== 'HS256') return null;
+  } catch {
+    return null;
+  }
+
   let sigBytes: Uint8Array;
   try {
     sigBytes = b64urlDecode(s);
   } catch {
     return null;
   }
+  if (sigBytes.length === 0) return null;
+
   const expected = await hmacSha256(secret, `${h}.${p}`);
   if (!timingSafeEqual(sigBytes, expected)) return null;
   let payload: JwtPayload;

@@ -4,6 +4,7 @@ import { PeyClient } from '../services/peyClient';
 import { generateUlid } from '../utils/ulid';
 import { validateClabe, getBankFromClabe } from '../utils/clabe';
 import { getCatalogForMerchant } from '../data/catalogs';
+import { requireMerchantAuth } from '../middleware/auth';
 
 export const merchantRouter = new Hono<{ Bindings: Env }>();
 
@@ -185,9 +186,33 @@ merchantRouter.get('/:id', async (c) => {
   }
 });
 
-// Lista de pagos del día para Pantalla A (Mostrador)
-merchantRouter.get('/:id/payments', async (c) => {
+// Lista de pagos del día para Pantalla A (Mostrador) con paginación y aislamiento estricto
+merchantRouter.get('/:id/payments', requireMerchantAuth, async (c) => {
   const merchantId = c.req.param('id');
+  const limitParam = c.req.query('limit');
+  const offsetParam = c.req.query('offset');
+
+  let limit = 20;
+  let offset = 0;
+
+  if (limitParam !== undefined) {
+    const parsedLimit = parseInt(limitParam, 10);
+    if (isNaN(parsedLimit) || parsedLimit <= 0) {
+      return c.json({ error: { message: 'limit debe ser un entero positivo', type: 'INVALID_PARAMETER' } }, 400);
+    }
+    if (parsedLimit > 100) {
+      return c.json({ error: { message: 'El límite máximo por página es 100 registros', type: 'INVALID_PARAMETER' } }, 400);
+    }
+    limit = parsedLimit;
+  }
+
+  if (offsetParam !== undefined) {
+    const parsedOffset = parseInt(offsetParam, 10);
+    if (isNaN(parsedOffset) || parsedOffset < 0) {
+      return c.json({ error: { message: 'offset debe ser un entero mayor o igual a 0', type: 'INVALID_PARAMETER' } }, 400);
+    }
+    offset = parsedOffset;
+  }
 
   if (c.env.DB) {
     // Validar que el comercio exista para evitar enumeración o estados inconsistentes
@@ -201,16 +226,32 @@ merchantRouter.get('/:id/payments', async (c) => {
       }, 404);
     }
 
+    const countRes: any = await c.env.DB.prepare(
+      'SELECT COUNT(*) as total FROM payments WHERE merchant_id = ?'
+    ).bind(merchantId).first();
+    const total = countRes?.total || 0;
+
     const results = await c.env.DB.prepare(`
       SELECT id, payable_type, payable_id, amount, concept, status, payment_method, date_created, date_paid
       FROM payments
       WHERE merchant_id = ?
       ORDER BY date_created DESC
-      LIMIT 50
-    `).bind(merchantId).all();
+      LIMIT ? OFFSET ?
+    `).bind(merchantId, limit, offset).all();
+
+    const rows = results.results || [];
+    const hasMore = (offset + rows.length) < total;
+    const nextOffset = hasMore ? offset + limit : null;
 
     return c.json({
-      payments: results.results || []
+      payments: rows,
+      pagination: {
+        total,
+        limit,
+        offset,
+        hasMore,
+        nextOffset
+      }
     });
   }
 
@@ -220,7 +261,7 @@ merchantRouter.get('/:id/payments', async (c) => {
 });
 
 // Corte de caja del día (Cierre y reconciliación contable)
-merchantRouter.post('/:id/close-day', async (c) => {
+merchantRouter.post('/:id/close-day', requireMerchantAuth, async (c) => {
   const merchantId = c.req.param('id');
 
   if (c.env.DB) {

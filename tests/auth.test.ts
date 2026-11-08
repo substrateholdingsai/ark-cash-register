@@ -69,9 +69,9 @@ class Stmt {
     if (q.startsWith('INSERT INTO USERS')) {
       db.users.push({
         id: p[0], email: p[1], email_verified: p[2], password_hash: p[3],
-        password_updated_at: p[4], display_name: p[5], role: p[6], status: p[7],
-        failed_login_count: p[8], locked_until: null, created_at: p[9], updated_at: p[10],
-        last_login_at: null, merchant_id: null
+        password_updated_at: p[4], display_name: p[5], role: p[6], merchant_id: p[7],
+        status: p[8], failed_login_count: p[9], locked_until: null, created_at: p[10], updated_at: p[11],
+        last_login_at: null
       });
     } else if (q.startsWith('INSERT INTO EMAIL_VERIFICATION_TOKENS')) {
       db.evt.push({ id: p[0], user_id: p[1], token_hash: p[2], created_at: p[3], expires_at: p[4], consumed_at: null });
