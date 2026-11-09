@@ -199,7 +199,25 @@
             <span>Pedir por WhatsApp (Ticket en texto)</span>
           </button>
 
-          <!-- Botón 3: Dólares Digitales (Solana Pay USDC/USDT) -->
+          <!-- Botón 3: Tarjetas y Meses Sin Intereses (PayPal) -->
+          <div id="container-checkout-paypal" class="hidden">
+            <button id="btn-checkout-paypal-toggle" onclick="togglePayPalCheckoutBox()" class="w-full py-2.5 px-4 rounded-xl bg-[#0070BA] hover:bg-[#003087] active:scale-98 text-white font-bold text-xs shadow-xs flex items-center justify-center gap-2 transition">
+              <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944 3.72a.784.784 0 0 1 .773-.655h7.322c3.272 0 5.642.793 6.64 2.203.957 1.354.912 3.19-.133 5.46-1.144 2.484-3.054 3.99-5.679 4.475-.437.08-1.028.12-1.758.12H9.55a.89.89 0 0 0-.877.747l-1.066 5.267h-.531z"/></svg>
+              <span>Tarjeta o Meses Sin Intereses (PayPal)</span>
+            </button>
+            <div id="box-paypal-buttons" class="hidden mt-2 p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+              <div class="text-[11px] text-slate-600 flex items-center justify-between">
+                <span class="font-semibold text-slate-800">💳 Meses Sin Intereses disponibles</span>
+                <span class="text-[10px] text-slate-500">Tarjetas bancarias</span>
+              </div>
+              <div id="paypal-smart-button-container" class="min-h-[45px]"></div>
+              <div id="paypal-loading-msg" class="text-center text-xs text-slate-500 py-2 hidden">
+                <span class="inline-block animate-spin mr-1.5">⏳</span>Cargando pasarela segura...
+              </div>
+            </div>
+          </div>
+
+          <!-- Botón 4: Dólares Digitales (Solana Pay USDC/USDT) -->
           <div id="container-checkout-solana" class="hidden">
             <button id="btn-checkout-solana" onclick="executeSolanaCheckout()" class="w-full py-2.5 px-4 rounded-xl bg-purple-900 hover:bg-purple-950 active:scale-98 text-white font-bold text-xs shadow-xs flex items-center justify-center gap-2 transition">
               <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
@@ -537,6 +555,9 @@
           }
         }
       } catch {}
+
+      // Verificar si el comercio tiene riel de PayPal / MSI activado
+      await checkPayPalAvailability();
     }
 
     function renderCategories() {
@@ -1198,6 +1219,247 @@ _Pedido generado vía Ark Cash Register_`;
       const targetUrl = `https://wa.me/?text=${encodeURIComponent(msg)}`;
       window.open(targetUrl, '_blank');
       showToast('Abriendo WhatsApp...');
+    }
+
+    // ==========================================
+    // RIEL DE TARJETAS Y MESES SIN INTERESES (PAYPAL)
+    // ==========================================
+    let paypalSdkLoaded = false;
+    let currentPayPalConfig = null;
+    let currentPayPalOrderId = null;
+    let currentPayPalPaymentId = null;
+
+    async function checkPayPalAvailability() {
+      const container = document.getElementById('container-checkout-paypal');
+      if (!container || !currentCatalog || !currentCatalog.merchantId) return;
+
+      try {
+        const res = await fetch(`/api/paypal/config/${encodeURIComponent(currentCatalog.merchantId)}`);
+        if (res.ok) {
+          const data = await res.json();
+          currentPayPalConfig = data;
+          if (data.enabled && data.clientId) {
+            container.classList.remove('hidden');
+          } else {
+            container.classList.add('hidden');
+          }
+        }
+      } catch (err) {
+        console.error('Error al consultar configuración de PayPal', err);
+      }
+    }
+
+    async function togglePayPalCheckoutBox() {
+      const box = document.getElementById('box-paypal-buttons');
+      if (!box) return;
+      const isHidden = box.classList.contains('hidden');
+
+      if (isHidden) {
+        box.classList.remove('hidden');
+        if (!paypalSdkLoaded && currentPayPalConfig && currentPayPalConfig.clientId) {
+          loadPayPalSdk(currentPayPalConfig.clientId);
+        }
+      } else {
+        box.classList.add('hidden');
+      }
+    }
+
+    function loadPayPalSdk(clientId) {
+      const loader = document.getElementById('paypal-loading-msg');
+      if (loader) loader.classList.remove('hidden');
+
+      if (window.paypal && window.paypal.Buttons) {
+        paypalSdkLoaded = true;
+        renderPayPalButtons();
+        return;
+      }
+
+      // Si es un client id de pruebas/mock o en tests offline
+      if (clientId.startsWith('test_') || clientId.startsWith('mock_')) {
+        renderPayPalFallbackButtons();
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(clientId)}&currency=MXN&components=buttons&enable-funding=card`;
+      script.async = true;
+      script.onload = () => {
+        paypalSdkLoaded = true;
+        renderPayPalButtons();
+      };
+      script.onerror = () => {
+        renderPayPalFallbackButtons();
+      };
+      document.head.appendChild(script);
+    }
+
+    function renderPayPalFallbackButtons() {
+      const loader = document.getElementById('paypal-loading-msg');
+      if (loader) loader.classList.add('hidden');
+      const target = document.getElementById('paypal-smart-button-container');
+      if (!target) return;
+
+      target.innerHTML = `
+        <button onclick="executePayPalFallbackCheckout()" class="w-full py-2.5 px-3 rounded-lg bg-[#0070BA] hover:bg-[#003087] text-white text-xs font-bold transition shadow-xs flex items-center justify-center gap-2">
+          <span>💳 Pagar con Tarjeta / Meses Sin Intereses</span>
+        </button>
+      `;
+    }
+
+    function renderPayPalButtons() {
+      const loader = document.getElementById('paypal-loading-msg');
+      if (loader) loader.classList.add('hidden');
+      const target = document.getElementById('paypal-smart-button-container');
+      if (!target) return;
+      target.innerHTML = '';
+
+      if (!window.paypal || !window.paypal.Buttons) {
+        renderPayPalFallbackButtons();
+        return;
+      }
+
+      try {
+        window.paypal.Buttons({
+          style: {
+            layout: 'vertical',
+            color: 'gold',
+            shape: 'rect',
+            label: 'pay'
+          },
+          createOrder: async () => {
+            const total = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+            const customerName = document.getElementById('order-customer-name')?.value.trim() || 'Cliente';
+            const notes = document.getElementById('order-customer-notes')?.value.trim() || '';
+
+            const res = await fetch('/api/paypal/order', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                merchantId: currentCatalog.merchantId,
+                amount: total,
+                concept: `Pedido ${currentCatalog.brandName} - ${customerName}`,
+                cartItems: cart,
+                notes
+              })
+            });
+
+            if (!res.ok) {
+              const err = await res.json().catch(() => ({}));
+              throw new Error(err?.error?.message || 'Error al iniciar orden PayPal');
+            }
+
+            const data = await res.json();
+            currentPayPalOrderId = data.orderId;
+            currentPayPalPaymentId = data.paymentId;
+            return data.orderId;
+          },
+          onApprove: async (data, actions) => {
+            const loaderMsg = document.getElementById('paypal-loading-msg');
+            if (loaderMsg) {
+              loaderMsg.textContent = 'Procesando pago y confirmando orden...';
+              loaderMsg.classList.remove('hidden');
+            }
+
+            try {
+              const res = await fetch('/api/paypal/capture-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  orderId: data.orderID,
+                  paymentId: currentPayPalPaymentId,
+                  merchantId: currentCatalog.merchantId
+                })
+              });
+
+              const captureData = await res.json();
+              if (res.ok && captureData.success) {
+                handleSuccessfulPayPalPayment(captureData);
+              } else {
+                alert('No se pudo completar el cobro: ' + (captureData?.error?.message || 'Error desconocido'));
+              }
+            } catch (err) {
+              alert('Error al confirmar pago: ' + (err?.message || err));
+            } finally {
+              if (loaderMsg) loaderMsg.classList.add('hidden');
+            }
+          },
+          onError: (err) => {
+            console.error('Error PayPal Buttons:', err);
+            showToast('Error en la pasarela PayPal');
+          }
+        }).render('#paypal-smart-button-container');
+      } catch (err) {
+        console.error('Error rendering PayPal Buttons:', err);
+        renderPayPalFallbackButtons();
+      }
+    }
+
+    async function executePayPalFallbackCheckout() {
+      const total = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+      if (total <= 0) return;
+
+      const customerName = document.getElementById('order-customer-name')?.value.trim() || 'Cliente';
+      const notes = document.getElementById('order-customer-notes')?.value.trim() || '';
+
+      closeCartDrawer();
+      openCodiModalState('loading');
+
+      try {
+        const orderRes = await fetch('/api/paypal/order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            merchantId: currentCatalog.merchantId,
+            amount: total,
+            concept: `Pedido ${currentCatalog.brandName} - ${customerName}`,
+            cartItems: cart,
+            notes
+          })
+        });
+
+        const orderData = await orderRes.json();
+        if (!orderRes.ok || !orderData.success) {
+          throw new Error(orderData?.error?.message || 'Error al crear orden en PayPal');
+        }
+
+        // Capturar orden
+        const capRes = await fetch('/api/paypal/capture-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderId: orderData.orderId,
+            paymentId: orderData.paymentId,
+            merchantId: currentCatalog.merchantId
+          })
+        });
+
+        const capData = await capRes.json();
+        if (capRes.ok && capData.success) {
+          handleSuccessfulPayPalPayment(capData);
+        } else {
+          throw new Error(capData?.error?.message || 'Error al capturar orden');
+        }
+      } catch (err) {
+        document.getElementById('error-message-text').textContent = err.message || 'Error en pago con tarjeta';
+        openCodiModalState('error');
+      }
+    }
+
+    function handleSuccessfulPayPalPayment(captureData) {
+      closeCartDrawer();
+      cart = [];
+      saveCartToStorage();
+      updateCartUI();
+      renderProducts();
+
+      document.getElementById('paid-folio').textContent = captureData.transactionId || captureData.paymentId || 'PAYPAL_TX';
+      document.getElementById('paid-amount').textContent = `$${Number(captureData.amount).toFixed(2)} MXN`;
+      const expEl = document.getElementById('paid-explanation');
+      if (expEl) {
+        expEl.innerHTML = 'Cobro procesado exitosamente con <strong>Tarjeta / Meses Sin Intereses (PayPal)</strong>. La venta quedó registrada en el mostrador del negocio.';
+      }
+
+      openCodiModalState('paid');
     }
   </script>
 </body>

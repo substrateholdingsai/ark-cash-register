@@ -31,6 +31,10 @@ export interface Env {
     SOLANA_RPC_URL?: string;
     HELIUS_API_KEY?: string;
     SOLANA_PAY_GLOBAL_ENABLED?: string; // Bandera global desactivada en v1 ("true" | "false")
+    // Riel Tarjetas y Crédito (PayPal / Meses Sin Intereses)
+    PAYPAL_CLIENT_ID?: string;
+    PAYPAL_CLIENT_SECRET?: string;
+    PAYPAL_ENVIRONMENT?: 'sandbox' | 'live';
   }
 
 export const CODI_MAX_MXN = 8000;
@@ -48,8 +52,8 @@ export const LFPIORPI_VENTANA_DIAS = 180; // Ventana móvil de 6 meses (180 día
 
 export type CodiStatus = 'PENDING' | 'PROCESSING' | 'ACTIVE' | 'ERROR';
 export type PaymentStatus = 'WAITING' | 'PAID' | 'EXPIRED' | 'CANCELLED' | 'PENDING_SPEI' | 'MANUAL_REVIEW';
-export type PayableType = 'CODI_QR' | 'CODI_PN' | 'PAYMENT_LINK' | 'SPEI_TRANSFER' | 'SOLANA_PAY';
-export type PaymentRail = 'codi' | 'spei' | 'solana_usdc' | 'solana_usdt';
+export type PayableType = 'CODI_QR' | 'CODI_PN' | 'PAYMENT_LINK' | 'SPEI_TRANSFER' | 'SOLANA_PAY' | 'PAYPAL_ORDER';
+export type PaymentRail = 'codi' | 'spei' | 'solana_usdc' | 'solana_usdt' | 'paypal';
 export type PaymentCurrency = 'MXN' | 'USDC' | 'USDT';
 
 export type LfpiorpiLevel = 'VERDE' | 'IDENTIFICACION' | 'AVISO';

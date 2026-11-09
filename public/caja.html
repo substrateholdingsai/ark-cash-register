@@ -2641,7 +2641,7 @@
           const data = await res.json();
           let summaryMsg = `✓ Corte #${data.closeId.slice(-6)} registrado con éxito.\nTotal recaudado: $${Number(data.totalAmount).toFixed(2)} (${data.totalTransactions} ventas).\n`;
           if (data.fiscalBreakdown) {
-            summaryMsg += `\nDesglose Fiscal (CFF/LFPIORPI):\n• MXN: $${data.fiscalBreakdown.mxn.toFixed(2)}\n• USDC: $${data.fiscalBreakdown.usdc.toFixed(2)}\n• USDT: $${data.fiscalBreakdown.usdt.toFixed(2)}\n• Consolidado Fiscal: $${data.fiscalBreakdown.totalMxnConsolidated.toFixed(2)} MXN\n`;
+            summaryMsg += `\nDesglose Fiscal (CFF/LFPIORPI):\n• CoDi / SPEI: $${data.fiscalBreakdown.mxn.toFixed(2)} MXN\n• Tarjetas / PayPal (MSI): $${(data.fiscalBreakdown.paypal || 0).toFixed(2)} MXN\n• USDC: $${data.fiscalBreakdown.usdc.toFixed(2)}\n• USDT: $${data.fiscalBreakdown.usdt.toFixed(2)}\n• Consolidado Fiscal: $${data.fiscalBreakdown.totalMxnConsolidated.toFixed(2)} MXN\n`;
           }
           if (data.legalNotice) {
             summaryMsg += `\nNota Institucional: ${data.legalNotice}`;

@@ -262,6 +262,10 @@ merchantRouter.get('/:id', async (c) => {
       alias: peyData.alias,
       name: peyData.name,
       clabe: peyData.clabe ? `**************${peyData.clabe.slice(-4)}` : undefined,
+      solanaWallet: merchant?.solana_wallet || null,
+      solanaPayEnabled: Boolean(merchant?.solana_pay_enabled),
+      paypalClientId: merchant?.paypal_client_id || null,
+      paypalEnabled: Boolean(merchant?.paypal_enabled),
       entity: peyData.entity,
       taxId: peyData.taxId,
       bank: getBankFromClabe(peyData.clabe || '')?.name,
@@ -283,6 +287,8 @@ merchantRouter.get('/:id', async (c) => {
         clabe: merchant.clabe ? `**************${merchant.clabe.slice(-4)}` : undefined,
         solanaWallet: merchant.solana_wallet || null,
         solanaPayEnabled: Boolean(merchant.solana_pay_enabled),
+        paypalClientId: merchant.paypal_client_id || null,
+        paypalEnabled: Boolean(merchant.paypal_enabled),
         offrampProvider: merchant.offramp_provider || null,
         entity: merchant.entity,
         taxId: merchant.tax_id,
@@ -416,7 +422,8 @@ merchantRouter.post('/:id/close-day', requireMerchantAuth, async (c) => {
     // Desglose fiscal por riel y divisa (CFF / LFPIORPI)
     const breakdownRes: any = await c.env.DB.prepare(`
       SELECT 
-        COALESCE(SUM(CASE WHEN currency = 'MXN' THEN amount ELSE 0 END), 0) as total_mxn,
+        COALESCE(SUM(CASE WHEN currency = 'MXN' AND payment_rail != 'paypal' THEN amount ELSE 0 END), 0) as total_mxn,
+        COALESCE(SUM(CASE WHEN payment_rail = 'paypal' THEN amount ELSE 0 END), 0) as total_paypal,
         COALESCE(SUM(CASE WHEN currency = 'USDC' THEN amount ELSE 0 END), 0) as total_usdc,
         COALESCE(SUM(CASE WHEN currency = 'USDT' THEN amount ELSE 0 END), 0) as total_usdt,
         COALESCE(SUM(CASE WHEN currency = 'MXN' THEN amount ELSE COALESCE(amount_mxn_equiv, amount * 20.0) END), 0) as total_mxn_consolidated
@@ -426,6 +433,7 @@ merchantRouter.post('/:id/close-day', requireMerchantAuth, async (c) => {
 
     const fiscalBreakdown = {
       mxn: Number(breakdownRes?.total_mxn || 0),
+      paypal: Number(breakdownRes?.total_paypal || 0),
       usdc: Number(breakdownRes?.total_usdc || 0),
       usdt: Number(breakdownRes?.total_usdt || 0),
       totalMxnConsolidated: Number(breakdownRes?.total_mxn_consolidated || totalSales)
@@ -506,6 +514,43 @@ merchantRouter.post('/:id/solana-wallet', requireMerchantAuth, async (c) => {
     solanaPayEnabled: Boolean(enabled),
     offrampProvider: offrampProvider || null,
     message: 'Wallet Solana configurada exitosamente. Arquitectura 100% no-custodial.'
+  });
+});
+
+// Configurar credenciales de PayPal para cobros con Tarjeta / Meses Sin Intereses
+merchantRouter.put('/:id/paypal', requireMerchantAuth, async (c) => {
+  const merchantId = c.req.param('id');
+  const body = await c.req.json().catch(() => ({}));
+  const { paypalClientId, paypalClientSecret, enabled = true } = body;
+
+  const authUser = c.get('user');
+  if (authUser && authUser.role !== 'admin' && authUser.merchantId && authUser.merchantId !== merchantId) {
+    return c.json({ error: { message: 'No autorizado para configurar este comercio', type: 'FORBIDDEN' } }, 403);
+  }
+
+  if (!paypalClientId || typeof paypalClientId !== 'string') {
+    return c.json({ error: { message: 'paypalClientId es requerido', type: 'MISSING_CLIENT_ID' } }, 400);
+  }
+
+  if (c.env.DB) {
+    const now = Math.floor(Date.now() / 1000);
+    await c.env.DB.prepare(`
+      UPDATE merchants 
+      SET paypal_client_id = ?, paypal_client_secret = ?, paypal_enabled = ?, updated_at = ?
+      WHERE id = ?
+    `).bind(paypalClientId.trim(), (paypalClientSecret || '').trim(), enabled ? 1 : 0, now, merchantId).run();
+
+    if (c.env.KV) {
+      await c.env.KV.delete(`merchant:${merchantId}`);
+    }
+  }
+
+  return c.json({
+    success: true,
+    merchantId,
+    paypalClientId,
+    paypalEnabled: Boolean(enabled),
+    message: 'Credenciales de PayPal configuradas exitosamente para cobro con Tarjeta / MSI.'
   });
 });
 

@@ -12,6 +12,7 @@ import { complianceRouter } from './routes/compliance';
 import { invoiceRouter } from './routes/invoices';
 import { aiRouter } from './routes/ai';
 import { solanaRouter } from './routes/solana';
+import { paypalRouter } from './routes/paypal';
 import { generateUlid } from './utils/ulid';
 import { runBackup } from './services/backup';
 
@@ -34,7 +35,7 @@ app.use('*', async (c, next) => {
   c.header('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
   if (c.env.ENVIRONMENT === 'production') {
     c.header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-    c.header('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none';");
+    c.header('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.paypal.com https://*.paypalobjects.com; style-src 'self' 'unsafe-inline' https://*.paypalobjects.com; img-src 'self' data: https://*.paypalobjects.com https://*.paypal.com; connect-src 'self' https://*.paypal.com https://*.paypalobjects.com; frame-src 'self' https://*.paypal.com; frame-ancestors 'none';");
   }
 });
 
@@ -100,6 +101,8 @@ app.route('/api', invoiceRouter);
 app.route('/api/ai', aiRouter);
 app.route('/api/solana', solanaRouter);
 app.route('/api/payment/solana', solanaRouter);
+app.route('/api/paypal', paypalRouter);
+app.route('/api/payment/paypal', paypalRouter);
 app.route('/webhooks', webhookRouter);
 app.route('/api/webhooks', webhookRouter);
 
