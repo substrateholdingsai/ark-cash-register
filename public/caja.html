@@ -214,6 +214,12 @@
           <span class="mr-2 text-base">🛒</span>
           <span>Abrir Tienda / Catálogo del Cliente</span>
         </a>
+
+        <!-- Botón "Enviar mi catálogo por WhatsApp" (Deep Link) -->
+        <button id="btn-share-catalog-wa" onclick="shareCatalogWhatsApp()" class="w-full h-12 rounded-[14px] bg-[#DCFCE7] border border-[#86EFAC] text-[#166534] font-bold text-[14px] flex items-center justify-center hover:bg-[#BBF7D0] transition active:scale-98 shadow-2xs">
+          <svg class="w-5 h-5 mr-2 text-[#16A34A] shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.312.045-.694.072-2.158-.535-1.579-.652-2.6-2.254-2.678-2.359-.079-.105-.644-.858-.644-1.636 0-.777.406-1.161.55-1.317.144-.156.312-.195.417-.195.105 0 .209.001.301.006.096.005.226-.036.353.27.13.312.445 1.084.484 1.162.039.078.065.17.013.274-.052.105-.078.17-.156.262-.078.092-.163.205-.234.275-.079.078-.161.163-.069.321.092.157.409.675.877 1.092.602.536 1.109.702 1.267.78.157.078.249.066.341-.04.092-.105.393-.458.498-.615.105-.157.209-.131.353-.078.144.052.916.432 1.073.511.157.078.261.118.3.183.039.065.039.378-.105.783z"/></svg>
+          <span>Enviar mi catálogo por WhatsApp</span>
+        </button>
       </div>
 
       <!-- Lista de Pagos de Hoy -->
@@ -313,9 +319,15 @@
 
         <!-- MODO 2: CATÁLOGO RÁPIDO & CARRITO DE MOSTRADOR -->
         <div id="b-view-catalog" class="hidden flex-1 flex flex-col justify-between space-y-3">
-          <!-- Categorías Chips -->
-          <div id="catalog-category-chips" class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-[12px]">
-            <!-- Chips inyectados por JS -->
+          <!-- Categorías Chips y Botón Compartir -->
+          <div class="flex items-center justify-between gap-1.5">
+            <div id="catalog-category-chips" class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-[12px] flex-1">
+              <!-- Chips inyectados por JS -->
+            </div>
+            <button onclick="shareCatalogWhatsApp()" title="Enviar catálogo por WhatsApp" class="px-2.5 py-1 rounded-full bg-[#DCFCE7] border border-[#86EFAC] text-[#166534] font-bold text-[11px] shrink-0 flex items-center gap-1 hover:bg-[#BBF7D0] transition">
+              <svg class="w-3.5 h-3.5 text-[#16A34A]" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.312.045-.694.072-2.158-.535-1.579-.652-2.6-2.254-2.678-2.359-.079-.105-.644-.858-.644-1.636 0-.777.406-1.161.55-1.317.144-.156.312-.195.417-.195.105 0 .209.001.301.006.096.005.226-.036.353.27.13.312.445 1.084.484 1.162.039.078.065.17.013.274-.052.105-.078.17-.156.262-.078.092-.163.205-.234.275-.079.078-.161.163-.069.321.092.157.409.675.877 1.092.602.536 1.109.702 1.267.78.157.078.249.066.341-.04.092-.105.393-.458.498-.615.105-.157.209-.131.353-.078.144.052.916.432 1.073.511.157.078.261.118.3.183.039.065.039.378-.105.783z"/></svg>
+              <span>WhatsApp</span>
+            </button>
           </div>
 
           <!-- Cuadrícula de Productos -->
@@ -1793,6 +1805,84 @@
       });
 
       window.open(`https://wa.me/?text=${encodeURIComponent(ticketText)}`, '_blank');
+    }
+
+    // ==========================================
+    // DEEP LINKING: COMPARTIR CATÁLOGO & PRECIOS VÍA WHATSAPP
+    // ==========================================
+    function formatWhatsAppCatalog(catalogData, merchantProfile, storeUrl) {
+      const brandName = catalogData?.brandName || merchantProfile?.alias || merchantProfile?.name || 'Ark Cash Register';
+      const emoji = catalogData?.emoji || '🛍️';
+      const tagline = catalogData?.tagline || 'Catálogo y Lista de Precios Oficial';
+
+      let msg = `*${emoji} ${brandName}*\n`;
+      msg += `_${tagline}_\n\n`;
+      msg += `📋 *LISTA DE PRECIOS Y PRODUCTOS:*\n`;
+      msg += `────────────────────────────\n`;
+
+      if (catalogData?.items && catalogData.items.length > 0) {
+        const categories = [...new Set(catalogData.items.map(i => i.category || 'General'))];
+        
+        categories.forEach(cat => {
+          const itemsInCat = catalogData.items.filter(i => (i.category || 'General') === cat);
+          msg += `\n*── ${cat.toUpperCase()} ──*\n`;
+          itemsInCat.forEach(it => {
+            const icon = it.icon ? `${it.icon} ` : '▪️ ';
+            msg += `${icon}*${it.name}* • *$${Number(it.price).toFixed(2)} MXN*\n`;
+            if (it.description) {
+              msg += `   _${it.description}_\n`;
+            }
+            if (it.variants && it.variants.length > 0) {
+              msg += `   ↳ _Opciones: ${it.variants.join(' / ')}_\n`;
+            }
+          });
+        });
+        msg += `\n────────────────────────────\n`;
+      } else {
+        msg += `Consulta todos nuestros productos y precios en línea.\n`;
+        msg += `────────────────────────────\n`;
+      }
+
+      if (catalogData?.promoRule) {
+        msg += `🔥 *PROMOCIÓN:* ${catalogData.promoRule.description}\n`;
+        msg += `────────────────────────────\n`;
+      }
+
+      msg += `🛒 *Arma tu pedido o compra en línea aquí:*\n`;
+      msg += `${storeUrl}\n\n`;
+      msg += `💳 *Métodos de Cobro Aceptados:*\n`;
+      msg += `• 🇲🇽 CoDi® Banxico (QR en tu celular al segundo)\n`;
+      msg += `• ⚡ Transferencia SPEI directa\n`;
+      msg += `• 💵 Dólares Digitales (USDC/USDT en Solana Pay)\n\n`;
+      msg += `📲 _¡O simplemente responde a este mensaje con lo que gustes pedir!_ ✨`;
+
+      return msg;
+    }
+
+    async function shareCatalogWhatsApp() {
+      const btn = document.getElementById('btn-share-catalog-wa');
+      const origHtml = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.innerHTML = '<span class="inline-block animate-spin mr-2">⏳</span><span>Preparando catálogo...</span>';
+      }
+
+      try {
+        const mId = currentMerchantId || localStorage.getItem('ark_merchant_id') || '01JBAVWE4NS5TGXHWGMX3KH23Q';
+        if (!currentCatalog || currentCatalog.merchantId !== mId) {
+          await loadCatalog(mId);
+        }
+        const storeUrl = `${window.location.origin}/tienda?m=${encodeURIComponent(mId)}`;
+        const message = formatWhatsAppCatalog(currentCatalog, currentMerchant, storeUrl);
+        const targetUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+        window.open(targetUrl, '_blank');
+      } catch (err) {
+        console.error('Error al compartir catálogo por WhatsApp', err);
+        alert('No se pudo preparar el catálogo para compartir.');
+      } finally {
+        if (btn) {
+          btn.innerHTML = origHtml;
+        }
+      }
     }
 
     // ==========================================

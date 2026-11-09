@@ -49,10 +49,14 @@
         </span>
       </div>
 
-      <!-- Insignia de modo tienda aislada -->
+      <!-- Insignia de modo tienda aislada & Compartir -->
       <div class="flex items-center gap-1.5">
+        <button onclick="shareCatalogWhatsApp()" title="Compartir catálogo y precios por WhatsApp" class="text-[11px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full flex items-center gap-1 hover:bg-emerald-100 transition shadow-2xs">
+          <svg class="w-3.5 h-3.5 text-emerald-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.312.045-.694.072-2.158-.535-1.579-.652-2.6-2.254-2.678-2.359-.079-.105-.644-.858-.644-1.636 0-.777.406-1.161.55-1.317.144-.156.312-.195.417-.195.105 0 .209.001.301.006.096.005.226-.036.353.27.13.312.445 1.084.484 1.162.039.078.065.17.013.274-.052.105-.078.17-.156.262-.078.092-.163.205-.234.275-.079.078-.161.163-.069.321.092.157.409.675.877 1.092.602.536 1.109.702 1.267.78.157.078.249.066.341-.04.092-.105.393-.458.498-.615.105-.157.209-.131.353-.078.144.052.916.432 1.073.511.157.078.261.118.3.183.039.065.039.378-.105.783z"/></svg>
+          <span>Compartir</span>
+        </button>
         <span class="text-[11px] font-semibold text-slate-700 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-full flex items-center gap-1">
-          🛒 Catálogo del Negocio
+          🛒 Catálogo
         </span>
       </div>
     </div>
@@ -1112,6 +1116,60 @@ _Pedido generado vía Ark Cash Register_`;
       setTimeout(() => {
         toast.className = toast.className.replace('translate-y-0', '-translate-y-20');
       }, 2200);
+    }
+
+    // COMPARTIR CATÁLOGO VÍA WHATSAPP (DEEP LINK)
+    function shareCatalogWhatsApp() {
+      if (!currentCatalog) {
+        showToast('Cargando catálogo...');
+        return;
+      }
+
+      const brand = currentCatalog.brandName || 'Catálogo';
+      const emoji = currentCatalog.emoji || '🛍️';
+      const tagline = currentCatalog.tagline || 'Lista de Precios Oficial';
+      const storeUrl = window.location.href;
+
+      let msg = `*${emoji} ${brand}*\n`;
+      msg += `_${tagline}_\n\n`;
+      msg += `📋 *LISTA DE PRECIOS Y PRODUCTOS:*\n`;
+      msg += `────────────────────────────\n`;
+
+      if (currentCatalog.items && currentCatalog.items.length > 0) {
+        const categories = [...new Set(currentCatalog.items.map(i => i.category || 'General'))];
+        categories.forEach(cat => {
+          const itemsInCat = currentCatalog.items.filter(i => (i.category || 'General') === cat);
+          msg += `\n*── ${cat.toUpperCase()} ──*\n`;
+          itemsInCat.forEach(it => {
+            const icon = it.icon ? `${it.icon} ` : '▪️ ';
+            msg += `${icon}*${it.name}* • *$${Number(it.price).toFixed(2)} MXN*\n`;
+            if (it.description) {
+              msg += `   _${it.description}_\n`;
+            }
+            if (it.variants && it.variants.length > 0) {
+              msg += `   ↳ _Opciones: ${it.variants.join(' / ')}_\n`;
+            }
+          });
+        });
+        msg += `\n────────────────────────────\n`;
+      }
+
+      if (currentCatalog.promoRule) {
+        msg += `🔥 *PROMOCIÓN:* ${currentCatalog.promoRule.description}\n`;
+        msg += `────────────────────────────\n`;
+      }
+
+      msg += `🛒 *Arma tu pedido o compra en línea aquí:*\n`;
+      msg += `${storeUrl}\n\n`;
+      msg += `💳 *Métodos de Cobro Aceptados:*\n`;
+      msg += `• 🇲🇽 CoDi® Banxico (QR en tu celular al segundo)\n`;
+      msg += `• ⚡ Transferencia SPEI directa\n`;
+      msg += `• 💵 Dólares Digitales (USDC/USDT en Solana Pay)\n\n`;
+      msg += `📲 _¡O simplemente responde a este mensaje con lo que gustes pedir!_ ✨`;
+
+      const targetUrl = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+      window.open(targetUrl, '_blank');
+      showToast('Abriendo WhatsApp...');
     }
   </script>
 </body>
