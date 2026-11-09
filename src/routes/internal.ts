@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { Env } from '../types';
 import { staypuftAuth } from '../middleware/staypuftAuth';
+import { evaluadorActividadesVulnerables } from '../services/lfpiorpi';
 
 export const internalRouter = new Hono<{ Bindings: Env }>();
 
@@ -528,5 +529,28 @@ internalRouter.get('/metrics', async (c) => {
         createdAt: lastClose.created_at
       } : null
     }
+  });
+});
+
+// 10. POST /api/internal/lfpiorpi/evaluar — Servicio compartido de Compliance LFPIORPI
+internalRouter.post('/lfpiorpi/evaluar', async (c) => {
+  const body = await c.req.json().catch(() => ({}));
+  const { merchantId, customerId = 'Cliente', customerRfc, currentAmountMxn = 0 } = body;
+
+  if (!merchantId) {
+    return c.json({ error: { message: 'merchantId es requerido', type: 'MISSING_MERCHANT_ID' } }, 400);
+  }
+
+  const dictamen = await evaluadorActividadesVulnerables({
+    merchantId,
+    customerId,
+    customerRfc,
+    currentAmountMxn: Number(currentAmountMxn),
+    db: c.env.DB
+  });
+
+  return c.json({
+    success: true,
+    dictamen
   });
 });

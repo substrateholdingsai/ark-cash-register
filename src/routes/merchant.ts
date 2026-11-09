@@ -3,6 +3,7 @@ import { Env } from '../types';
 import { PeyClient } from '../services/peyClient';
 import { generateUlid } from '../utils/ulid';
 import { validateClabe, getBankFromClabe } from '../utils/clabe';
+import { validateSolanaAddress } from '../utils/solana';
 import { getCatalogForMerchant } from '../data/catalogs';
 import { requireMerchantAuth } from '../middleware/auth';
 
@@ -26,10 +27,10 @@ merchantRouter.get('/:id/catalog', async (c) => {
   return c.json(catalog);
 });
 
-// Registrar cuenta bancaria para CoDi (Onboarding)
+// Registrar cuenta bancaria para CoDi y opcionalmente Wallet Solana (Onboarding)
 merchantRouter.post('/register', async (c) => {
   const body = await c.req.json().catch(() => ({}));
-  const { alias, name, clabe, entity, taxId } = body;
+  const { alias, name, clabe, entity, taxId, solanaWallet, offrampProvider } = body;
 
   if (!alias || !name || !clabe || !entity) {
     return c.json({
@@ -44,6 +45,16 @@ merchantRouter.post('/register', async (c) => {
     }, 400);
   }
 
+  // Validación opcional de wallet Solana en onboarding
+  if (solanaWallet) {
+    const solCheck = validateSolanaAddress(solanaWallet);
+    if (!solCheck.valid) {
+      return c.json({
+        error: { message: solCheck.error || 'La dirección Solana es inválida', type: 'INVALID_SOLANA_WALLET' }
+      }, 400);
+    }
+  }
+
   const client = new PeyClient(c.env.PEY_API_URL, c.env.PEY_API_KEY);
   try {
     const peyRes = await client.registerBankAccount({
@@ -55,14 +66,18 @@ merchantRouter.post('/register', async (c) => {
 
     const now = Math.floor(Date.now() / 1000);
     const merchantId = peyRes.id;
+    const solanaEnabled = Boolean(solanaWallet) ? 1 : 0;
 
     if (c.env.DB) {
       await c.env.DB.prepare(`
-        INSERT INTO merchants (id, alias, name, clabe, entity, tax_id, codi_status, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO merchants (id, alias, name, clabe, entity, tax_id, codi_status, solana_wallet, solana_pay_enabled, offramp_provider, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(clabe) DO UPDATE SET
           alias = excluded.alias,
           name = excluded.name,
+          solana_wallet = excluded.solana_wallet,
+          solana_pay_enabled = excluded.solana_pay_enabled,
+          offramp_provider = excluded.offramp_provider,
           updated_at = excluded.updated_at
       `).bind(
         merchantId,
@@ -72,6 +87,9 @@ merchantRouter.post('/register', async (c) => {
         entity,
         taxId || null,
         peyRes.codiStatus,
+        solanaWallet || null,
+        solanaEnabled,
+        offrampProvider || null,
         now,
         now
       ).run();
@@ -167,6 +185,9 @@ merchantRouter.get('/:id', async (c) => {
         alias: merchant.alias,
         name: merchant.name,
         clabe: merchant.clabe ? `**************${merchant.clabe.slice(-4)}` : undefined,
+        solanaWallet: merchant.solana_wallet || null,
+        solanaPayEnabled: Boolean(merchant.solana_pay_enabled),
+        offrampProvider: merchant.offramp_provider || null,
         entity: merchant.entity,
         taxId: merchant.tax_id,
         bank: getBankFromClabe(merchant.clabe || '')?.name,
@@ -296,11 +317,43 @@ merchantRouter.post('/:id/close-day', requireMerchantAuth, async (c) => {
       count = summary.count || 0;
     }
 
+    // Desglose fiscal por riel y divisa (CFF / LFPIORPI)
+    const breakdownRes: any = await c.env.DB.prepare(`
+      SELECT 
+        COALESCE(SUM(CASE WHEN currency = 'MXN' THEN amount ELSE 0 END), 0) as total_mxn,
+        COALESCE(SUM(CASE WHEN currency = 'USDC' THEN amount ELSE 0 END), 0) as total_usdc,
+        COALESCE(SUM(CASE WHEN currency = 'USDT' THEN amount ELSE 0 END), 0) as total_usdt,
+        COALESCE(SUM(CASE WHEN currency = 'MXN' THEN amount ELSE COALESCE(amount_mxn_equiv, amount * 20.0) END), 0) as total_mxn_consolidated
+      FROM payments
+      WHERE merchant_id = ? AND status = 'PAID' AND date_created >= ?
+    `).bind(merchantId, startOfDay).first();
+
+    const fiscalBreakdown = {
+      mxn: Number(breakdownRes?.total_mxn || 0),
+      usdc: Number(breakdownRes?.total_usdc || 0),
+      usdt: Number(breakdownRes?.total_usdt || 0),
+      totalMxnConsolidated: Number(breakdownRes?.total_mxn_consolidated || totalSales)
+    };
+
     // Registrar en tabla inmutable daily_closes
     await c.env.DB.prepare(`
       INSERT INTO daily_closes (id, merchant_id, cut_date, total_sales, total_paid, total_transactions, ceremonial_title, created_at)
       VALUES (?, ?, ?, ?, ?, ?, 'Corte de Caja Oficial', ?)
     `).bind(closeId, merchantId, cutDate, totalSales, totalSales, count, now).run();
+
+    return c.json({
+      success: true,
+      closeId,
+      merchantId,
+      timestamp: now,
+      cutDate,
+      totalAmount: totalSales,
+      totalTransactions: count,
+      fiscalBreakdown,
+      legalNotice: 'La Caja te ayuda a cumplir, pero la responsabilidad fiscal y antilavado es tuya y de tu contador. Este reporte es informativo, no asesoría legal.',
+      status: 'CLOSED',
+      ceremonialTitle: 'Corte de Caja Oficial'
+    });
   }
 
   return c.json({
@@ -314,4 +367,235 @@ merchantRouter.post('/:id/close-day', requireMerchantAuth, async (c) => {
     status: 'CLOSED',
     ceremonialTitle: 'Corte de Caja Oficial'
   });
+});
+
+// Configurar o actualizar Wallet Solana no-custodial del comercio
+merchantRouter.post('/:id/solana-wallet', requireMerchantAuth, async (c) => {
+  const merchantId = c.req.param('id');
+  const body = await c.req.json().catch(() => ({}));
+  const { solanaWallet, enabled = true, offrampProvider } = body;
+
+  const authUser = c.get('user');
+  if (authUser && authUser.role !== 'admin' && authUser.merchantId && authUser.merchantId !== merchantId) {
+    return c.json({ error: { message: 'No autorizado para configurar este comercio', type: 'FORBIDDEN' } }, 403);
+  }
+
+  if (!solanaWallet || typeof solanaWallet !== 'string') {
+    return c.json({ error: { message: 'solanaWallet es requerido', type: 'MISSING_WALLET' } }, 400);
+  }
+
+  const check = validateSolanaAddress(solanaWallet);
+  if (!check.valid) {
+    return c.json({ error: { message: check.error || 'Dirección Solana inválida', type: 'INVALID_SOLANA_WALLET' } }, 400);
+  }
+
+  if (c.env.DB) {
+    const now = Math.floor(Date.now() / 1000);
+    await c.env.DB.prepare(`
+      UPDATE merchants 
+      SET solana_wallet = ?, solana_pay_enabled = ?, offramp_provider = ?, updated_at = ?
+      WHERE id = ?
+    `).bind(solanaWallet, enabled ? 1 : 0, offrampProvider || null, now, merchantId).run();
+
+    // Invalidar caché KV
+    if (c.env.KV) {
+      await c.env.KV.delete(`merchant:${merchantId}`);
+    }
+  }
+
+  return c.json({
+    success: true,
+    merchantId,
+    solanaWallet,
+    solanaPayEnabled: Boolean(enabled),
+    offrampProvider: offrampProvider || null,
+    message: 'Wallet Solana configurada exitosamente. Arquitectura 100% no-custodial.'
+  });
+});
+
+// Iniciar orden SPEI para montos altos (> $8,000 MXN o por transferencia)
+merchantRouter.post('/:id/spei-order', async (c) => {
+  const merchantId = c.req.param('id');
+  const body = await c.req.json().catch(() => ({}));
+  const amount = Number(body.amount);
+
+  if (isNaN(amount) || amount <= 0) {
+    return c.json({ error: { message: 'El monto debe ser un número positivo', type: 'INVALID_AMOUNT' } }, 400);
+  }
+
+  // 1. Obtener comercio de D1 o catálogo predeterminado
+  let merchant: any = null;
+  if (c.env.DB) {
+    merchant = await c.env.DB.prepare(
+      'SELECT id, alias, name, clabe FROM merchants WHERE id = ? LIMIT 1'
+    ).bind(merchantId).first();
+  }
+
+  // Si no está en BD, verificar si es uno de los comercios de catálogo estándar
+  if (!merchant) {
+    const catalog = getCatalogForMerchant(merchantId);
+    if (catalog && catalog.merchantId === merchantId) {
+      merchant = {
+        id: catalog.merchantId,
+        alias: catalog.brandName,
+        name: `${catalog.brandName} S.A. de C.V.`,
+        clabe: catalog.merchantId === '01JBAVWE4NS5TGXHWGMX3KH23Q' 
+          ? '012180001234567899' 
+          : '072180001234567890'
+      };
+      // Persistir si DB está disponible
+      if (c.env.DB) {
+        const nowSec = Math.floor(Date.now() / 1000);
+        await c.env.DB.prepare(`
+          INSERT OR IGNORE INTO merchants (id, alias, name, clabe, entity, codi_status, created_at, updated_at)
+          VALUES (?, ?, ?, ?, 'BUSINESS', 'ACTIVE', ?, ?)
+        `).bind(merchant.id, merchant.alias, merchant.name, merchant.clabe, nowSec, nowSec).run();
+      }
+    }
+  }
+
+  if (!merchant || !merchant.clabe) {
+    return c.json({
+      error: { message: 'Comercio no encontrado o no tiene cuenta CLABE configurada', type: 'MERCHANT_NOT_FOUND' }
+    }, 404);
+  }
+
+  const bankInfo = getBankFromClabe(merchant.clabe);
+  const bankName = bankInfo?.name || 'Sistema Bancario Mexicano';
+  const paymentId = generateUlid();
+  const folio = (body.numRef || Math.floor(Math.random() * 900000 + 100000)).toString();
+  const concept = (body.concept || `Pago pedido ${folio} ${merchant.alias}`).slice(0, 40);
+  const now = Math.floor(Date.now() / 1000);
+
+  const metadata = {
+    channel: 'storefront_spei',
+    customer: body.customer || 'Cliente',
+    notes: body.notes || '',
+    items: body.items || [],
+    bank: bankName
+  };
+
+  if (c.env.DB) {
+    await c.env.DB.prepare(`
+      INSERT INTO payments (id, merchant_id, payable_type, payable_id, amount, concept, num_ref, status, payment_method, date_created, metadata)
+      VALUES (?, ?, 'SPEI_TRANSFER', ?, ?, ?, ?, 'PENDING_SPEI', 'SPEI', ?, ?)
+    `).bind(
+      paymentId,
+      merchant.id,
+      `SPEI-${paymentId}`,
+      amount,
+      concept,
+      folio,
+      now,
+      JSON.stringify(metadata)
+    ).run();
+  }
+
+  return c.json({
+    success: true,
+    paymentId,
+    folio,
+    amount,
+    clabe: merchant.clabe, // 18 dígitos completos para el checkout legítimo de este comercio
+    bank: bankName,
+    beneficiary: merchant.name || merchant.alias,
+    concept,
+    status: 'PENDING_SPEI',
+    instructions: 'Abre la app de tu banco, elige transferencia SPEI, pega la CLABE y el monto exacto. Este pago no se confirma solo: manda tu comprobante por WhatsApp al merchant.',
+    dateCreated: now
+  }, 201);
+});
+
+// Confirmación manual por el merchant de un pago SPEI recibido
+merchantRouter.post('/:id/payments/:paymentId/confirm-spei', requireMerchantAuth, async (c) => {
+  const merchantId = c.req.param('id');
+  const paymentId = c.req.param('paymentId');
+
+  const authUser = c.get('user');
+  if (authUser && authUser.role !== 'admin' && authUser.merchantId && authUser.merchantId !== merchantId) {
+    return c.json({
+      error: { message: 'No autorizado para confirmar pagos de este comercio', type: 'FORBIDDEN' }
+    }, 403);
+  }
+
+  if (!c.env.DB) {
+    return c.json({ error: { message: 'Base de datos no disponible', type: 'DB_UNAVAILABLE' } }, 500);
+  }
+
+  // 1. Obtener el pago
+  const payment: any = await c.env.DB.prepare(
+    'SELECT * FROM payments WHERE id = ? AND merchant_id = ? LIMIT 1'
+  ).bind(paymentId, merchantId).first();
+
+  if (!payment) {
+    return c.json({
+      error: { message: 'Pago no encontrado para este comercio', type: 'PAYMENT_NOT_FOUND' }
+    }, 404);
+  }
+
+  if (payment.status === 'PAID') {
+    return c.json({
+      error: { message: 'Este pago ya ha sido confirmado previamente', type: 'PAYMENT_ALREADY_PAID' }
+    }, 400);
+  }
+
+  if (payment.status !== 'PENDING_SPEI') {
+    return c.json({
+      error: { message: 'Solo los pagos SPEI pendientes pueden confirmarse manualmente', type: 'INVALID_PAYMENT_STATUS' }
+    }, 400);
+  }
+
+  const now = Math.floor(Date.now() / 1000);
+  const transactionId = `TX_SPEI_${generateUlid()}`;
+  const operatorName = authUser?.email || authUser?.id || 'merchant_pos';
+
+  // 2. Actualizar pago a PAID
+  await c.env.DB.prepare(`
+    UPDATE payments 
+    SET status = 'PAID', date_paid = ?, transaction_id = ? 
+    WHERE id = ?
+  `).bind(now, transactionId, paymentId).run();
+
+  // 3. Registrar entrada contable en ledger_entries
+  const ledgerId = generateUlid();
+  await c.env.DB.prepare(`
+    INSERT INTO ledger_entries (id, merchant_id, payment_id, transaction_id, debit_account, credit_account, amount, concept, created_at)
+    VALUES (?, ?, ?, ?, 'BANCO_SPEI', 'VENTAS_MOSTRADOR', ?, ?, ?)
+  `).bind(
+    ledgerId,
+    merchantId,
+    paymentId,
+    transactionId,
+    payment.amount,
+    payment.concept || 'Pago SPEI manual confirmado',
+    now
+  ).run();
+
+  // 4. Registrar en operator_audit_log (inmutable)
+  const auditId = generateUlid();
+  try {
+    await c.env.DB.prepare(`
+      INSERT INTO operator_audit_log (id, operator, endpoint, method, merchant_id, payment_id, status_code, duration_ms, error, created_at)
+      VALUES (?, ?, ?, 'POST', ?, ?, 200, 0, NULL, ?)
+    `).bind(
+      auditId,
+      operatorName,
+      `/api/merchant/${merchantId}/payments/${paymentId}/confirm-spei`,
+      merchantId,
+      paymentId,
+      now
+    ).run();
+  } catch (auditErr) {
+    console.warn('[Audit Log Warning]', auditErr);
+  }
+
+  return c.json({
+    success: true,
+    paymentId,
+    status: 'PAID',
+    transactionId,
+    amount: payment.amount,
+    datePaid: now,
+    confirmedBy: operatorName
+  }, 200);
 });

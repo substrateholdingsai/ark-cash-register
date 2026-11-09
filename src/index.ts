@@ -11,6 +11,7 @@ import { authRouter } from './routes/auth';
 import { complianceRouter } from './routes/compliance';
 import { invoiceRouter } from './routes/invoices';
 import { aiRouter } from './routes/ai';
+import { solanaRouter } from './routes/solana';
 import { generateUlid } from './utils/ulid';
 import { runBackup } from './services/backup';
 
@@ -97,6 +98,8 @@ app.route('/api/auth', authRouter);
 app.route('/api', complianceRouter);
 app.route('/api', invoiceRouter);
 app.route('/api/ai', aiRouter);
+app.route('/api/solana', solanaRouter);
+app.route('/api/payment/solana', solanaRouter);
 app.route('/webhooks', webhookRouter);
 app.route('/api/webhooks', webhookRouter);
 

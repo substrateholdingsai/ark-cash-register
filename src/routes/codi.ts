@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { Env, PeyMetadata } from '../types';
+import { Env, PeyMetadata, CODI_MAX_MXN } from '../types';
 import { PeyClient } from '../services/peyClient';
 import { generateUlid } from '../utils/ulid';
 
@@ -12,6 +12,17 @@ codiRouter.post('/qr', async (c) => {
 
   if (isNaN(amount) || amount < 0) {
     return c.json({ error: { message: 'El monto debe ser un número mayor o igual a 0', type: 'INVALID_AMOUNT' } }, 400);
+  }
+
+  // Regla CoDi Banxico: Límite operativo máximo de $8,000 MXN por transacción
+  if (amount > CODI_MAX_MXN) {
+    return c.json({
+      error: {
+        message: `El monto ($${amount.toFixed(2)} MXN) excede el límite máximo de CoDi ($${CODI_MAX_MXN.toLocaleString('es-MX')} MXN). Para montos mayores utilice transferencia SPEI directa.`,
+        type: 'AMOUNT_EXCEEDS_CODI_LIMIT',
+        maxAllowed: CODI_MAX_MXN
+      }
+    }, 400);
   }
 
   const merchantId = body.merchantId || '01JBAVWE4NS5TGXHWGMX3KH23Q';

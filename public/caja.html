@@ -2133,9 +2133,15 @@
           const data = await res.json();
           if (data.payments && data.payments.length > 0) {
             todayPayments = data.payments.map(p => ({
+              id: p.id,
               amount: p.amount,
+              currency: p.currency || 'MXN',
+              paymentRail: p.payment_rail || 'codi',
+              concept: p.concept,
+              numRef: p.num_ref,
               time: new Date(p.date_created * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-              status: p.status === 'PAID' ? 'Pagado' : p.status
+              rawStatus: p.status,
+              status: p.status === 'PAID' ? 'Pagado' : (p.status === 'PENDING_SPEI' ? 'SPEI Pendiente' : p.status)
             }));
           } else {
             todayPayments = [];
@@ -2159,14 +2165,46 @@
 
       badge.textContent = `${todayPayments.length} pago${todayPayments.length > 1 ? 's' : ''}`;
       container.innerHTML = todayPayments.slice(0, 8).map(item => `
-        <div class="cash-payment-item">
+        <div class="cash-payment-item flex items-center justify-between">
           <div>
-            <div class="font-orbitron font-bold text-[18px] text-[#121A2E]">$${Number(item.amount).toFixed(2)}</div>
-            <div class="text-[12px] font-medium text-[#6B7A99]">${item.time}</div>
+            <div class="font-orbitron font-bold text-[18px] text-[#121A2E]">
+              $${Number(item.amount).toFixed(2)} <span class="text-xs font-normal text-slate-500">${item.currency || 'MXN'}</span>
+            </div>
+            <div class="text-[12px] font-medium text-[#6B7A99]">${item.time} ${item.numRef ? '• Folio ' + item.numRef : ''}</div>
           </div>
-          <span class="cash-payment-badge">${item.status}</span>
+          <div class="flex items-center gap-2">
+            ${item.rawStatus === 'PENDING_SPEI' ? `
+              <button onclick="confirmSpeiPayment('${item.id}', ${item.amount})" class="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-bold text-[11px] rounded-lg shadow-xs transition cursor-pointer">
+                Confirmar SPEI
+              </button>
+            ` : `
+              <span class="cash-payment-badge ${item.currency !== 'MXN' ? 'bg-purple-50 text-purple-700 border border-purple-200' : ''}">${item.status}</span>
+            `}
+          </div>
         </div>
       `).join('');
+    }
+
+    async function confirmSpeiPayment(paymentId, amount) {
+      const ok = confirm(`¿Confirmas que recibiste la transferencia SPEI por $${Number(amount).toFixed(2)} MXN en la cuenta bancaria del negocio?\n\nEsta acción registrará la entrada en el Ledger de Ark Systems y en la auditoría inmutable.`);
+      if (!ok) return;
+
+      const mId = currentMerchantId || '01JBAVWE4NS5TGXHWGMX3KH23Q';
+      try {
+        const res = await fetch(`/api/merchant/${encodeURIComponent(mId)}/payments/${encodeURIComponent(paymentId)}/confirm-spei`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          alert(`✓ Pago SPEI confirmado exitosamente.\nID Transacción: ${data.transactionId}\nRegistrado en el Ledger contable.`);
+          await loadTodayPayments();
+        } else {
+          alert('Error: ' + (data?.error?.message || 'No se pudo confirmar el pago SPEI'));
+        }
+      } catch (err) {
+        alert('Error de conexión al confirmar el pago: ' + (err?.message || err));
+      }
     }
 
     async function generateAICloseSummary() {
@@ -2205,7 +2243,14 @@
         });
         if (res.ok) {
           const data = await res.json();
-          alert(`✓ Corte #${data.closeId.slice(-6)} registrado con éxito.\nTotal recaudado: $${Number(data.totalAmount).toFixed(2)} MXN (${data.totalTransactions} ventas).\nSe generó póliza contable para ARK Ledger.`);
+          let summaryMsg = `✓ Corte #${data.closeId.slice(-6)} registrado con éxito.\nTotal recaudado: $${Number(data.totalAmount).toFixed(2)} (${data.totalTransactions} ventas).\n`;
+          if (data.fiscalBreakdown) {
+            summaryMsg += `\nDesglose Fiscal (CFF/LFPIORPI):\n• MXN: $${data.fiscalBreakdown.mxn.toFixed(2)}\n• USDC: $${data.fiscalBreakdown.usdc.toFixed(2)}\n• USDT: $${data.fiscalBreakdown.usdt.toFixed(2)}\n• Consolidado Fiscal: $${data.fiscalBreakdown.totalMxnConsolidated.toFixed(2)} MXN\n`;
+          }
+          if (data.legalNotice) {
+            summaryMsg += `\nNota Institucional: ${data.legalNotice}`;
+          }
+          alert(summaryMsg);
           todayPayments = [];
           renderPaymentsList();
         }

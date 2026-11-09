@@ -27,11 +27,50 @@ export interface Env {
     // Facturación (Facturapi)
     FACTURAPI_API_KEY?: string;
     FACTURAPI_BASE_URL?: string;
+    // Riel Dólares Digitales (Solana Pay)
+    SOLANA_RPC_URL?: string;
+    HELIUS_API_KEY?: string;
+    SOLANA_PAY_GLOBAL_ENABLED?: string; // Bandera global desactivada en v1 ("true" | "false")
   }
 
+export const CODI_MAX_MXN = 8000;
+
+// Constantes oficiales SPL Tokens Solana (Mints en Mainnet-beta)
+export const SOLANA_USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'; // 6 decimales
+export const SOLANA_USDT_MINT = 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB'; // 6 decimales
+export const SOLANA_TOKEN_DECIMALS = 6;
+
+// Compliance LFPIORPI (Art. 17 Fracción XVI / UMA oficial)
+export const UMA_DIARIA_2026_MXN = 113.14;
+export const LFPIORPI_UMBRAL_AVISO_UMA = 210; // 210 UMA -> Aviso obligatorio a la UIF
+export const LFPIORPI_UMBRAL_IDENTIFICACION_RATIO = 0.70; // 70% del umbral de Aviso (147 UMA) para requerir RFC/ID
+export const LFPIORPI_VENTANA_DIAS = 180; // Ventana móvil de 6 meses (180 días)
+
 export type CodiStatus = 'PENDING' | 'PROCESSING' | 'ACTIVE' | 'ERROR';
-export type PaymentStatus = 'WAITING' | 'PAID' | 'EXPIRED' | 'CANCELLED';
-export type PayableType = 'CODI_QR' | 'CODI_PN' | 'PAYMENT_LINK';
+export type PaymentStatus = 'WAITING' | 'PAID' | 'EXPIRED' | 'CANCELLED' | 'PENDING_SPEI' | 'MANUAL_REVIEW';
+export type PayableType = 'CODI_QR' | 'CODI_PN' | 'PAYMENT_LINK' | 'SPEI_TRANSFER' | 'SOLANA_PAY';
+export type PaymentRail = 'codi' | 'spei' | 'solana_usdc' | 'solana_usdt';
+export type PaymentCurrency = 'MXN' | 'USDC' | 'USDT';
+
+export type LfpiorpiLevel = 'VERDE' | 'IDENTIFICACION' | 'AVISO';
+
+export interface LfpiorpiEvaluation {
+  id: string;
+  merchantId: string;
+  customerId: string;
+  customerRfc?: string;
+  windowStart: number;
+  windowEnd: number;
+  totalTransactions: number;
+  accumulatedMxn: number;
+  accumulatedUma: number;
+  level: LfpiorpiLevel;
+  percentageOfThreshold: number;
+  requiresKyc: boolean;
+  requiresNotice: boolean;
+  dictamenHash: string;
+  createdAt: number;
+}
 
 export interface PeyMetadata {
   merchantId?: string;

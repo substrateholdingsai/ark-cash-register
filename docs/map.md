@@ -1,4 +1,4 @@
-﻿# ðŸ—ºï¸ MAPA DEL PROYECTO â€” ARK CASH REGISTER (v2.0)
+# ðŸ—ºï¸ MAPA DEL PROYECTO â€” ARK CASH REGISTER (v2.0)
 
 **Producto:** Ark-cajaregistradora (`pey-worker`)  
 **Ecosistema:** ARK Systems (Substrate Holdings LLC)  
@@ -656,3 +656,171 @@ docs/auth-plan.md, docs/compliance-plan.md, docs/dr-plan.md, docs/dpo.md, docs/d
    - Incluye nombre del cliente y notas opcionales. Sin crear cobros ni pagos en D1.
 4. **Pruebas Automatizadas:**
    - 10 tests unitarios en `tests/storefront.test.ts` (60 tests en total en la suite completa, 100% verde).
+
+
+---
+
+## 17. Fallback SPEI para Montos Altos (> $8,000 MXN) y Confirmación Manual
+
+**Fecha:** 2026-11-09  
+**Aprobación requerida:** Pablo  
+**Archivos involucrados:** `src/types.ts`, `src/routes/codi.ts`, `src/routes/merchant.ts`, `migrations/0001_initial_schema.sql`, `migrations/0008_spei_fallback.sql`, `public/tienda.html`, `public/caja.html`, `tests/spei_fallback.test.ts`
+
+### 17.1. Justificación Técnica y Regulatoria
+1. **Límite Operativo CoDi ($8,000 MXN):**
+   - Aunque la regulación Banxico 2026 contempla hasta 1,500 UDIs (~$12,500–$13,200 MXN), las aplicaciones bancarias tradicionales (BBVA, Banamex, Santander, etc.) aplican por defecto un tope de $8,000 MXN para operaciones CoDi clásicas.
+   - Definición de constante unificada `CODI_MAX_MXN = 8000` en backend y frontend como número seguro universal.
+   - Prohibición estricta de "split payments": nunca fraccionar un cobro en múltiples QRs CoDi para evadir el límite; montos mayores a $8,000 MXN transitan por una sola transferencia SPEI.
+
+2. **Naturaleza del SPEI tradicional fuera de CoDi:**
+   - Una transferencia SPEI tradicional emitida desde la app del banco del cliente no pasa por la infraestructura CoDi de Pey y por ende **no dispara webhook automático de confirmación**.
+   - Por diseño, la confirmación es **100% manual** por el merchant previa validación de su estado de cuenta o comprobante.
+   - El pedido queda en estado `PENDING_SPEI` (diferente de `WAITING` de CoDi y de `PAID`).
+   - Nunca se auto-confirma por temporizador, polling ni simulación.
+
+### 17.2. Arquitectura de Flujo y Endpoints
+1. **Umbral en Checkout (`/tienda`):**
+   - Si `total <= 8000`: Flujo CoDi clásico (QR nivel H, timer 600s, polling automático).
+   - Si `total > 8000`: Se bloquea la generación de QR CoDi y se invoca `POST /api/merchant/:id/spei-order`.
+   - Backend CoDi (`POST /api/codi/qr`): Defensa en profundidad con rechazo fail-closed HTTP 400 (`AMOUNT_EXCEEDS_CODI_LIMIT`).
+
+2. **Pantalla SPEI para el Cliente (`tienda.html`):**
+   - Presenta con botón de copiado individual:
+     - CLABE completa (18 dígitos) del merchant destinatario.
+     - Banco receptor (detectado automáticamente con `getBankFromClabe`).
+     - Beneficiario (razón social o nombre comercial del merchant).
+     - Monto exacto en MXN.
+     - Folio / Referencia de conciliación.
+     - Concepto sugerido formateado.
+   - Instrucción en español:
+     > *"Abre la app de tu banco, elige transferencia SPEI, pega la CLABE y el monto exacto. Este pago no se confirma solo: manda tu comprobante por WhatsApp al merchant."*
+   - Botón *"Ya transferí, mandar comprobante por WhatsApp"* que abre `wa.me` con mensaje estructurado prellenado (folio, monto exacto, fecha/hora, concepto).
+
+3. **Confirmación Manual en Mostrador (`caja.html`):**
+   - Pedidos `PENDING_SPEI` se muestran en la lista de cobros con etiqueta distintiva y botón interactivo `[Confirmar SPEI]`.
+   - Endpoint autenticado: `POST /api/merchant/:id/payments/:paymentId/confirm-spei`:
+     - Protegido con `requireMerchantAuth` y validación estricta de pertenencia de tenant.
+     - Transición atómica a `PAID` con asignación de `transaction_id = TX_SPEI_<ULID>`.
+     - Registro contable en `ledger_entries` (`debit_account = BANCO_SPEI`, `credit_account = VENTAS_MOSTRADOR`).
+     - Registro inmutable en `operator_audit_log` con el usuario/operador autenticado y timestamp.
+     - Rechazo con HTTP 400 si el pago ya fue confirmado previamente.
+
+4. **Seguridad y Privacidad de la CLABE:**
+   - La CLABE de 18 dígitos únicamente se expone en el checkout legítimo del comercio dueño para efectuar el pago.
+   - En el conector interno StayPuft (`/api/internal/merchants`) la CLABE permanece enmascarada (`maskedClabe: **************1234`).
+   - Aislamiento multi-tenant: el checkout de un comercio jamás expone la CLABE de otro.
+
+### 17.3. Verificación Automatizada
+- **Suite Vitest:** 7 archivos de prueba, 79/79 tests en verde (100% pass).
+- **Cobertura en `tests/spei_fallback.test.ts`:**
+  - $8,000 exactos → CoDi permitido.
+  - $8,001 y $150,000 → CoDi rechazado con 400.
+  - Generación de orden SPEI con CLABE 18 dígitos, banco, beneficiario, monto y folio.
+  - Inmutabilidad: `PENDING_SPEI` no pasa a `PAID` de forma automática.
+  - Confirmación manual autenticada con asiento contable y log de auditoría.
+  - Protección cross-tenant (rechazo 403 Forbidden).
+  - Enmascaramiento persistente en StayPuft connector.
+- **Typecheck & Build:** `tsc --noEmit` 0 errores; `wrangler deploy --dry-run` exitoso sin advertencias.
+- **Estado de Despliegue:** Cambios listos localmente; no desplegados a producción a la espera de la autorización explícita de Pablo (sin interferir con la vinculación Pey de Fase B).
+
+
+---
+
+## 18. Dólares Digitales (Solana Pay USDC/USDT) + Compliance en Código (Mapa Activos Virtuales y Monitor LFPIORPI)
+
+**Fecha:** 2026-11-09  
+**Aprobación arquitectónica:** Pablo  
+**Archivos involucrados:**
+- Backend & Modelos: `src/types.ts`, `src/utils/solana.ts`, `src/services/lfpiorpi.ts`, `src/routes/solana.ts`, `src/routes/internal.ts`, `src/routes/merchant.ts`, `src/index.ts`, `migrations/0009_digital_dollars_lfpiorpi.sql`.
+- Frontend: `public/tienda.html`, `public/caja.html`.
+- Pruebas automatizadas: `tests/solana_lfpiorpi.test.ts`.
+
+### 18.1. Arquitectura de Rieles de Pago (Multi-rail Sovereign)
+1. **Abstracción de Rieles y Monedas:**
+   - La Caja opera con rieles desacoplados:
+     - `codi`: Riel oficial en MXN vía Pey / Banxico (límite universal $8,000 MXN).
+     - `spei`: Transferencias tradicionales directas para montos altos (> $8,000 MXN) con confirmación manual.
+     - `solana_usdc`: Dólares digitales USDC en red Solana (SPL Token).
+     - `solana_usdt`: Dólares digitales USDT en red Solana (SPL Token).
+   - Monedas admitidas: `MXN`, `USDC`, `USDT`.
+   - Regla de pureza de transacción: un pedido se procesa íntegramente por un único riel; nunca se dividen transacciones entre rieles para un mismo ticket.
+2. **Arquitectura Estrictamente No-Custodial:**
+   - La Caja jamás custodia, solicita ni transmite claves privadas o seed phrases. El merchant resguarda la soberanía de sus fondos en su propia wallet de autocustodia (Phantom, Solflare, etc.).
+   - En base de datos D1 únicamente se almacena la dirección pública (`solana_wallet`) del merchant.
+   - Validación estricta en Base58 (32 a 44 caracteres alfanuméricos, alfabeto Base58 excluyendo terminantemente caracteres ambiguos `0`, `O`, `I`, `l`).
+   - El riel Solana solo se activa en la tienda si el merchant tiene configurada su dirección pública (`solana_pay_enabled = 1`).
+
+### 18.2. Integración Solana Pay (USDC & USDT)
+1. **Especificación del Enlace y QR:**
+   - Formato estándar Solana Pay:
+     `solana:<recipient>?amount=<amount>&spl-token=<splToken>&reference=<reference>&label=<label>&message=<message>`
+   - Mints oficiales de SPL Tokens en Mainnet:
+     - **USDC:** `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`
+     - **USDT:** `Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB`
+   - Código QR renderizado en contraste absoluto (negro `#000000` sobre blanco `#ffffff`), nivel de corrección H y sin saturación gráfica central.
+   - Referencia única de 32 bytes en Base58 (`generateSolanaReference`) generada por cada orden para correlación determinista en cadena (nunca reutilizada).
+   - Temporizador de expiración de 10 minutos (600s); una vez expirada la sesión, se requiere generar un cobro nuevo con una nueva referencia criptográfica.
+2. **Confirmación y Registro en Ledger:**
+   - Verificación on-chain: el estado pasa a `PAID` únicamente cuando se constata la confirmación de la transacción en la cadena Solana con la referencia única correspondiente y el monto exacto pactado.
+   - Manejo de inconsistencias: si se detecta un depósito con monto inferior o superior al convenido, el sistema bloquea la acreditación automática y cataloga la transacción como `MANUAL_REVIEW`.
+   - Asiento contable de partida doble en `ledger_entries` con cuentas dedicadas (`SOLANA_USDC` / `SOLANA_USDT` vs `VENTAS_MOSTRADOR_CRYPTO`).
+
+### 18.3. La Ley en el Código: Evaluador LFPIORPI y Dictamen UIF
+1. **Marco Normativo (Art. 17 Fracción XVI LFPIORPI):**
+   - El intercambio o intermediación con Activos Virtuales constituye Actividad Vulnerable sujeta a identificación y aviso conforme a la legislación mexicana.
+   - Parámetros de cálculo para 2026:
+     - `UMA_DIARIA_2026_MXN = 113.14`
+     - `LFPIORPI_UMBRAL_AVISO_UMA = 210` (~$23,759.40 MXN)
+     - `LFPIORPI_UMBRAL_KYC_UMA = 147` (70% del umbral de aviso, ~$16,631.58 MXN)
+2. **Módulo Centralizado (`evaluadorActividadesVulnerables`):**
+   - Acumulación móvil estricta de 6 meses (180 días) por cliente (o por el identificador del merchant si la operación es de mostrador sin RFC).
+   - Niveles y reglas de acción legal:
+     - `NORMAL`: Total acumulado < 147 UMA. Operación regular sin exigencias adicionales.
+     - `KYC_ALERTA`: Total acumulado ≥ 147 UMA y < 210 UMA. El sistema exige y valida la captura de RFC / Identificación oficial del pagador antes de liquidar.
+     - `AVISO`: Total acumulado ≥ 210 UMA. Se genera y sella de manera automática el expediente para presentación del Aviso ante la UIF a más tardar el día 17 del mes inmediato posterior.
+3. **Sellado Criptográfico Inmutable:**
+   - Cada evaluación genera un dictamen firmado con SHA-256 (`dictamenHash`) que condensa: `merchantId`, `customerId`, periodo acumulado, monto en UMA y nivel de alerta.
+   - Persistencia inmutable en la tabla `lfpiorpi_evaluaciones`.
+4. **Servicio Compartido Microservicios:**
+   - Expuesto para StayPuft y microservicios satélite en `POST /api/internal/lfpiorpi/evaluar`, autenticado por header `X-StayPuft-Key`.
+
+### 18.4. Off-ramp Condicional y Corte de Caja Fiscal
+1. **Protección en Off-ramp a Pesos (MXN):**
+   - El endpoint `GET /api/solana/offramp-info/:merchantId` valida el estatus del proveedor de liquidación configurado (`offramp_provider`).
+   - La opción de convertir dólares digitales a moneda nacional solo se habilita y expone si el proveedor está formalmente dado de alta como Entidad Financiera autorizada (ITF) o con registro vigente de Actividad Vulnerable ante el SAT/UIF.
+   - Si no cumple, el sistema rechaza preventivamente la gestión de rampa para salvaguardar la responsabilidad jurídica del comerciante.
+2. **Corte Diario Fiscalmente Trazable (`POST /api/merchant/:id/close-day`):**
+   - Genera desglose fiscal diferenciado entre cobros CoDi (efectivo bancario MXN) y activos virtuales (USDC/USDT).
+   - Registra monto neto en tokens y su equivalencia en MXN calculada a la cotización oficial de cada cobro.
+   - Emite dictamen con fundamento legal expreso para la contabilidad del negocio (Art. 17 Fracc. XVI LFPIORPI e impacto IVA/ISR).
+
+### 18.5. Cobertura de Pruebas y Estado del Despliegue
+- **Pruebas Automatizadas:** 8 suites de pruebas ejecutadas con Vitest: **95/95 pruebas exitosas (100% verde)**.
+- **Suite Dedicada (`tests/solana_lfpiorpi.test.ts`):** 16 pruebas cubriendo validación Base58, URLs Solana Pay con tokens oficiales, confirmación en cadena, contabilidad ledger, acumulación a 6 meses, umbrales KYC/UIF, hashes SHA-256 y rampa condicional.
+- **Typecheck:** `tsc --noEmit` con 0 errores de compilación.
+- **Empaquetado:** `npx wrangler deploy --dry-run` completado sin errores.
+- **Política de Despliegue:** **LOCAL LISTO — NO DESPLEGADO**. Se mantiene congelado en el entorno local a la espera de la autorización expresa de Pablo y para no interferir con la ventana de vinculación de 5 días hábiles de la Fase B de Pey.
+
+
+---
+
+## 19. Landing Page Pública — Renovación de Copy & Catálogo Integral de Servicios
+
+**Fecha:** 2026-11-09  
+**Archivos:** `public/index.html`, `public/landing.html`  
+
+### 19.1. Diagnóstico Previo y Necesidad
+El copy original de la landing page pública estaba limitado a la narrativa de CoDi básico en mostrador, omitiendo los servicios clave implementados en la plataforma. Se reescribió y reestructuró para presentar la propuesta de valor integral:
+
+1. **Posicionamiento:** *"La caja registradora moderna, multi-riel y fiscal para el mostrador mexicano"*.
+2. **Presentación de los 3 Rieles de Cobro Soberano:**
+   - **CoDi® Banco de México:** Cobro rápido en mostrador (hasta $8,000 MXN), QR dinámico con monto bloqueado y liquidación en 2 segundos a CLABE.
+   - **Fallback SPEI Inteligente:** Transición automática en ventas grandes (> $8,000 MXN), exhibiendo CLABE 18 dígitos, banco, folio y confirmación manual en caja sin dividir pagos.
+   - **Dólares Digitales (USDC/USDT en Solana Pay):** Cobro directo wallet-a-wallet, sin comisiones bancarias abusivas y 100% no-custodial para turismo y nómadas digitales.
+3. **Control Fiscal e Inteligencia Artificial:**
+   - **Facturación SAT CFDI 4.0:** Timbrado instantáneo con Facturapi para Público en General o clientes con RFC, descarga de XML y PDF.
+   - **Corte Inteligente con Workers AI:** Resumen ejecutivo de la jornada, horas pico, ticket promedio y sugerencia automática de claves de producto SAT.
+   - **Compliance en Código (LFPIORPI):** Vigilancia de umbrales en UMA (Art. 17 Fracc. XVI), alertas preventivas KYC y dictamen inmutable sellado con SHA-256.
+4. **Tienda en Línea y Menú Digital (`/tienda`):** Catálogo web responsive para comensales y clientes de retail con carrito de compra y checkout CoDi o pedido a WhatsApp.
+5. **App Instalable (PWA) & Modo Offline:** Funcionamiento en pantalla completa en cualquier dispositivo móvil/PC y resiliencia ante cortes o parpadeos de red local.
+6. **FAQ Ampliada:** Respuestas técnicas y comerciales sobre límites de monto, dólares digitales, facturación SAT y compatibilidad bancaria.
