@@ -173,6 +173,10 @@
       </div>
     </div>
     <div class="flex items-center gap-2">
+      <button id="btn-header-tier" onclick="openPaywallProModal('header')" class="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-900 border border-amber-300 shadow-2xs hover:bg-amber-100 transition active:scale-95" title="Ver beneficios de tu plan">
+        <span>⭐</span>
+        <span id="header-tier-text">Ark Pro</span>
+      </button>
       <div id="network-status-badge" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#DCFCE7] text-[#166534]">
         <span class="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse"></span>
         <span id="network-status-text">🟢 CoDi activo</span>
@@ -212,20 +216,20 @@
         <!-- Fila de Acciones de Tienda y Catálogo -->
         <div class="grid grid-cols-2 gap-2">
           <!-- Botón "Abrir Tienda" (Modo Previa de Dueño) -->
-          <a id="btn-open-store" href="/tienda" target="_blank" class="h-12 rounded-[14px] bg-[#E8EEF9] border border-[#C5D7F2] text-[#002B7F] font-bold text-[13px] flex items-center justify-center hover:bg-[#D9E6F7] transition active:scale-98 shadow-2xs">
+          <button type="button" id="btn-open-store" onclick="handleProAction('store')" class="h-12 rounded-[14px] bg-[#E8EEF9] border border-[#C5D7F2] text-[#002B7F] font-bold text-[13px] flex items-center justify-center hover:bg-[#D9E6F7] transition active:scale-98 shadow-2xs">
             <span class="mr-1.5 text-base">🛒</span>
             <span>Ver Tienda</span>
-          </a>
+          </button>
 
           <!-- Botón "Enviar por WhatsApp" (Deep Link) -->
-          <button id="btn-share-catalog-wa" onclick="shareCatalogWhatsApp()" class="h-12 rounded-[14px] bg-[#DCFCE7] border border-[#86EFAC] text-[#166534] font-bold text-[13px] flex items-center justify-center hover:bg-[#BBF7D0] transition active:scale-98 shadow-2xs">
+          <button id="btn-share-catalog-wa" onclick="handleProAction('whatsapp')" class="h-12 rounded-[14px] bg-[#DCFCE7] border border-[#86EFAC] text-[#166534] font-bold text-[13px] flex items-center justify-center hover:bg-[#BBF7D0] transition active:scale-98 shadow-2xs">
             <svg class="w-4 h-4 mr-1.5 text-[#16A34A] shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.312.045-.694.072-2.158-.535-1.579-.652-2.6-2.254-2.678-2.359-.079-.105-.644-.858-.644-1.636 0-.777.406-1.161.55-1.317.144-.156.312-.195.417-.195.105 0 .209.001.301.006.096.005.226-.036.353.27.13.312.445 1.084.484 1.162.039.078.065.17.013.274-.052.105-.078.17-.156.262-.078.092-.163.205-.234.275-.079.078-.161.163-.069.321.092.157.409.675.877 1.092.602.536 1.109.702 1.267.78.157.078.249.066.341-.04.092-.105.393-.458.498-.615.105-.157.209-.131.353-.078.144.052.916.432 1.073.511.157.078.261.118.3.183.039.065.039.378-.105.783z"/></svg>
             <span>WhatsApp</span>
           </button>
         </div>
 
         <!-- Botón "Editar Precios y Menú" (Gestor del Merchant) -->
-        <button onclick="openCatalogManagerModal()" class="w-full h-11 rounded-[14px] bg-white border border-[#E8E0CC] text-[#002B7F] font-bold text-[13px] flex items-center justify-center hover:bg-slate-50 transition active:scale-98 shadow-2xs">
+        <button onclick="handleProAction('catalog')" class="w-full h-11 rounded-[14px] bg-white border border-[#E8E0CC] text-[#002B7F] font-bold text-[13px] flex items-center justify-center hover:bg-slate-50 transition active:scale-98 shadow-2xs">
           <span class="mr-2 text-base">⚙️</span>
           <span>Editar Precios y Menú del Negocio</span>
         </button>
@@ -754,6 +758,82 @@
   </div>
 
   <!-- ========================================== -->
+  <!-- ========================================== -->
+  <!-- MODAL: PAYWALL ARK PRO (CATÁLOGO & FOTOS IA) -->
+  <!-- ========================================== -->
+  <div id="modal-paywall-pro" class="hidden fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-3.5 sm:p-4 backdrop-blur-xs">
+    <div class="bg-white rounded-[26px] max-w-sm w-full p-6 text-center space-y-4 border border-[#E8E0CC] shadow-2xl relative max-h-[92vh] overflow-y-auto">
+      <button onclick="closePaywallProModal()" class="absolute top-4 right-4 text-[#6B7A99] hover:text-[#121A2E] p-1.5 rounded-full hover:bg-gray-100 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+
+      <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-amber-400 to-amber-200 text-amber-950 flex items-center justify-center text-3xl mx-auto shadow-md">
+        👑
+      </div>
+
+      <div>
+        <div class="inline-block px-3 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[10px] font-extrabold uppercase tracking-wider mb-1">
+          Ark Pro Suite
+        </div>
+        <h3 class="text-xl font-black text-[#121A2E] leading-tight">Tu Negocio en Línea y Fotos de Catálogo con IA</h3>
+        <p class="text-xs text-[#6B7A99] mt-1.5 leading-relaxed">
+          Los cobros CoDi® y registro de ventas siguen siendo <strong>100% gratis</strong>. Desbloquea las herramientas pro para vender más:
+        </p>
+      </div>
+
+      <!-- Lista de Beneficios Pro -->
+      <div class="bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl p-4 text-left space-y-3 text-xs">
+        <div class="flex items-start gap-2.5">
+          <span class="text-base shrink-0">✨</span>
+          <div>
+            <div class="font-bold text-[#121A2E]">Estudio Fotográfico con IA</div>
+            <div class="text-[11px] text-[#6B7A99]">Genera fotos fotorealistas de alta definición para tus platillos o prendas en segundos sin fotógrafo.</div>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-2.5">
+          <span class="text-base shrink-0">🛒</span>
+          <div>
+            <div class="font-bold text-[#121A2E]">Tienda Online con tu Enlace Propio</div>
+            <div class="text-[11px] text-[#6B7A99]">Tu catálogo web interactivo con carrito y cobro directo para tus clientes en redes y mostrador.</div>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-2.5">
+          <span class="text-base shrink-0">📲</span>
+          <div>
+            <div class="font-bold text-[#121A2E]">Envío de Menú / Precios por WhatsApp</div>
+            <div class="text-[11px] text-[#6B7A99]">Comparte tu lista de productos estructurada con 1 clic directo a tus clientes en chat.</div>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-2.5">
+          <span class="text-base shrink-0">💳</span>
+          <div>
+            <div class="font-bold text-[#121A2E]">Meses Sin Intereses con PayPal</div>
+            <div class="text-[11px] text-[#6B7A99]">Acepta tarjetas de crédito con financiamiento bancario directo a tu cuenta.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Precio y Acción -->
+      <div class="space-y-2 pt-1">
+        <div class="text-center">
+          <span class="text-2xl font-black font-orbitron text-[#121A2E]">$299</span>
+          <span class="text-xs text-[#6B7A99] font-medium"> MXN / mes</span>
+        </div>
+
+        <button onclick="activateArkProSubscription()" id="btn-activate-pro" class="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-extrabold text-sm shadow-md active:scale-98 transition flex items-center justify-center gap-2">
+          <span>🚀 Activar Ark Pro Ahora</span>
+        </button>
+
+        <button onclick="useFreeAiPhotoTrial()" class="w-full py-2 px-3 text-[11px] font-bold text-[#002B7F] hover:underline">
+          O generar 2 fotos de prueba gratis ✨
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL: ONBOARDING DE MERCHANT (3 PASOS) -->
   <!-- ========================================== -->
   <div id="modal-onboarding" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
@@ -1005,6 +1085,8 @@
     // ==========================================
     let currentMerchantId = null;
     let currentMerchant = null;
+    let currentMerchantTier = null;
+    let pendingProAction = null;
     let newRegisteredMerchantId = null;
 
     // Catálogo y Carrito Simplificado de Mostrador
@@ -1062,6 +1144,7 @@
       if (loaded) {
         currentMerchantId = targetId;
         localStorage.setItem('ark_merchant_id', targetId);
+        await loadMerchantTier(targetId);
         await loadCatalog(targetId);
         await loadTodayPayments();
         updateDemoButtons();
@@ -1075,6 +1158,7 @@
       localStorage.setItem('ark_merchant_id', mId);
       window.history.replaceState({}, '', `/caja?m=${encodeURIComponent(mId)}`);
       await loadMerchantProfile(mId);
+      await loadMerchantTier(mId);
       await loadCatalog(mId);
       clearCart();
       await loadTodayPayments();
@@ -1132,6 +1216,172 @@
     }
 
     // ==========================================
+    // ==========================================
+    // ARQUITECTURA FREEMIUM & GESTIÓN DE PLANES
+    // ==========================================
+    async function loadMerchantTier(mId) {
+      try {
+        const res = await fetch(`/api/merchant/${encodeURIComponent(mId)}/tier`);
+        if (res.ok) {
+          currentMerchantTier = await res.json();
+          updateTierUI();
+          return currentMerchantTier;
+        }
+      } catch (err) {
+        console.warn('Error al consultar nivel de suscripción', err);
+      }
+      currentMerchantTier = {
+        tier: 'free',
+        isProActive: false,
+        aiPhotoCredits: 2,
+        features: { storefront: false, aiPhotos: false, whatsappCatalog: false, paypalMsi: false }
+      };
+      updateTierUI();
+      return currentMerchantTier;
+    }
+
+    function updateTierUI() {
+      const tierBadge = document.getElementById('btn-header-tier');
+      const tierText = document.getElementById('header-tier-text');
+      const isPro = currentMerchantTier?.isProActive === true;
+
+      if (tierBadge && tierText) {
+        if (isPro) {
+          tierBadge.className = 'flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-900 border border-amber-300 shadow-2xs hover:bg-amber-100 transition active:scale-95 cursor-pointer';
+          tierText.textContent = '⭐ Ark Pro';
+        } else {
+          tierBadge.className = 'flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-slate-100 text-slate-700 border border-slate-300 shadow-2xs hover:bg-slate-200 transition active:scale-95 cursor-pointer';
+          tierText.textContent = '🆓 Básico Free';
+        }
+      }
+    }
+
+    function handleProAction(actionType, extra) {
+      const isPro = currentMerchantTier?.isProActive === true;
+      if (isPro) {
+        executeProAction(actionType, extra);
+      } else {
+        pendingProAction = { actionType, extra };
+        openPaywallProModal(actionType);
+      }
+    }
+
+    function executeProAction(actionType, extra) {
+      if (actionType === 'store') {
+        const url = `/tienda?m=${encodeURIComponent(currentMerchantId || '')}&preview=1`;
+        window.open(url, '_blank');
+      } else if (actionType === 'whatsapp') {
+        shareCatalogWhatsApp();
+      } else if (actionType === 'catalog') {
+        openCatalogManagerModal();
+      }
+    }
+
+    function openPaywallProModal(triggerContext) {
+      const modal = document.getElementById('modal-paywall-pro');
+      if (modal) {
+        modal.classList.remove('hidden');
+      }
+    }
+
+    function closePaywallProModal() {
+      const modal = document.getElementById('modal-paywall-pro');
+      if (modal) {
+        modal.classList.add('hidden');
+      }
+    }
+
+    async function activateArkProSubscription() {
+      const btn = document.getElementById('btn-activate-pro');
+      const origHtml = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="inline-block animate-spin mr-2">⚙️</span><span>Activando Ark Pro...</span>';
+      }
+
+      try {
+        const res = await fetch(`/api/merchant/${encodeURIComponent(currentMerchantId)}/upgrade-pro`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ planMonths: 1 })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          await loadMerchantTier(currentMerchantId);
+          closePaywallProModal();
+          alert('🚀 ¡Felicidades! Ark Pro está activo en tu mostrador. Tu tienda online, fotos IA con Flux.1 y pagos con tarjeta/MSI están habilitados.');
+          if (pendingProAction) {
+            const pa = pendingProAction;
+            pendingProAction = null;
+            executeProAction(pa.actionType, pa.extra);
+          }
+        } else {
+          alert('No se pudo activar Pro: ' + (data.error || 'Error desconocido'));
+        }
+      } catch (err) {
+        alert('Error al procesar suscripción: ' + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = origHtml;
+        }
+      }
+    }
+
+    function useFreeAiPhotoTrial() {
+      closePaywallProModal();
+      openCatalogManagerModal();
+    }
+
+    async function generateAiPhotoForItem(idx) {
+      if (!editableCatalogItems || !editableCatalogItems[idx]) return;
+      const item = editableCatalogItems[idx];
+      const btn = document.getElementById(`btn-ai-photo-${idx}`);
+      const origHtml = btn ? btn.innerHTML : '';
+
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="inline-block animate-spin text-[10px]">⚙️</span> Generando...';
+      }
+
+      try {
+        const res = await fetch(`/api/merchant/${encodeURIComponent(currentMerchantId)}/catalog/generate-image`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            productId: item.id,
+            productName: item.name,
+            description: item.description || '',
+            category: item.category || ''
+          })
+        });
+
+        if (res.status === 402) {
+          openPaywallProModal('ai-credits-exhausted');
+          return;
+        }
+
+        const data = await res.json();
+        if (res.ok && data.imageUrl) {
+          item.imageUrl = data.imageUrl;
+          if (currentMerchantTier) {
+            currentMerchantTier.aiPhotoCredits = data.remainingCredits;
+          }
+          renderCatalogManagerList();
+          await loadCatalog(currentMerchantId);
+        } else {
+          alert('No se pudo generar la fotografía: ' + (data.error || 'Intenta de nuevo'));
+        }
+      } catch (err) {
+        alert('Error de red con el estudio IA: ' + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = origHtml;
+        }
+      }
+    }
+
     // ONBOARDING STEPS DEL MERCHANT (3 PASOS)
     // ==========================================
     function openOnboardingModal(allowClose = false) {
@@ -1493,7 +1743,9 @@
         return `
           <div onclick="addToCart('${item.id}')" class="p-2.5 bg-white border border-[#E8E0CC] rounded-xl hover:border-[#002B7F] cursor-pointer transition flex flex-col justify-between active:scale-98 group select-none shadow-2xs">
             <div class="flex items-start justify-between">
-              <span class="text-2xl">${item.icon || '📦'}</span>
+              ${item.imageUrl 
+                ? `<img src="${item.imageUrl}" alt="${item.name}" class="w-10 h-10 rounded-lg object-cover border border-slate-200 shadow-2xs" />` 
+                : `<span class="text-2xl">${item.icon || '📦'}</span>`}
               ${qty > 0 ? `<span class="bg-[#002B7F] text-white text-[10px] font-bold font-orbitron px-1.5 py-0.5 rounded-full">${qty}</span>` : ''}
             </div>
             <div class="mt-1">
@@ -1978,7 +2230,8 @@
       try {
         const mId = currentMerchantId || localStorage.getItem('ark_merchant_id') || '01JBAVWE4NS5TGXHWGMX3KH23Q';
         if (!currentCatalog || currentCatalog.merchantId !== mId) {
-          await loadCatalog(mId);
+          await loadMerchantTier(mId);
+      await loadCatalog(mId);
         }
         const storeUrl = `${window.location.origin}/tienda?m=${encodeURIComponent(mId)}`;
         const message = formatWhatsAppCatalog(currentCatalog, currentMerchant, storeUrl);
@@ -2008,7 +2261,8 @@
       document.getElementById('modal-catalog-manager').classList.remove('hidden');
 
       if (!currentCatalog || currentCatalog.merchantId !== mId) {
-        await loadCatalog(mId);
+        await loadMerchantTier(mId);
+      await loadCatalog(mId);
       } else {
         editableCatalogItems = JSON.parse(JSON.stringify(currentCatalog.items));
       }
@@ -2039,7 +2293,9 @@
         return `
           <div class="bg-white p-3 rounded-xl border border-[#E8E0CC] flex items-center justify-between gap-3 shadow-2xs hover:border-[#C5D7F2] transition">
             <div class="flex items-center gap-2.5 min-w-0 flex-1">
-              <span class="text-2xl shrink-0">${item.icon || '🛍️'}</span>
+              ${item.imageUrl 
+                ? `<img src="${item.imageUrl}" alt="${item.name}" class="w-11 h-11 rounded-lg object-cover shrink-0 border border-slate-200 shadow-2xs" />` 
+                : `<span class="text-2xl shrink-0 w-11 h-11 flex items-center justify-center bg-slate-100 rounded-lg">${item.icon || '🛍️'}</span>`}
               <div class="min-w-0 flex-1">
                 <div class="font-bold text-xs text-[#121A2E] truncate">${item.name}</div>
                 <div class="text-[10px] text-[#6B7A99] flex items-center gap-1.5">
@@ -2050,6 +2306,20 @@
             </div>
             
             <div class="flex items-center gap-2 shrink-0">
+              <button 
+                type="button"
+                id="btn-ai-photo-${idx}"
+                onclick="generateAiPhotoForItem(${idx})" 
+                class="px-2 py-1 rounded-lg text-[10px] font-bold transition flex items-center gap-1 ${
+                  item.imageUrl 
+                    ? 'bg-slate-100 text-slate-700 hover:bg-slate-200' 
+                    : 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-2xs hover:opacity-90'
+                }"
+                title="Generar Fotografía de Producto con IA (Flux.1 Schnell)"
+              >
+                <span>${item.imageUrl ? '🔄 Foto' : '✨ Foto IA'}</span>
+              </button>
+
               <div class="flex items-center border border-[#E8E0CC] rounded-lg px-2 py-1 bg-[#F8FAFC]">
                 <span class="text-xs text-[#6B7A99] mr-1">$</span>
                 <input 

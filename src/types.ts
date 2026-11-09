@@ -55,6 +55,7 @@ export type PaymentStatus = 'WAITING' | 'PAID' | 'EXPIRED' | 'CANCELLED' | 'PEND
 export type PayableType = 'CODI_QR' | 'CODI_PN' | 'PAYMENT_LINK' | 'SPEI_TRANSFER' | 'SOLANA_PAY' | 'PAYPAL_ORDER';
 export type PaymentRail = 'codi' | 'spei' | 'solana_usdc' | 'solana_usdt' | 'paypal';
 export type PaymentCurrency = 'MXN' | 'USDC' | 'USDT';
+export type MerchantTier = 'free' | 'pro' | 'enterprise';
 
 export type LfpiorpiLevel = 'VERDE' | 'IDENTIFICACION' | 'AVISO';
 
