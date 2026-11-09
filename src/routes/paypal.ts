@@ -117,7 +117,7 @@ paypalRouter.post('/order', async (c) => {
           status, payment_method, payment_rail, currency, paypal_order_id,
           customer_rfc, date_created, metadata
         ) VALUES (
-          ?, ?, 'PAYPAL_ORDER', ?, ?, ?, ?,
+          ?, ?, 'PAYMENT_LINK', ?, ?, ?, ?,
           'WAITING', 'CARD', ?, 'MXN', ?,
           ?, ?, ?
         )

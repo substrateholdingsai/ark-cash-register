@@ -153,7 +153,7 @@ solanaRouter.post('/order', async (c) => {
       qr_string, status, payment_method, payment_rail, currency, amount_mxn_equiv,
       fx_rate, fx_timestamp, solana_reference, customer_rfc, date_created, metadata
     ) VALUES (
-      ?, ?, 'SOLANA_PAY', ?, ?, ?, ?,
+      ?, ?, 'PAYMENT_LINK', ?, ?, ?, ?,
       ?, 'WAITING', 'CODI', ?, ?, ?,
       ?, ?, ?, ?, ?, ?
     )
