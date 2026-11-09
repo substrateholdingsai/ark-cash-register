@@ -209,16 +209,25 @@
           Cobrar a distancia
         </button>
 
-        <!-- Botón "Catálogo y Carrito del Cliente" -->
-        <a id="btn-open-store" href="/tienda" target="_blank" class="w-full h-12 rounded-[14px] bg-[#E8EEF9] border border-[#C5D7F2] text-[#002B7F] font-bold text-[14px] flex items-center justify-center hover:bg-[#D9E6F7] transition active:scale-98">
-          <span class="mr-2 text-base">🛒</span>
-          <span>Abrir Tienda / Catálogo del Cliente</span>
-        </a>
+        <!-- Fila de Acciones de Tienda y Catálogo -->
+        <div class="grid grid-cols-2 gap-2">
+          <!-- Botón "Abrir Tienda" (Modo Previa de Dueño) -->
+          <a id="btn-open-store" href="/tienda" target="_blank" class="h-12 rounded-[14px] bg-[#E8EEF9] border border-[#C5D7F2] text-[#002B7F] font-bold text-[13px] flex items-center justify-center hover:bg-[#D9E6F7] transition active:scale-98 shadow-2xs">
+            <span class="mr-1.5 text-base">🛒</span>
+            <span>Ver Tienda</span>
+          </a>
 
-        <!-- Botón "Enviar mi catálogo por WhatsApp" (Deep Link) -->
-        <button id="btn-share-catalog-wa" onclick="shareCatalogWhatsApp()" class="w-full h-12 rounded-[14px] bg-[#DCFCE7] border border-[#86EFAC] text-[#166534] font-bold text-[14px] flex items-center justify-center hover:bg-[#BBF7D0] transition active:scale-98 shadow-2xs">
-          <svg class="w-5 h-5 mr-2 text-[#16A34A] shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.312.045-.694.072-2.158-.535-1.579-.652-2.6-2.254-2.678-2.359-.079-.105-.644-.858-.644-1.636 0-.777.406-1.161.55-1.317.144-.156.312-.195.417-.195.105 0 .209.001.301.006.096.005.226-.036.353.27.13.312.445 1.084.484 1.162.039.078.065.17.013.274-.052.105-.078.17-.156.262-.078.092-.163.205-.234.275-.079.078-.161.163-.069.321.092.157.409.675.877 1.092.602.536 1.109.702 1.267.78.157.078.249.066.341-.04.092-.105.393-.458.498-.615.105-.157.209-.131.353-.078.144.052.916.432 1.073.511.157.078.261.118.3.183.039.065.039.378-.105.783z"/></svg>
-          <span>Enviar mi catálogo por WhatsApp</span>
+          <!-- Botón "Enviar por WhatsApp" (Deep Link) -->
+          <button id="btn-share-catalog-wa" onclick="shareCatalogWhatsApp()" class="h-12 rounded-[14px] bg-[#DCFCE7] border border-[#86EFAC] text-[#166534] font-bold text-[13px] flex items-center justify-center hover:bg-[#BBF7D0] transition active:scale-98 shadow-2xs">
+            <svg class="w-4 h-4 mr-1.5 text-[#16A34A] shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.312.045-.694.072-2.158-.535-1.579-.652-2.6-2.254-2.678-2.359-.079-.105-.644-.858-.644-1.636 0-.777.406-1.161.55-1.317.144-.156.312-.195.417-.195.105 0 .209.001.301.006.096.005.226-.036.353.27.13.312.445 1.084.484 1.162.039.078.065.17.013.274-.052.105-.078.17-.156.262-.078.092-.163.205-.234.275-.079.078-.161.163-.069.321.092.157.409.675.877 1.092.602.536 1.109.702 1.267.78.157.078.249.066.341-.04.092-.105.393-.458.498-.615.105-.157.209-.131.353-.078.144.052.916.432 1.073.511.157.078.261.118.3.183.039.065.039.378-.105.783z"/></svg>
+            <span>WhatsApp</span>
+          </button>
+        </div>
+
+        <!-- Botón "Editar Precios y Menú" (Gestor del Merchant) -->
+        <button onclick="openCatalogManagerModal()" class="w-full h-11 rounded-[14px] bg-white border border-[#E8E0CC] text-[#002B7F] font-bold text-[13px] flex items-center justify-center hover:bg-slate-50 transition active:scale-98 shadow-2xs">
+          <span class="mr-2 text-base">⚙️</span>
+          <span>Editar Precios y Menú del Negocio</span>
         </button>
       </div>
 
@@ -641,6 +650,106 @@
       <button onclick="confirmCloseDay()" class="w-full h-14 rounded-[16px] btn-navy-primary font-bold text-[16px]">
         Aceptar y nuevo turno
       </button>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: GESTOR DE CATÁLOGO & PRECIOS (MERCHANT) -->
+  <!-- ========================================== -->
+  <div id="modal-catalog-manager" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-3 sm:p-4 backdrop-blur-xs">
+    <div class="bg-white rounded-[24px] max-w-lg w-full p-5 sm:p-6 text-left space-y-4 border border-[#E8E0CC] shadow-2xl relative max-h-[90vh] flex flex-col justify-between">
+      
+      <!-- Encabezado -->
+      <div class="flex items-start justify-between border-b border-[#E8E0CC] pb-3">
+        <div>
+          <div class="text-[11px] font-bold uppercase tracking-[0.16em] text-[#002B7F] bg-[#E8EEF9] px-2.5 py-0.5 rounded-full inline-block">
+            Administrador de Mostrador
+          </div>
+          <h3 class="text-lg font-bold text-[#121A2E] mt-1 flex items-center gap-2">
+            <span>📦 Menú, Precios y Disponibilidad</span>
+          </h3>
+          <p class="text-xs text-[#6B7A99]">Edita precios en vivo, ajusta disponibilidad o agrega productos rápidos.</p>
+        </div>
+        <button onclick="closeCatalogManagerModal()" class="text-[#6B7A99] hover:text-[#121A2E] p-1.5 rounded-full hover:bg-gray-100 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Barra de Filtros / Acciones -->
+      <div class="flex items-center justify-between gap-2">
+        <span class="text-xs font-semibold text-[#121A2E]">Productos en el catálogo:</span>
+        <button onclick="toggleAddNewProductForm()" id="btn-toggle-add-product" class="text-xs font-bold text-[#002B7F] bg-[#E8EEF9] hover:bg-[#D9E6F7] px-2.5 py-1 rounded-lg transition flex items-center gap-1 shadow-2xs">
+          <span>+ Agregar Producto</span>
+        </button>
+      </div>
+
+      <!-- Formulario Desplegable: Agregar Nuevo Producto (Sin uploads, emojis/presets automáticos) -->
+      <div id="form-add-product" class="hidden bg-[#F8FAFC] border border-[#C5D7F2] rounded-2xl p-3.5 space-y-2.5 shadow-2xs">
+        <div class="text-xs font-bold text-[#002B7F] flex items-center gap-1.5">
+          <span>✨</span>
+          <span>Nuevo Producto al Menú / Catálogo:</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <div>
+            <label class="block text-[11px] text-[#6B7A99] font-medium mb-1">Nombre *</label>
+            <input type="text" id="new-prod-name" placeholder="Ej. Tacos de Suadero" class="w-full p-2 rounded-lg border border-[#E8E0CC] bg-white font-medium text-xs focus:outline-none focus:border-[#002B7F]" />
+          </div>
+          <div>
+            <label class="block text-[11px] text-[#6B7A99] font-medium mb-1">Precio ($ MXN) *</label>
+            <input type="number" step="0.5" id="new-prod-price" placeholder="95.00" class="w-full p-2 rounded-lg border border-[#E8E0CC] bg-white font-bold font-orbitron text-xs focus:outline-none focus:border-[#002B7F]" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <div>
+            <label class="block text-[11px] text-[#6B7A99] font-medium mb-1">Categoría</label>
+            <input type="text" id="new-prod-cat" placeholder="Tacos, Bebidas, Ropa..." class="w-full p-2 rounded-lg border border-[#E8E0CC] bg-white text-xs focus:outline-none focus:border-[#002B7F]" />
+          </div>
+          <div>
+            <label class="block text-[11px] text-[#6B7A99] font-medium mb-1">Ícono / Emoji Preset</label>
+            <select id="new-prod-icon" class="w-full p-2 rounded-lg border border-[#E8E0CC] bg-white text-xs focus:outline-none focus:border-[#002B7F]">
+              <option value="🌮">🌮 Taco</option>
+              <option value="🥩">🥩 Carne / Bistec</option>
+              <option value="🍖">🍖 Suadero / Pastor</option>
+              <option value="🧀">🧀 Queso / Gringa</option>
+              <option value="🥤">🥤 Refresco</option>
+              <option value="🍹">🍹 Agua Fresca</option>
+              <option value="👕">👕 Playera</option>
+              <option value="☀️">☀️ Sol / Verano</option>
+              <option value="🌴">🌴 Palmera / Caribe</option>
+              <option value="🧥">🧥 Hoodie</option>
+              <option value="🧢">🧢 Gorra</option>
+              <option value="👜">👜 Bolsa / Accesorio</option>
+              <option value="🍰">🍰 Postre</option>
+              <option value="☕">☕ Café</option>
+              <option value="🛍️">🛍️ Producto General</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-1">
+          <button onclick="toggleAddNewProductForm()" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-[#6B7A99] hover:bg-gray-200 transition">Cancelar</button>
+          <button onclick="submitNewProduct()" class="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[#002B7F] text-white hover:bg-[#001A4D] transition shadow-xs">Guardar en Catálogo</button>
+        </div>
+      </div>
+
+      <!-- Lista Scrollable de Productos Editables -->
+      <div id="catalog-manager-items-list" class="flex-1 overflow-y-auto space-y-2 pr-1 max-h-[340px]">
+        <div class="text-center py-6 text-xs text-[#6B7A99]">Cargando catálogo del comercio...</div>
+      </div>
+
+      <!-- Mensaje de estado / feedback -->
+      <div id="catalog-manager-feedback" class="hidden text-center text-xs font-bold text-[#16A34A] py-1 bg-emerald-50 rounded-lg border border-emerald-200"></div>
+
+      <!-- Footer con botones -->
+      <div class="pt-3 border-t border-[#E8E0CC] flex items-center justify-between gap-3">
+        <a id="link-preview-store" href="/tienda" target="_blank" class="text-xs font-bold text-[#002B7F] hover:underline flex items-center gap-1">
+          <span>👀 Probar Tienda en Vivo</span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+        </a>
+        <button onclick="saveAllCatalogChanges()" id="btn-save-catalog-changes" class="px-5 py-2.5 rounded-xl btn-navy-primary font-bold text-xs flex items-center gap-1.5 shadow-sm">
+          <span>Guardar Cambios</span>
+        </button>
+      </div>
+
     </div>
   </div>
 
@@ -1882,6 +1991,203 @@
         if (btn) {
           btn.innerHTML = origHtml;
         }
+      }
+    }
+
+    // ==========================================
+    // GESTOR DE CATÁLOGO & PRECIOS (MERCHANT)
+    // ==========================================
+    let editableCatalogItems = [];
+
+    async function openCatalogManagerModal() {
+      const mId = currentMerchantId || localStorage.getItem('ark_merchant_id') || '01JBAVWE4NS5TGXHWGMX3KH23Q';
+      const previewLink = document.getElementById('link-preview-store');
+      if (previewLink) {
+        previewLink.href = `/tienda?m=${encodeURIComponent(mId)}&preview=1`;
+      }
+      document.getElementById('modal-catalog-manager').classList.remove('hidden');
+
+      if (!currentCatalog || currentCatalog.merchantId !== mId) {
+        await loadCatalog(mId);
+      } else {
+        editableCatalogItems = JSON.parse(JSON.stringify(currentCatalog.items));
+      }
+      renderCatalogManagerList();
+    }
+
+    function closeCatalogManagerModal() {
+      document.getElementById('modal-catalog-manager').classList.add('hidden');
+      const form = document.getElementById('form-add-product');
+      if (form) form.classList.add('hidden');
+    }
+
+    function renderCatalogManagerList() {
+      const container = document.getElementById('catalog-manager-items-list');
+      if (!container) return;
+
+      if (!currentCatalog || !currentCatalog.items || currentCatalog.items.length === 0) {
+        container.innerHTML = '<div class="text-center py-6 text-xs text-[#6B7A99]">No hay productos en este catálogo.</div>';
+        return;
+      }
+
+      if (editableCatalogItems.length === 0) {
+        editableCatalogItems = JSON.parse(JSON.stringify(currentCatalog.items));
+      }
+
+      container.innerHTML = editableCatalogItems.map((item, idx) => {
+        const isAvail = item.available !== false;
+        return `
+          <div class="bg-white p-3 rounded-xl border border-[#E8E0CC] flex items-center justify-between gap-3 shadow-2xs hover:border-[#C5D7F2] transition">
+            <div class="flex items-center gap-2.5 min-w-0 flex-1">
+              <span class="text-2xl shrink-0">${item.icon || '🛍️'}</span>
+              <div class="min-w-0 flex-1">
+                <div class="font-bold text-xs text-[#121A2E] truncate">${item.name}</div>
+                <div class="text-[10px] text-[#6B7A99] flex items-center gap-1.5">
+                  <span>${item.category || 'General'}</span>
+                  ${item.options && item.options.length ? `<span class="bg-slate-100 px-1 rounded text-[9px] text-[#6B7A99]">${item.options.length} opciones</span>` : ''}
+                </div>
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-2 shrink-0">
+              <div class="flex items-center border border-[#E8E0CC] rounded-lg px-2 py-1 bg-[#F8FAFC]">
+                <span class="text-xs text-[#6B7A99] mr-1">$</span>
+                <input 
+                  type="number" 
+                  step="0.5" 
+                  value="${item.price}" 
+                  onchange="updateManagerItemPrice(${idx}, this.value)"
+                  class="w-16 text-right font-orbitron font-bold text-xs bg-transparent focus:outline-none text-[#121A2E]" 
+                />
+              </div>
+
+              <button 
+                type="button"
+                onclick="toggleManagerItemAvailable(${idx})" 
+                class="px-2.5 py-1 rounded-lg text-[10px] font-bold transition flex items-center gap-1 ${
+                  isAvail ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-rose-100 text-rose-800 hover:bg-rose-200'
+                }"
+              >
+                <span>${isAvail ? '🟢 Activo' : '🔴 Agotado'}</span>
+              </button>
+
+              <button 
+                type="button"
+                onclick="deleteManagerItem(${idx})" 
+                class="text-gray-400 hover:text-rose-600 p-1 rounded-lg hover:bg-gray-100 transition" 
+                title="Eliminar producto"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function updateManagerItemPrice(idx, newPrice) {
+      if (editableCatalogItems[idx]) {
+        const val = parseFloat(newPrice);
+        editableCatalogItems[idx].price = isNaN(val) ? 0 : Math.max(0, val);
+      }
+    }
+
+    function toggleManagerItemAvailable(idx) {
+      if (editableCatalogItems[idx]) {
+        editableCatalogItems[idx].available = editableCatalogItems[idx].available === false ? true : false;
+        renderCatalogManagerList();
+      }
+    }
+
+    function deleteManagerItem(idx) {
+      if (editableCatalogItems[idx]) {
+        const name = editableCatalogItems[idx].name;
+        if (confirm(`¿Seguro que deseas eliminar "${name}" del menú?`)) {
+          editableCatalogItems.splice(idx, 1);
+          renderCatalogManagerList();
+        }
+      }
+    }
+
+    function toggleAddNewProductForm() {
+      const form = document.getElementById('form-add-product');
+      if (form) form.classList.toggle('hidden');
+    }
+
+    function submitNewProduct() {
+      const nameInput = document.getElementById('new-prod-name');
+      const priceInput = document.getElementById('new-prod-price');
+      const catInput = document.getElementById('new-prod-cat');
+      const iconInput = document.getElementById('new-prod-icon');
+
+      const name = nameInput.value.trim();
+      const price = parseFloat(priceInput.value);
+      const category = catInput.value.trim() || 'General';
+      const icon = iconInput.value || '🛍️';
+
+      if (!name || isNaN(price) || price < 0) {
+        alert('Por favor ingresa un nombre y precio válido (mayor o igual a 0).');
+        return;
+      }
+
+      const newItem = {
+        id: `item_${Date.now()}`,
+        name,
+        price,
+        category,
+        icon,
+        available: true
+      };
+
+      editableCatalogItems.push(newItem);
+      nameInput.value = '';
+      priceInput.value = '';
+      catInput.value = '';
+      toggleAddNewProductForm();
+      renderCatalogManagerList();
+    }
+
+    async function saveAllCatalogChanges() {
+      const btn = document.getElementById('btn-save-catalog-changes');
+      const fb = document.getElementById('catalog-manager-feedback');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="inline-block animate-spin mr-1">⏳</span> Guardando...';
+
+      const mId = currentMerchantId || localStorage.getItem('ark_merchant_id') || '01JBAVWE4NS5TGXHWGMX3KH23Q';
+
+      try {
+        const res = await fetch(`/api/merchant/${encodeURIComponent(mId)}/catalog`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            items: editableCatalogItems
+          })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          currentCatalog = data.catalog;
+          editableCatalogItems = JSON.parse(JSON.stringify(currentCatalog.items));
+          renderCatalogCategories();
+          renderCatalogGrid();
+          renderCart();
+
+          fb.textContent = '✓ ¡Precios y catálogo actualizados con éxito!';
+          fb.classList.remove('hidden');
+          setTimeout(() => {
+            fb.classList.add('hidden');
+            closeCatalogManagerModal();
+          }, 1200);
+        } else {
+          const err = await res.json().catch(() => ({}));
+          alert('Error al guardar cambios: ' + (err?.error?.message || 'Error de servidor'));
+        }
+      } catch (err) {
+        console.error('Error al guardar catálogo', err);
+        alert('Error de red al conectar con el servidor.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>Guardar Cambios</span>';
       }
     }
 

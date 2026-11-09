@@ -4,7 +4,7 @@ import { PeyClient } from '../services/peyClient';
 import { generateUlid } from '../utils/ulid';
 import { validateClabe, getBankFromClabe } from '../utils/clabe';
 import { validateSolanaAddress } from '../utils/solana';
-import { getCatalogForMerchant } from '../data/catalogs';
+import { getCatalogForMerchant, CatalogItem, MerchantCatalog } from '../data/catalogs';
 import { requireMerchantAuth } from '../middleware/auth';
 
 export const merchantRouter = new Hono<{ Bindings: Env }>();
@@ -25,6 +25,102 @@ merchantRouter.get('/:id/catalog', async (c) => {
   }
   const catalog = getCatalogForMerchant(merchantId);
   return c.json(catalog);
+});
+
+// Actualizar catálogo completo del merchant (precios, productos, promociones)
+merchantRouter.put('/:id/catalog', async (c) => {
+  const merchantId = c.req.param('id');
+  const body = await c.req.json().catch(() => ({}));
+  const baseCatalog = getCatalogForMerchant(merchantId);
+
+  if (!body.items || !Array.isArray(body.items)) {
+    return c.json({ error: { message: 'Se requiere una lista válida de items', type: 'INVALID_ITEMS' } }, 400);
+  }
+
+  // Validar items
+  for (const item of body.items) {
+    if (!item.name || typeof item.price !== 'number' || item.price < 0 || isNaN(item.price)) {
+      return c.json({ error: { message: `El producto ${item.name || 'sin nombre'} debe tener precio numérico válido mayor o igual a 0`, type: 'INVALID_PRICE' } }, 400);
+    }
+  }
+
+  const updatedCatalog: MerchantCatalog = {
+    merchantId,
+    brandName: body.brandName || baseCatalog.brandName,
+    tagline: body.tagline || baseCatalog.tagline,
+    emoji: body.emoji || baseCatalog.emoji,
+    currency: body.currency || baseCatalog.currency || 'MXN',
+    whatsappPhone: body.whatsappPhone || baseCatalog.whatsappPhone,
+    items: body.items.map((it: any, idx: number) => ({
+      id: it.id || `item_${idx}_${Date.now()}`,
+      name: String(it.name).trim(),
+      price: Number(it.price),
+      icon: it.icon || '🛍️',
+      category: it.category || 'General',
+      description: it.description || '',
+      variants: Array.isArray(it.variants) ? it.variants : undefined,
+      available: it.available !== false
+    })),
+    promoRule: body.promoRule !== undefined ? body.promoRule : baseCatalog.promoRule
+  };
+
+  if (c.env.KV) {
+    await c.env.KV.put(`catalog:${merchantId}`, JSON.stringify(updatedCatalog));
+  }
+
+  return c.json({ success: true, catalog: updatedCatalog });
+});
+
+// Modificar un producto individual del catálogo (cambio rápido de precio o disponibilidad)
+merchantRouter.patch('/:id/catalog/item/:itemId', async (c) => {
+  const merchantId = c.req.param('id');
+  const itemId = c.req.param('itemId');
+  const body = await c.req.json().catch(() => ({}));
+
+  let currentCatalog: MerchantCatalog;
+  if (c.env.KV) {
+    const cached = await c.env.KV.get(`catalog:${merchantId}`, 'json') as MerchantCatalog | null;
+    currentCatalog = cached || getCatalogForMerchant(merchantId);
+  } else {
+    currentCatalog = getCatalogForMerchant(merchantId);
+  }
+
+  const itemExists = currentCatalog.items.some(it => it.id === itemId);
+  if (!itemExists) {
+    return c.json({ error: { message: 'Producto no encontrado en el catálogo', type: 'ITEM_NOT_FOUND' } }, 404);
+  }
+
+  if (body.price !== undefined && (typeof body.price !== 'number' || isNaN(body.price) || body.price < 0)) {
+    return c.json({ error: { message: 'El precio debe ser un número mayor o igual a 0', type: 'INVALID_PRICE' } }, 400);
+  }
+
+  const items = currentCatalog.items.map(it => {
+    if (it.id === itemId) {
+      return {
+        ...it,
+        price: body.price !== undefined ? Number(body.price) : it.price,
+        available: body.available !== undefined ? Boolean(body.available) : (it.available !== false),
+        name: body.name ? String(body.name).trim() : it.name,
+        category: body.category ? String(body.category).trim() : it.category,
+        description: body.description !== undefined ? String(body.description) : it.description,
+        variants: Array.isArray(body.variants) ? body.variants : it.variants,
+        icon: body.icon || it.icon
+      };
+    }
+    return it;
+  });
+
+  const updatedCatalog: MerchantCatalog = {
+    ...currentCatalog,
+    items
+  };
+
+  if (c.env.KV) {
+    await c.env.KV.put(`catalog:${merchantId}`, JSON.stringify(updatedCatalog));
+  }
+
+  const updatedItem = items.find(it => it.id === itemId);
+  return c.json({ success: true, item: updatedItem, catalog: updatedCatalog });
 });
 
 // Registrar cuenta bancaria para CoDi y opcionalmente Wallet Solana (Onboarding)

@@ -9,6 +9,7 @@ export interface CatalogItem {
   category: string;
   description?: string;
   variants?: string[]; // Ej: ['S', 'M', 'L', 'XL'] o ['Con todo', 'Sin cebolla']
+  available?: boolean; // true por defecto; false si está agotado o desactivado
 }
 
 export interface CatalogRule {

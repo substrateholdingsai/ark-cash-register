@@ -245,4 +245,81 @@ _Pedido generado vía Ark Cash Register_`;
     });
   });
 
+  describe('5. Edición de Catálogo y Precios del Merchant (Caja vs Tienda)', () => {
+    it('PUT /api/merchant/:id/catalog actualiza lista de items y disponibilidad', async () => {
+      const memoryKv = new Map<string, string>();
+      const env: any = {
+        KV: {
+          get: async (k: string, type?: string) => {
+            const val = memoryKv.get(k);
+            if (!val) return null;
+            return type === 'json' ? JSON.parse(val) : val;
+          },
+          put: async (k: string, v: string) => {
+            memoryKv.set(k, v);
+          }
+        }
+      };
+
+      const payload = {
+        items: [
+          { id: 'item_1', name: 'Playera Especial Edición Limitada', price: 350.00, icon: '👕', available: true },
+          { id: 'item_2', name: 'Gorra Marea Agotada', price: 180.00, icon: '🧢', available: false }
+        ]
+      };
+
+      const putRes = await worker.request('/api/merchant/01JBAVSKINLAB0000000000000/catalog', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }, env);
+
+      expect(putRes.status).toBe(200);
+      const putData: any = await putRes.json();
+      expect(putData.success).toBe(true);
+      expect(putData.catalog.items.length).toBe(2);
+      expect(putData.catalog.items[0].name).toBe('Playera Especial Edición Limitada');
+      expect(putData.catalog.items[0].price).toBe(350);
+      expect(putData.catalog.items[1].available).toBe(false);
+
+      // Verificar que GET /api/merchant/:id/catalog ahora devuelve los datos cacheados en KV
+      const getRes = await worker.request('/api/merchant/01JBAVSKINLAB0000000000000/catalog', {
+        method: 'GET'
+      }, env);
+      expect(getRes.status).toBe(200);
+      const getData: any = await getRes.json();
+      expect(getData.items[1].available).toBe(false);
+      expect(getData.items[0].price).toBe(350);
+    });
+
+    it('PATCH /api/merchant/:id/catalog/item/:itemId actualiza precio individual y estado disponible', async () => {
+      const memoryKv = new Map<string, string>();
+      const env: any = {
+        KV: {
+          get: async (k: string, type?: string) => {
+            const val = memoryKv.get(k);
+            if (!val) return null;
+            return type === 'json' ? JSON.parse(val) : val;
+          },
+          put: async (k: string, v: string) => {
+            memoryKv.set(k, v);
+          }
+        }
+      };
+
+      const patchRes = await worker.request('/api/merchant/01JBAVSKINLAB0000000000000/catalog/item/sl-tulum', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ price: 399.00, available: false })
+      }, env);
+
+      expect(patchRes.status).toBe(200);
+      const patchData: any = await patchRes.json();
+      expect(patchData.success).toBe(true);
+      expect(patchData.item.id).toBe('sl-tulum');
+      expect(patchData.item.price).toBe(399.00);
+      expect(patchData.item.available).toBe(false);
+    });
+  });
+
 });
