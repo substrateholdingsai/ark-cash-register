@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="scroll-smooth">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Ark Cash Register — La Caja Registradora Multi-Riel y Fiscal para México</title>
+  <title>Ark Cash Register — La Caja Registradora Multi-Riel, Fiscal & E-commerce para México</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <meta name="theme-color" content="#002B7F">
   
@@ -17,13 +17,13 @@
   
   <!-- Open Graph -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Ark Cash Register — Caja Registradora Multi-Riel y Fiscal para México">
-  <meta property="og:description" content="Cobra en tu negocio con CoDi® Banxico, SPEI directo para montos altos, Dólares Digitales (USDC/USDT en Solana) y emite facturas SAT CFDI 4.0 al instante. Sin comisiones sorpresa ni retención de dinero.">
+  <meta property="og:title" content="Ark Cash Register — Caja Registradora Multi-Riel, Fiscal & E-commerce para México">
+  <meta property="og:description" content="Cobra en tu negocio con CoDi® Banxico 0%, Tarjetas de Crédito con Meses Sin Intereses (PayPal), SPEI directo, Dólares Digitales (USDC/USDT) y envíos nacionales con FedEx/Estafeta. Facturación SAT CFDI 4.0 al instante.">
   <meta property="og:image" content="https://caja.arksystems.site/og-image.svg">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@700;800&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Orbitron:wght@700;800;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
@@ -69,38 +69,47 @@
       color: #002b7f;
       border: 1px solid #c5d7f2;
     }
+    .pro-gradient {
+      background: linear-gradient(135deg, #002B7F 0%, #0F172A 100%);
+    }
+    .gold-gradient {
+      background: linear-gradient(135deg, #D4AF37 0%, #AA820A 100%);
+    }
   </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between">
+<body class="min-h-screen flex flex-col justify-between selection:bg-[#002B7F] selection:text-white">
 
   <!-- ========================================================= -->
   <!-- BARRA DE NAVEGACIÓN SUPERIOR -->
   <!-- ========================================================= -->
   <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-[#E8E0CC] shadow-xs">
-    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
       <a href="/" class="flex items-center gap-3">
         <img src="/favicon.svg" alt="Ark" class="w-9 h-9 rounded-xl shadow-xs" />
         <div>
           <div class="font-orbitron font-bold text-[16px] text-[#002B7F] tracking-tight leading-none">ARK</div>
-          <div class="text-[11px] font-bold uppercase tracking-[0.16em] text-[#6B7A99]">Cash Register</div>
+          <div class="text-[10px] font-bold uppercase tracking-[0.18em] text-[#6B7A99]">Cash Register</div>
         </div>
       </a>
+
+      <!-- Enlaces de navegación desktop -->
+      <nav class="hidden md:flex items-center gap-6 text-[13px] font-medium text-slate-700">
+        <a href="#rieles" class="hover:text-[#002B7F] transition">Rieles de Pago</a>
+        <a href="#servicios" class="hover:text-[#002B7F] transition">Fotos IA & Logística</a>
+        <a href="#planes" class="text-[#002B7F] font-bold hover:underline transition">Planes & Precios</a>
+        <a href="#instructivo" class="hover:text-[#002B7F] transition">Cómo Funciona</a>
+        <a href="#faq" class="hover:text-[#002B7F] transition">Preguntas</a>
+      </nav>
       
       <div class="flex items-center gap-2">
-        <div class="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-[#E8EEF9] text-[#002B7F]">
-          <span>🇲🇽 CoDi®</span>
-          <span class="text-[#8C9BB5]">·</span>
-          <span>⚡ SPEI</span>
-          <span class="text-[#8C9BB5]">·</span>
-          <span>💵 USDC/USDT</span>
-          <span class="text-[#8C9BB5]">·</span>
-          <span>🧾 SAT 4.0</span>
-        </div>
-        <a href="/tienda" class="hidden sm:flex items-center gap-1 px-3 py-2 rounded-xl text-slate-700 hover:text-slate-900 font-semibold text-[13px] border border-slate-200 bg-white shadow-2xs hover:bg-slate-50 transition">
+        <a href="/tienda" class="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl text-slate-700 hover:text-slate-900 font-semibold text-[13px] border border-slate-200 bg-white shadow-2xs hover:bg-slate-50 transition">
           <span>🛒 Tienda Demo</span>
         </a>
+        <a href="#planes" class="hidden lg:flex items-center gap-1 px-3 py-2 rounded-xl bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100 font-bold text-[12px] transition">
+          <span>⭐ Ark Pro</span>
+        </a>
         <a href="/caja" class="btn-navy px-4 py-2 rounded-xl font-bold text-[13px] flex items-center gap-1.5 shadow-sm">
-          <span>Abrir Caja</span>
+          <span>Abrir Caja TPV</span>
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
         </a>
       </div>
@@ -110,79 +119,97 @@
   <!-- ========================================================= -->
   <!-- HERO PRINCIPAL -->
   <!-- ========================================================= -->
-  <section class="max-w-5xl mx-auto px-4 pt-10 pb-12 text-center">
+  <section class="max-w-6xl mx-auto px-4 pt-10 pb-12 text-center">
     <!-- Badge de Confianza y Ecosistema -->
     <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#E8EEF9] border border-[#C5D7F2] text-[#002B7F] text-[12px] font-bold mb-6 flex-wrap justify-center shadow-2xs">
       <span class="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse"></span>
-      <span>Caja Registradora Multi-Riel & Fiscal Soberana para México</span>
+      <span>Caja Registradora Multi-Riel, Facturación SAT & Logística para México</span>
     </div>
 
     <!-- Título Principal -->
     <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-[#121A2E] tracking-tight leading-tight max-w-4xl mx-auto">
-      La caja registradora moderna, multi-riel y fiscal para el mostrador mexicano
+      La caja registradora inteligente para el mostrador y e-commerce mexicano
     </h1>
 
     <!-- Subtítulo -->
-    <p class="mt-5 text-base sm:text-xl text-[#6B7A99] max-w-3xl mx-auto leading-relaxed">
-      Cobra en tu mostrador o por internet con <strong class="text-[#121A2E]">CoDi® Banxico</strong>, <strong class="text-[#121A2E]">SPEI directo</strong> para ventas grandes, <strong class="text-[#121A2E]">Dólares Digitales (USDC/USDT en Solana)</strong> y <strong class="text-[#121A2E]">facturación CFDI 4.0 al instante</strong>. Sin rentas de terminales, sin comisiones abusivas y sin intermediarios que retengan tu dinero.
+    <p class="mt-5 text-base sm:text-lg text-[#6B7A99] max-w-3xl mx-auto leading-relaxed">
+      Cobra en mostrador o por internet con <strong class="text-[#121A2E]">CoDi® Banxico (0% comisión)</strong>, <strong class="text-[#121A2E]">Tarjetas de Crédito & Meses Sin Intereses (PayPal REST v2)</strong>, <strong class="text-[#121A2E]">SPEI directo</strong>, <strong class="text-[#121A2E]">Dólares Digitales (USDC/USDT)</strong>, <strong class="text-[#121A2E]">envíos nacionales FedEx/Estafeta</strong> y <strong class="text-[#121A2E]">facturación SAT CFDI 4.0</strong>. Sin comprar terminales físicas ni pagar comisiones sorpresa.
     </p>
 
     <!-- Pills de capacidades -->
-    <div class="mt-6 flex flex-wrap items-center justify-center gap-2 max-w-3xl mx-auto">
+    <div class="mt-6 flex flex-wrap items-center justify-center gap-2 max-w-4xl mx-auto">
       <span class="px-3 py-1 rounded-lg text-xs font-bold bg-white border border-[#E8E0CC] text-[#121A2E] shadow-2xs">
-        🇲🇽 CoDi® Banxico hasta $8,000
+        🇲🇽 CoDi® Banxico 0% hasta $8,000
+      </span>
+      <span class="px-3 py-1 rounded-lg text-xs font-bold bg-amber-50 border border-amber-200 text-amber-900 shadow-2xs">
+        💳 Tarjetas & Meses Sin Intereses (PayPal 3, 6, 9, 12 MSI)
+      </span>
+      <span class="px-3 py-1 rounded-lg text-xs font-bold bg-blue-50 border border-blue-200 text-[#002B7F] shadow-2xs">
+        📦 Envíos FedEx, Estafeta y Redpack (Envia.com)
+      </span>
+      <span class="px-3 py-1 rounded-lg text-xs font-bold bg-purple-50 border border-purple-200 text-purple-900 shadow-2xs">
+        ✨ Fotos de Catálogo con IA (Flux.1 Schnell)
       </span>
       <span class="px-3 py-1 rounded-lg text-xs font-bold bg-white border border-[#E8E0CC] text-[#121A2E] shadow-2xs">
         ⚡ SPEI sin límite para mayoreo
       </span>
       <span class="px-3 py-1 rounded-lg text-xs font-bold bg-white border border-[#E8E0CC] text-[#121A2E] shadow-2xs">
-        💵 Dólares Digitales (USDC/USDT)
+        💵 Dólares Digitales (USDC/USDT en Solana)
       </span>
       <span class="px-3 py-1 rounded-lg text-xs font-bold bg-white border border-[#E8E0CC] text-[#121A2E] shadow-2xs">
         🧾 Facturación CFDI 4.0 SAT
-      </span>
-      <span class="px-3 py-1 rounded-lg text-xs font-bold bg-white border border-[#E8E0CC] text-[#121A2E] shadow-2xs">
-        🧠 Corte inteligente con IA
       </span>
       <span class="px-3 py-1 rounded-lg text-xs font-bold bg-white border border-[#E8E0CC] text-[#121A2E] shadow-2xs">
         📱 App Instalable PWA Offline
       </span>
     </div>
 
-    <!-- 3 Garantías de Oro -->
-    <div class="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-3.5 max-w-4xl mx-auto text-left">
+    <!-- 4 Garantías de Oro -->
+    <div class="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 max-w-5xl mx-auto text-left">
       <div class="bg-white p-5 rounded-2xl border border-[#E8E0CC] shadow-xs flex items-start gap-3.5">
-        <div class="w-11 h-11 rounded-xl bg-[#DCFCE7] text-[#16A34A] flex items-center justify-center font-bold text-xl shrink-0">
+        <div class="w-10 h-10 rounded-xl bg-[#DCFCE7] text-[#16A34A] flex items-center justify-center font-bold text-lg shrink-0">
           ✓
         </div>
         <div>
-          <div class="font-bold text-[15px] text-[#121A2E]">Tu dinero cae al instante</div>
+          <div class="font-bold text-[14px] text-[#121A2E]">Dinero al instante</div>
           <div class="text-[12px] text-[#6B7A99] mt-1 leading-snug">
-            Cero retenciones. CoDi y SPEI caen directo a tu CLABE; los dólares van directo a tu wallet de autocustodia.
+            Cero retenciones. CoDi y SPEI caen directo a tu CLABE; cripto a tu wallet de autocustodia.
           </div>
         </div>
       </div>
 
       <div class="bg-white p-5 rounded-2xl border border-[#E8E0CC] shadow-xs flex items-start gap-3.5">
-        <div class="w-11 h-11 rounded-xl bg-[#E8EEF9] text-[#002B7F] flex items-center justify-center font-bold text-xl shrink-0">
-          🏛️
+        <div class="w-10 h-10 rounded-xl bg-[#FEF3C7] text-[#D97706] flex items-center justify-center font-bold text-lg shrink-0">
+          💳
         </div>
         <div>
-          <div class="font-bold text-[15px] text-[#121A2E]">Rieles Oficiales y Seguros</div>
+          <div class="font-bold text-[14px] text-[#121A2E]">Tarjetas & MSI sin renta</div>
           <div class="text-[12px] text-[#6B7A99] mt-1 leading-snug">
-            Respaldado por el sistema CoDi® del Banco de México vía Pey y riel abierto Solana Pay de alta velocidad.
+            Cobra con tarjeta o difiere a 3, 6, 9 y 12 meses con PayPal sin comprar aparatitos físicos.
           </div>
         </div>
       </div>
 
       <div class="bg-white p-5 rounded-2xl border border-[#E8E0CC] shadow-xs flex items-start gap-3.5">
-        <div class="w-11 h-11 rounded-xl bg-[#FEF3C7] text-[#D97706] flex items-center justify-center font-bold text-xl shrink-0">
+        <div class="w-10 h-10 rounded-xl bg-[#E8EEF9] text-[#002B7F] flex items-center justify-center font-bold text-lg shrink-0">
+          🚚
+        </div>
+        <div>
+          <div class="font-bold text-[14px] text-[#121A2E]">Logística Nacional</div>
+          <div class="text-[12px] text-[#6B7A99] mt-1 leading-snug">
+            Cotización en tiempo real y generación de guías oficiales PDF de FedEx/Estafeta en 1 clic.
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl border border-[#E8E0CC] shadow-xs flex items-start gap-3.5">
+        <div class="w-10 h-10 rounded-xl bg-[#F3E8FF] text-[#7E22CE] flex items-center justify-center font-bold text-lg shrink-0">
           🛡️
         </div>
         <div>
-          <div class="font-bold text-[15px] text-[#121A2E]">Cero Contracargos & Ley</div>
+          <div class="font-bold text-[14px] text-[#121A2E]">SAT & Legalidad</div>
           <div class="text-[12px] text-[#6B7A99] mt-1 leading-snug">
-            Pagos firmados por el cliente en su banco o wallet. Monitoreo integrado de la Ley Antilavado (LFPIORPI).
+            Timbrado CFDI 4.0 al momento y protección automática bajo la Ley Antilavado (LFPIORPI).
           </div>
         </div>
       </div>
@@ -191,17 +218,20 @@
     <!-- Botones de Acción -->
     <div class="mt-9 flex flex-col sm:flex-row items-center justify-center gap-3.5">
       <a href="/caja" class="w-full sm:w-auto h-14 px-8 rounded-2xl btn-navy font-bold text-[16px] flex items-center justify-center gap-2 shadow-md">
-        <span>Comenzar a cobrar en la Caja</span>
+        <span>Comenzar Gratis en la Caja TPV</span>
         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
       </a>
+      <a href="#planes" class="w-full sm:w-auto h-14 px-6 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-[15px] flex items-center justify-center gap-2 transition shadow-sm">
+        <span>Ver Planes: Free vs Ark Pro</span>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+      </a>
       <a href="#rieles" class="w-full sm:w-auto h-14 px-6 rounded-2xl bg-white border border-[#E8E0CC] text-[#121A2E] font-semibold text-[15px] flex items-center justify-center gap-2 hover:bg-gray-50 transition shadow-2xs">
-        <span>Explorar los rieles de cobro</span>
-        <svg class="w-4 h-4 text-[#6B7A99]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        <span>Explorar los Rieles</span>
       </a>
     </div>
 
-    <!-- SECCIÓN INTERACTIVA: DEMO SHOWCASE (Ideal para evaluadores y jurado) -->
-    <div class="mt-12 pt-8 border-t border-[#E8E0CC] text-left max-w-4xl mx-auto">
+    <!-- SECCIÓN INTERACTIVA: DEMO SHOWCASE -->
+    <div class="mt-12 pt-8 border-t border-[#E8E0CC] text-left max-w-5xl mx-auto">
       <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div>
           <span class="text-[11px] font-bold uppercase tracking-[0.16em] text-[#002B7F] bg-[#E8EEF9] px-2.5 py-1 rounded-full">
@@ -209,27 +239,30 @@
           </span>
           <h3 class="text-xl font-bold text-[#121A2E] mt-1.5">Prueba la experiencia real con 2 giros de negocio</h3>
         </div>
-        <span class="text-[12px] text-[#6B7A99]">Compara la Caja del Negocio vs la Tienda del Cliente</span>
+        <span class="text-[12px] text-[#6B7A99]">Compara el Mostrador TPV del Cajero vs la Tienda Online del Cliente</span>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <!-- Tarjeta 1: Taquería El Güero -->
         <div class="bg-white p-5 rounded-2xl border border-[#E8E0CC] shadow-xs flex flex-col justify-between space-y-4">
           <div>
-            <div class="flex items-center gap-2.5">
-              <span class="text-3xl">🌮</span>
-              <div>
-                <h4 class="font-bold text-base text-[#121A2E]">Taquería El Güero</h4>
-                <p class="text-xs text-[#6B7A99]">Alimentos y bebidas • Cobro rápido en mostrador</p>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2.5">
+                <span class="text-3xl">🌮</span>
+                <div>
+                  <h4 class="font-bold text-base text-[#121A2E]">Taquería El Güero</h4>
+                  <p class="text-xs text-[#6B7A99]">Alimentos y bebidas • Cobro rápido en mostrador</p>
+                </div>
               </div>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">Plan Básico Free</span>
             </div>
             <p class="text-xs text-[#6B7A99] mt-3 leading-relaxed">
-              Tacos de pastor, bistec y gringas. Prueba el teclado rápido de mostrador, el corte del día o pide desde el menú con carrito CoDi.
+              Tacos de pastor, bistec y gringas. Prueba el teclado táctil de mostrador, el corte del día o pide desde el menú con carrito CoDi Banxico de 0% comisión.
             </p>
           </div>
           <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
             <a href="/caja?m=01JBAVWE4NS5TGXHWGMX3KH23Q" class="py-2.5 px-3 rounded-xl bg-[#002B7F] text-white text-xs font-bold text-center hover:bg-[#001A4D] transition shadow-2xs">
-              🖥️ Abrir Caja TPV
+              🖥️ Abrir Mostrador TPV
             </a>
             <a href="/tienda?m=taqueria" class="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold text-center transition">
               🛒 Ver Menú Cliente
@@ -240,23 +273,26 @@
         <!-- Tarjeta 2: SkinLab Clothing Club -->
         <div class="bg-white p-5 rounded-2xl border border-[#E8E0CC] shadow-xs flex flex-col justify-between space-y-4">
           <div>
-            <div class="flex items-center gap-2.5">
-              <span class="text-3xl">🌊</span>
-              <div>
-                <h4 class="font-bold text-base text-[#121A2E]">SkinLab Clothing Club</h4>
-                <p class="text-xs text-[#6B7A99]">Moda Urbana & Streetwear • Rieles Multi-moneda</p>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2.5">
+                <span class="text-3xl">🌊</span>
+                <div>
+                  <h4 class="font-bold text-base text-[#121A2E]">SkinLab Clothing Club</h4>
+                  <p class="text-xs text-[#6B7A99]">Moda Urbana & Streetwear • Envíos & Meses Sin Intereses</p>
+                </div>
               </div>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">Ark Pro E-commerce</span>
             </div>
             <p class="text-xs text-[#6B7A99] mt-3 leading-relaxed">
-              Playeras oversize con selector de tallas (S/M/L). Admite cobros en Dólares Digitales (USDC/USDT) y transferencias SPEI para mayoreo.
+              Prendas de alta gama con selector de tallas. Prueba la cotización en vivo de <strong>FedEx/Estafeta</strong> con tu código postal, cobro con <strong>PayPal MSI (3, 6, 9 y 12 meses)</strong> o Dólares Digitales.
             </p>
           </div>
           <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
             <a href="/caja?m=01JBAVSKINLAB0000000000000" class="py-2.5 px-3 rounded-xl bg-[#002B7F] text-white text-xs font-bold text-center hover:bg-[#001A4D] transition shadow-2xs">
-              🖥️ Abrir Caja TPV
+              🖥️ Abrir TPV + Guías
             </a>
             <a href="/tienda?m=skinlab" class="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold text-center transition">
-              🛒 Ver Tienda Cliente
+              🛒 Tienda con Envíos & MSI
             </a>
           </div>
         </div>
@@ -265,10 +301,10 @@
   </section>
 
   <!-- ========================================================= -->
-  <!-- SECCIÓN: LOS 3 RIELES DE PAGO SOBERANO (MULTI-RAIL) -->
+  <!-- SECCIÓN: LOS 4 RIELES DE PAGO SOBERANO (MULTI-RAIL) -->
   <!-- ========================================================= -->
   <section id="rieles" class="bg-white border-y border-[#E8E0CC] py-14">
-    <div class="max-w-5xl mx-auto px-4">
+    <div class="max-w-6xl mx-auto px-4">
       <div class="text-center mb-12">
         <span class="text-[11px] font-bold uppercase tracking-[0.18em] text-[#002B7F] bg-[#E8EEF9] px-3 py-1 rounded-full">
           Arquitectura Multi-Riel
@@ -277,74 +313,106 @@
           Cobra cualquier monto, en cualquier moneda, sin perder una sola venta
         </h2>
         <p class="text-[15px] text-[#6B7A99] mt-2 max-w-2xl mx-auto">
-          Un solo sistema en tu mostrador capaz de recibir pagos chicos, ventas de mayoreo y cobros a turistas internacionales.
+          Un solo sistema en tu negocio capaz de recibir pagos chicos al 0% de comisión, ventas grandes de mayoreo, tarjetas de crédito con Meses Sin Intereses y cobros a turistas internacionales.
         </p>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <!-- Riel 1: CoDi -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <!-- Riel 1: CoDi Banxico -->
         <div class="bg-[#FAFBFD] p-6 rounded-3xl border border-[#E8E0CC] shadow-xs flex flex-col justify-between hover:border-[#002B7F] transition">
           <div>
-            <div class="w-12 h-12 rounded-2xl bg-[#E8EEF9] text-[#002B7F] flex items-center justify-center font-bold text-2xl mb-4">
+            <div class="w-12 h-12 rounded-2xl bg-[#DCFCE7] text-[#16A34A] flex items-center justify-center font-bold text-2xl mb-4">
               🇲🇽
             </div>
-            <div class="inline-block text-[11px] font-bold uppercase tracking-wider text-[#002B7F] bg-blue-50 px-2 py-0.5 rounded-md mb-2">
-              Cobro Diario • Hasta $8,000 MXN
+            <div class="inline-block text-[11px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md mb-2">
+              Mostrador • 0% Comisión
             </div>
-            <h3 class="text-xl font-bold text-[#121A2E]">CoDi® Banco de México</h3>
+            <h3 class="text-xl font-bold text-[#121A2E]">CoDi® Banxico</h3>
             <p class="text-xs text-[#6B7A99] mt-2 leading-relaxed">
-              El riel por excelencia para el mostrador mexicano. Genera un QR dinámico oficial de Banxico con el <strong>monto exacto bloqueado</strong>. Tu cliente escanea con la app de su banco (BBVA, Banorte, Nu, Azteca, etc.) y en 2 segundos el dinero está en tu cuenta.
+              QR dinámico oficial con <strong>monto exacto bloqueado</strong> hasta $8,000 MXN. Tu cliente escanea desde su app bancaria (BBVA, Banorte, Nu, Azteca, etc.) y en 2 segundos el dinero cae a tu CLABE.
             </p>
             <ul class="mt-4 space-y-1.5 text-xs text-[#121A2E] font-medium">
               <li class="flex items-center gap-1.5">
-                <span class="text-emerald-600 font-bold">✓</span> Confirmación bancaria en 2 segundos
+                <span class="text-emerald-600 font-bold">✓</span> Acreditación en 2 segundos
               </li>
               <li class="flex items-center gap-1.5">
-                <span class="text-emerald-600 font-bold">✓</span> Cero riesgo de billetes falsos
+                <span class="text-emerald-600 font-bold">✓</span> 0% comisión de plataforma
               </li>
               <li class="flex items-center gap-1.5">
-                <span class="text-emerald-600 font-bold">✓</span> Imposible que te hagan contracargo
+                <span class="text-emerald-600 font-bold">✓</span> Cero riesgo de contracargo
               </li>
             </ul>
           </div>
           <div class="mt-6 pt-4 border-t border-slate-200 text-[11px] text-[#6B7A99] flex items-center justify-between">
             <span>Operado con Pey</span>
-            <span class="font-bold text-[#002B7F]">Cero renta mensual</span>
+            <span class="font-bold text-[#16A34A]">Gratis en Free</span>
           </div>
         </div>
 
-        <!-- Riel 2: Fallback SPEI -->
-        <div class="bg-[#FAFBFD] p-6 rounded-3xl border border-[#E8E0CC] shadow-xs flex flex-col justify-between hover:border-[#002B7F] transition">
+        <!-- Riel 2: Tarjetas & MSI (PayPal REST v2) -->
+        <div class="bg-[#FAFBFD] p-6 rounded-3xl border border-amber-300 shadow-xs flex flex-col justify-between hover:border-amber-500 transition relative overflow-hidden">
+          <div class="absolute -top-3 -right-3 w-16 h-16 bg-amber-400/20 rounded-full blur-xl"></div>
           <div>
             <div class="w-12 h-12 rounded-2xl bg-[#FEF3C7] text-[#D97706] flex items-center justify-center font-bold text-2xl mb-4">
-              ⚡
+              💳
             </div>
-            <div class="inline-block text-[11px] font-bold uppercase tracking-wider text-[#D97706] bg-amber-50 px-2 py-0.5 rounded-md mb-2">
-              Mayoreo • Montos Altos (> $8,000)
+            <div class="inline-block text-[11px] font-bold uppercase tracking-wider text-amber-900 bg-amber-100 px-2 py-0.5 rounded-md mb-2">
+              Crédito & Débito • Meses Sin Intereses
             </div>
-            <h3 class="text-xl font-bold text-[#121A2E]">Fallback SPEI Inteligente</h3>
+            <h3 class="text-xl font-bold text-[#121A2E]">Tarjetas & MSI (PayPal)</h3>
             <p class="text-xs text-[#6B7A99] mt-2 leading-relaxed">
-              Si tu cliente te compra un lote, un pedido grande o un servicio de más de $8,000 MXN, la caja <strong>no rechaza la venta</strong>: cambia en automático a pantalla SPEI con tu CLABE de 18 dígitos, banco y folio para que te transfiera de inmediato.
+              Mucha gente en México no completa su compra por falta de crédito. Cobra con Visa, Mastercard, AMEX o difiere a <strong>3, 6, 9 y 12 meses sin intereses</strong> sin comprar ni alquilar una terminal física.
             </p>
             <ul class="mt-4 space-y-1.5 text-xs text-[#121A2E] font-medium">
               <li class="flex items-center gap-1.5">
-                <span class="text-emerald-600 font-bold">✓</span> Copiado en un toque de CLABE y banco
+                <span class="text-amber-600 font-bold">✓</span> Meses Sin Intereses (3, 6, 9, 12 MSI)
               </li>
               <li class="flex items-center gap-1.5">
-                <span class="text-emerald-600 font-bold">✓</span> Botón para enviar comprobante por WhatsApp
+                <span class="text-amber-600 font-bold">✓</span> Tarjetas de crédito y débito
               </li>
               <li class="flex items-center gap-1.5">
-                <span class="text-emerald-600 font-bold">✓</span> Conciliación manual segura en tu caja
+                <span class="text-amber-600 font-bold">✓</span> Directo en web y tienda online
               </li>
             </ul>
           </div>
           <div class="mt-6 pt-4 border-t border-slate-200 text-[11px] text-[#6B7A99] flex items-center justify-between">
-            <span>Sin dividir en varios QR</span>
-            <span class="font-bold text-[#D97706]">Montos ilimitados</span>
+            <span>PayPal REST v2</span>
+            <span class="font-bold text-amber-700">Ark Pro</span>
           </div>
         </div>
 
-        <!-- Riel 3: Dólares Digitales -->
+        <!-- Riel 3: Fallback SPEI -->
+        <div class="bg-[#FAFBFD] p-6 rounded-3xl border border-[#E8E0CC] shadow-xs flex flex-col justify-between hover:border-[#002B7F] transition">
+          <div>
+            <div class="w-12 h-12 rounded-2xl bg-[#E8EEF9] text-[#002B7F] flex items-center justify-center font-bold text-2xl mb-4">
+              ⚡
+            </div>
+            <div class="inline-block text-[11px] font-bold uppercase tracking-wider text-[#002B7F] bg-blue-50 px-2 py-0.5 rounded-md mb-2">
+              Mayoreo • Montos Altos (> $8,000)
+            </div>
+            <h3 class="text-xl font-bold text-[#121A2E]">Fallback SPEI Directo</h3>
+            <p class="text-xs text-[#6B7A99] mt-2 leading-relaxed">
+              Si tu cliente te compra un lote o pedido superior a $8,000 MXN, la caja <strong>no rechaza la venta</strong>: muestra tu CLABE interbancaria de 18 dígitos, banco y folio para transferencia instantánea.
+            </p>
+            <ul class="mt-4 space-y-1.5 text-xs text-[#121A2E] font-medium">
+              <li class="flex items-center gap-1.5">
+                <span class="text-emerald-600 font-bold">✓</span> Copiado en 1 toque de CLABE y banco
+              </li>
+              <li class="flex items-center gap-1.5">
+                <span class="text-emerald-600 font-bold">✓</span> Comprobante directo por WhatsApp
+              </li>
+              <li class="flex items-center gap-1.5">
+                <span class="text-emerald-600 font-bold">✓</span> Conciliación manual en mostrador
+              </li>
+            </ul>
+          </div>
+          <div class="mt-6 pt-4 border-t border-slate-200 text-[11px] text-[#6B7A99] flex items-center justify-between">
+            <span>Montos ilimitados</span>
+            <span class="font-bold text-[#002B7F]">Gratis en Free</span>
+          </div>
+        </div>
+
+        <!-- Riel 4: Dólares Digitales -->
         <div class="bg-[#FAFBFD] p-6 rounded-3xl border border-[#E8E0CC] shadow-xs flex flex-col justify-between hover:border-[#002B7F] transition">
           <div>
             <div class="w-12 h-12 rounded-2xl bg-[#DCFCE7] text-[#16A34A] flex items-center justify-center font-bold text-2xl mb-4">
@@ -353,25 +421,25 @@
             <div class="inline-block text-[11px] font-bold uppercase tracking-wider text-[#16A34A] bg-emerald-50 px-2 py-0.5 rounded-md mb-2">
               Turismo & Dólares • Solana Pay
             </div>
-            <h3 class="text-xl font-bold text-[#121A2E]">Dólares Digitales (USDC/USDT)</h3>
+            <h3 class="text-xl font-bold text-[#121A2E]">Dólares Digitales (USDC)</h3>
             <p class="text-xs text-[#6B7A99] mt-2 leading-relaxed">
-              Atiende a turistas en Mérida, nómadas digitales o clientes que prefieren dólar. Cobra wallet a wallet mediante Solana Pay en 1 segundo con comisiones de centavos. <strong>100% no-custodial:</strong> el dinero va directo a tu Phantom o Solflare.
+              Atiende a turistas y clientes extranjeros en Mérida o Riviera Maya. Cobra wallet a wallet mediante Solana Pay en 1 segundo con comisiones de centavos. <strong>Autocustodia total:</strong> directo a tu wallet Phantom o Solflare.
             </p>
             <ul class="mt-4 space-y-1.5 text-xs text-[#121A2E] font-medium">
               <li class="flex items-center gap-1.5">
-                <span class="text-emerald-600 font-bold">✓</span> Sin comisiones cambiarias de bancos
+                <span class="text-emerald-600 font-bold">✓</span> Sin comisiones cambiarias abusivas
               </li>
               <li class="flex items-center gap-1.5">
-                <span class="text-emerald-600 font-bold">✓</span> Tu negocio custodia sus propias llaves
+                <span class="text-emerald-600 font-bold">✓</span> Tu negocio custodia sus llaves
               </li>
               <li class="flex items-center gap-1.5">
-                <span class="text-emerald-600 font-bold">✓</span> Mints oficiales USDC y USDT en Solana
+                <span class="text-emerald-600 font-bold">✓</span> Mints oficiales USDC y USDT
               </li>
             </ul>
           </div>
           <div class="mt-6 pt-4 border-t border-slate-200 text-[11px] text-[#6B7A99] flex items-center justify-between">
             <span>Sub-segundo en cadena</span>
-            <span class="font-bold text-[#16A34A]">Autocustodia real</span>
+            <span class="font-bold text-[#16A34A]">Gratis en Free</span>
           </div>
         </div>
       </div>
@@ -379,9 +447,261 @@
   </section>
 
   <!-- ========================================================= -->
-  <!-- SECCIÓN: FISCALIDAD, FACTURACIÓN SAT CFDI 4.0 E IA -->
+  <!-- SECCIÓN: FOTOS IA, LOGÍSTICA & E-COMMERCE NACIONAL -->
   <!-- ========================================================= -->
-  <section class="max-w-5xl mx-auto px-4 py-14">
+  <section id="servicios" class="max-w-6xl mx-auto px-4 py-14">
+    <div class="text-center mb-12">
+      <span class="text-[11px] font-bold uppercase tracking-[0.18em] text-[#002B7F] bg-[#E8EEF9] px-3 py-1 rounded-full">
+        Servicios Avanzados E-Commerce
+      </span>
+      <h2 class="text-2xl sm:text-4xl font-extrabold text-[#121A2E] mt-3">
+        Del mostrador físico a vender a todo México en minutos
+      </h2>
+      <p class="text-[15px] text-[#6B7A99] mt-2 max-w-2xl mx-auto">
+        Automatizamos la fotografía de catálogo con Inteligencia Artificial y la logística nacional multicarrier para que solo te preocupes por despachar.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <!-- Módulo A: Estudio Fotográfico con IA -->
+      <div class="bg-white p-7 rounded-3xl border border-[#E8E0CC] shadow-xs flex flex-col justify-between relative overflow-hidden">
+        <div>
+          <div class="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-2xl mb-4">
+            ✨
+          </div>
+          <div class="inline-block text-[11px] font-bold uppercase tracking-wider text-purple-800 bg-purple-50 px-2.5 py-1 rounded-md mb-2">
+            Cloudflare Workers AI • Flux.1 Schnell
+          </div>
+          <h3 class="text-2xl font-bold text-[#121A2E]">Estudio Fotográfico con IA para Catálogos</h3>
+          <p class="text-sm text-[#6B7A99] mt-2.5 leading-relaxed">
+            Se acabó la excusa de no tener fotos bonitas. Escribe la descripción de tu producto en texto simple y nuestra Inteligencia Artificial en el Edge genera renders comerciales fotorealistas en alta resolución en menos de 10 segundos.
+          </p>
+          <div class="mt-5 space-y-2.5 text-xs text-[#121A2E]">
+            <div class="flex items-start gap-2">
+              <span class="text-purple-600 font-bold text-sm">✓</span>
+              <span><strong>Ahorro total de producción:</strong> Crea un catálogo de 20 productos sin contratar fotógrafo profesional ni estudio.</span>
+            </div>
+            <div class="flex items-start gap-2">
+              <span class="text-purple-600 font-bold text-sm">✓</span>
+              <span><strong>Optimizado en Cloudflare R2:</strong> Compresión automática a formato WebP ultraligero que carga en milisegundos en cualquier teléfono celular.</span>
+            </div>
+            <div class="flex items-start gap-2">
+              <span class="text-purple-600 font-bold text-sm">✓</span>
+              <span><strong>Idempotencia y control:</strong> Deduplicación por hash SHA-256 para no gastar recursos repitiendo la misma toma.</span>
+            </div>
+          </div>
+        </div>
+        <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
+          <span class="text-[#6B7A99]">Incluye 50 fotos/mes en Ark Pro</span>
+          <span class="font-bold text-purple-700">Calidad Comercial 8K</span>
+        </div>
+      </div>
+
+      <!-- Módulo B: Logística y Envíos Nacionales con Envia.com -->
+      <div class="bg-white p-7 rounded-3xl border border-[#E8E0CC] shadow-xs flex flex-col justify-between relative overflow-hidden">
+        <div>
+          <div class="w-12 h-12 rounded-2xl bg-blue-100 text-[#002B7F] flex items-center justify-center font-bold text-2xl mb-4">
+            🚚
+          </div>
+          <div class="inline-block text-[11px] font-bold uppercase tracking-wider text-[#002B7F] bg-blue-50 px-2.5 py-1 rounded-md mb-2">
+            Logística Multicarrier • Envia.com
+          </div>
+          <h3 class="text-2xl font-bold text-[#121A2E]">Envíos a todo México con FedEx & Estafeta</h3>
+          <p class="text-sm text-[#6B7A99] mt-2.5 leading-relaxed">
+            Convierte tu mostrador local en un centro de distribución nacional. Tus clientes cotizan paqueterías en tiempo real con su código postal y tú imprimes la guía oficial en PDF en 1 solo clic desde tu caja registradora.
+          </p>
+          <div class="mt-5 space-y-2.5 text-xs text-[#121A2E]">
+            <div class="flex items-start gap-2">
+              <span class="text-blue-600 font-bold text-sm">✓</span>
+              <span><strong>Cotizador en vivo en la tienda:</strong> El cliente ingresa su C.P. y elige entre FedEx, Estafeta o Redpack con tarifa y días estimados transparentes.</span>
+            </div>
+            <div class="flex items-start gap-2">
+              <span class="text-blue-600 font-bold text-sm">✓</span>
+              <span><strong>Generación de Guías Oficiales PDF:</strong> Desde el botón "📦 Envíos" de tu caja registradora generas la etiqueta oficial lista para pegar en el paquete.</span>
+            </div>
+            <div class="flex items-start gap-2">
+              <span class="text-blue-600 font-bold text-sm">✓</span>
+              <span><strong>Rastreo transparente:</strong> El cliente recibe su número de guía y link de seguimiento en vivo directo por WhatsApp o pantalla de confirmación.</span>
+            </div>
+          </div>
+        </div>
+        <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
+          <span class="text-[#6B7A99]">Integrado en Checkout & TPV</span>
+          <span class="font-bold text-[#002B7F]">FedEx · Estafeta · Redpack</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <!-- SECCIÓN: ARQUITECTURA FREEMIUM & PLANES DE PRECIOS -->
+  <!-- ========================================================= -->
+  <section id="planes" class="bg-gradient-to-b from-[#FAFBFD] to-white border-y border-[#E8E0CC] py-16">
+    <div class="max-w-6xl mx-auto px-4">
+      <div class="text-center mb-12">
+        <span class="text-[11px] font-bold uppercase tracking-[0.2em] text-[#002B7F] bg-[#E8EEF9] px-3.5 py-1.5 rounded-full shadow-2xs">
+          Modelo Freemium Transparente
+        </span>
+        <h2 class="text-3xl sm:text-5xl font-extrabold text-[#121A2E] mt-3">
+          Planes diseñados para que tu negocio crezca
+        </h2>
+        <p class="text-base sm:text-lg text-[#6B7A99] mt-3 max-w-2xl mx-auto">
+          El riel CoDi Banxico y la caja de mostrador son <strong class="text-[#121A2E]">100% gratuitos para siempre</strong> al 0% de comisión. Pásate a Ark Pro cuando quieras abrir tu tienda online, generar fotos con IA y hacer envíos a todo México.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto items-stretch">
+        <!-- PLAN 1: BÁSICO FREE -->
+        <div class="bg-white rounded-3xl p-8 border border-[#E8E0CC] shadow-xs flex flex-col justify-between relative hover:border-slate-300 transition">
+          <div>
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Para Mostrador Local</span>
+                <h3 class="text-2xl font-bold text-[#121A2E] mt-0.5">Básico Free</h3>
+              </div>
+              <span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700">0% Comisión</span>
+            </div>
+
+            <div class="mt-6 flex items-baseline gap-1">
+              <span class="text-4xl sm:text-5xl font-black text-[#121A2E] font-orbitron">$0</span>
+              <span class="text-sm font-semibold text-[#6B7A99]">MXN / para siempre</span>
+            </div>
+            <p class="text-xs text-[#6B7A99] mt-2">
+              Todo lo que necesitas para operar tu caja registradora física en mostrador sin pagar rentas ni comisiones abusivas.
+            </p>
+
+            <div class="mt-8 space-y-3.5 text-xs text-[#121A2E]">
+              <div class="font-bold text-[13px] text-slate-800 pb-1 border-b border-slate-100">Incluye:</div>
+              <div class="flex items-center gap-2.5">
+                <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs shrink-0">✓</span>
+                <span><strong>Caja Registradora TPV ilimitada</strong> (Mostrador táctil para PC, tablet o celular)</span>
+              </div>
+              <div class="flex items-center gap-2.5">
+                <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs shrink-0">✓</span>
+                <span><strong>CoDi® Banxico 100% GRATIS</strong> (0% comisión en cobros de hasta $8,000 MXN)</span>
+              </div>
+              <div class="flex items-center gap-2.5">
+                <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs shrink-0">✓</span>
+                <span><strong>Fallback SPEI automático</strong> para ventas grandes de mayoreo</span>
+              </div>
+              <div class="flex items-center gap-2.5">
+                <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs shrink-0">✓</span>
+                <span><strong>Dólares Digitales</strong> (Solana Pay USDC/USDT con autocustodia)</span>
+              </div>
+              <div class="flex items-center gap-2.5">
+                <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs shrink-0">✓</span>
+                <span><strong>Corte y arqueo de caja diario</strong> con desglose de IVA/IEPS</span>
+              </div>
+              <div class="flex items-center gap-2.5">
+                <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs shrink-0">✓</span>
+                <span><strong>Facturación CFDI 4.0 SAT</strong> (Público en General)</span>
+              </div>
+              <div class="flex items-center gap-2.5">
+                <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs shrink-0">✓</span>
+                <span><strong>2 fotos de prueba con IA</strong> para conocer la herramienta</span>
+              </div>
+              
+              <!-- Límites transparentes -->
+              <div class="pt-2 space-y-2 text-slate-400">
+                <div class="flex items-center gap-2.5 line-through">
+                  <span class="w-5 h-5 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center font-bold text-xs shrink-0">✕</span>
+                  <span>Tienda e-commerce pública para clientes</span>
+                </div>
+                <div class="flex items-center gap-2.5 line-through">
+                  <span class="w-5 h-5 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center font-bold text-xs shrink-0">✕</span>
+                  <span>Cotizador y guías de envío FedEx/Estafeta</span>
+                </div>
+                <div class="flex items-center gap-2.5 line-through">
+                  <span class="w-5 h-5 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center font-bold text-xs shrink-0">✕</span>
+                  <span>Cobro con Tarjetas y Meses Sin Intereses (PayPal)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-8 pt-6 border-t border-slate-100">
+            <a href="/caja" class="w-full py-3.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm flex items-center justify-center gap-2 transition">
+              <span>Empezar Gratis en la Caja</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <!-- PLAN 2: ARK PRO -->
+        <div class="pro-gradient text-white rounded-3xl p-8 border-2 border-[#D4AF37] shadow-xl flex flex-col justify-between relative overflow-hidden">
+          <div class="absolute top-0 right-0 gold-gradient text-slate-900 text-[10px] font-black uppercase tracking-wider py-1 px-4 rounded-bl-xl shadow-xs">
+            ⭐ Recomendado para E-commerce
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-xs font-bold uppercase tracking-wider text-amber-300">Para Crecer y Vender Online</span>
+                <h3 class="text-2xl font-bold text-white mt-0.5">Ark Pro</h3>
+              </div>
+            </div>
+
+            <div class="mt-6 flex items-baseline gap-1">
+              <span class="text-4xl sm:text-5xl font-black text-white font-orbitron">$299</span>
+              <span class="text-sm font-semibold text-white/70">MXN / mes</span>
+            </div>
+            <p class="text-xs text-white/80 mt-2">
+              Todo el poder de la caja más tu tienda online completa con tarjetas, Meses Sin Intereses, fotos con IA y paqueterías nacionales.
+            </p>
+
+            <div class="mt-8 space-y-3.5 text-xs text-white">
+              <div class="font-bold text-[13px] text-amber-300 pb-1 border-b border-white/10">
+                Todo lo de Free, más beneficios exclusivos:
+              </div>
+              <div class="flex items-center gap-2.5">
+                <span class="w-5 h-5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center font-bold text-xs shrink-0">★</span>
+                <span><strong>Tienda Online Propia</strong> (<code class="bg-white/15 px-1 py-0.5 rounded text-amber-300">/tienda?m=tu-negocio</code>) para tus clientes</span>
+              </div>
+              <div class="flex items-center gap-2.5">
+                <span class="w-5 h-5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center font-bold text-xs shrink-0">★</span>
+                <span><strong>Tarjetas & Meses Sin Intereses (PayPal REST v2)</strong>: 3, 6, 9 y 12 MSI sin comprar terminal física</span>
+              </div>
+              <div class="flex items-center gap-2.5">
+                <span class="w-5 h-5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center font-bold text-xs shrink-0">★</span>
+                <span><strong>Logística Multicarrier Nacional (Envia.com)</strong>: Cotizador en vivo y emisión de guías FedEx/Estafeta en 1 clic</span>
+              </div>
+              <div class="flex items-center gap-2.5">
+                <span class="w-5 h-5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center font-bold text-xs shrink-0">★</span>
+                <span><strong>Estudio Fotográfico con IA</strong>: 50 fotos comerciales en alta resolución al mes (Flux.1 Schnell en Edge)</span>
+              </div>
+              <div class="flex items-center gap-2.5">
+                <span class="w-5 h-5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center font-bold text-xs shrink-0">★</span>
+                <span><strong>Gestor de Envíos en Mostrador</strong>: Monitoreo de paquetes enviados y links de tracking por WhatsApp</span>
+              </div>
+              <div class="flex items-center gap-2.5">
+                <span class="w-5 h-5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center font-bold text-xs shrink-0">★</span>
+                <span><strong>Facturación SAT CFDI 4.0 Personalizada</strong>: Timbrado a clientes con RFC individual</span>
+              </div>
+              <div class="flex items-center gap-2.5">
+                <span class="w-5 h-5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center font-bold text-xs shrink-0">★</span>
+                <span><strong>Soporte Prioritario VIP</strong> directo por WhatsApp para tu equipo</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-8 pt-6 border-t border-white/10">
+            <a href="/caja?plan=pro" class="w-full py-3.5 px-4 rounded-xl gold-gradient hover:opacity-95 text-slate-950 font-extrabold text-sm flex items-center justify-center gap-2 transition shadow-md">
+              <span>Comenzar con Ark Pro</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </a>
+            <div class="text-center text-[11px] text-white/60 mt-2">
+              Prueba de 14 días sin compromiso · Cancela cuando quieras
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <!-- SECCIÓN: FISCALIDAD SAT CFDI 4.0 & COMPLIANCE LFPIORPI -->
+  <!-- ========================================================= -->
+  <section class="max-w-6xl mx-auto px-4 py-14">
     <div class="text-center mb-12">
       <span class="text-[11px] font-bold uppercase tracking-[0.18em] text-[#002B7F] bg-[#E8EEF9] px-3 py-1 rounded-full">
         Control Fiscal & Asistente IA
@@ -491,14 +811,14 @@
   <!-- SECCIÓN: TIENDA EN LÍNEA, MENÚ DIGITAL & CARRITO -->
   <!-- ========================================================= -->
   <section class="bg-white border-y border-[#E8E0CC] py-14">
-    <div class="max-w-5xl mx-auto px-4">
+    <div class="max-w-6xl mx-auto px-4">
       <div class="flex flex-col md:flex-row items-center gap-10">
         <div class="flex-1 space-y-4 text-left">
           <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E8EEF9] text-[#002B7F] text-xs font-bold">
             <span>🛒 Tu Negocio en Internet</span>
           </div>
           <h2 class="text-2xl sm:text-4xl font-extrabold text-[#121A2E] leading-tight">
-            Menú digital y tienda en línea propia para tus clientes
+            Tienda en línea propia con carrito, variantes y paquetería integrada
           </h2>
           <p class="text-sm sm:text-base text-[#6B7A99] leading-relaxed">
             Cada comercio registrado en Ark Cash Register tiene su propia dirección web (<code class="text-[#002B7F] font-semibold bg-blue-50 px-1 py-0.5 rounded">/tienda?m=TU_NEGOCIO</code>). Tus clientes no tienen que descargar apps pesadas ni crearse cuentas para comprarte.
@@ -510,8 +830,8 @@
                 1
               </div>
               <div>
-                <h4 class="font-bold text-sm text-[#121A2E]">Catálogo dinámico con variantes</h4>
-                <p class="text-xs text-[#6B7A99]">Tallas mexicanas (S/M/L/XL), sabores, complementos e imágenes de alta definición.</p>
+                <h4 class="font-bold text-sm text-[#121A2E]">Catálogo dinámico con variantes y fotos IA</h4>
+                <p class="text-xs text-[#6B7A99]">Tallas mexicanas (S/M/L/XL), sabores, complementos e imágenes de alta definición generadas en segundos.</p>
               </div>
             </div>
 
@@ -520,8 +840,8 @@
                 2
               </div>
               <div>
-                <h4 class="font-bold text-sm text-[#121A2E]">Checkout Dual: CoDi o WhatsApp</h4>
-                <p class="text-xs text-[#6B7A99]">El cliente puede pagar directo con QR CoDi en la pantalla o mandar su pedido ordenado por WhatsApp.</p>
+                <h4 class="font-bold text-sm text-[#121A2E]">Checkout Multi-Riel: CoDi, Tarjetas MSI o WhatsApp</h4>
+                <p class="text-xs text-[#6B7A99]">El cliente puede pagar directo con QR CoDi Banxico, diferir a Meses Sin Intereses con PayPal o mandar su pedido ordenado por WhatsApp.</p>
               </div>
             </div>
 
@@ -530,8 +850,8 @@
                 3
               </div>
               <div>
-                <h4 class="font-bold text-sm text-[#121A2E]">Cobro a Distancia para Envíos</h4>
-                <p class="text-xs text-[#6B7A99]">Manda un link de cobro a clientes que te piden por redes sociales o llamada telefónica.</p>
+                <h4 class="font-bold text-sm text-[#121A2E]">Selector de Entrega: Mostrador o Envío Nacional</h4>
+                <p class="text-xs text-[#6B7A99]">El comprador elige si recoge gratis en el local o si cotiza paquetería FedEx/Estafeta directo con su Código Postal.</p>
               </div>
             </div>
           </div>
@@ -559,31 +879,37 @@
           <div class="mt-5 space-y-3">
             <div class="p-3 bg-white/10 rounded-xl backdrop-blur-sm border border-white/10 flex items-center justify-between">
               <div class="flex items-center gap-3">
-                <span class="text-2xl">🌮</span>
+                <span class="text-2xl">👕</span>
                 <div>
-                  <div class="text-xs font-bold">Orden de 3 Tacos al Pastor</div>
-                  <div class="text-[10px] text-white/70">Con todo: piña, cilantro y cebolla</div>
+                  <div class="text-xs font-bold">Heavyweight Oversize Tee</div>
+                  <div class="text-[10px] text-white/70">Talla M • Algodón 280g • Negro</div>
                 </div>
               </div>
-              <div class="font-orbitron font-bold text-sm text-emerald-400">$66.00</div>
+              <div class="font-orbitron font-bold text-sm text-emerald-400">$649.00</div>
             </div>
 
             <div class="p-3 bg-white/10 rounded-xl backdrop-blur-sm border border-white/10 flex items-center justify-between">
               <div class="flex items-center gap-3">
-                <span class="text-2xl">🥤</span>
+                <span class="text-2xl">📦</span>
                 <div>
-                  <div class="text-xs font-bold">Coca-Cola Vidrio 355ml</div>
-                  <div class="text-[10px] text-white/70">Fría con limón</div>
+                  <div class="text-xs font-bold">Envío Nacional Express (FedEx)</div>
+                  <div class="text-[10px] text-white/70">C.P. 97000 · Entrega estimada 2-3 días</div>
                 </div>
               </div>
-              <div class="font-orbitron font-bold text-sm text-emerald-400">$28.00</div>
+              <div class="font-orbitron font-bold text-sm text-emerald-400">$138.00</div>
             </div>
 
             <div class="mt-4 p-4 rounded-xl bg-white text-slate-900 shadow-lg text-center">
-              <div class="text-[11px] font-bold text-[#6B7A99] uppercase">Total del Carrito</div>
-              <div class="font-orbitron font-extrabold text-2xl text-[#002B7F]">$94.00 MXN</div>
-              <div class="mt-2 flex items-center justify-center gap-1.5 text-[11px] text-emerald-700 font-bold bg-emerald-50 py-1 rounded-lg">
-                <span>🔒 QR CoDi Oficial Banxico Generado</span>
+              <div class="text-[11px] font-bold text-[#6B7A99] uppercase">Total de la Orden</div>
+              <div class="font-orbitron font-extrabold text-2xl text-[#002B7F]">$787.00 MXN</div>
+              
+              <div class="mt-3 grid grid-cols-2 gap-2 text-[10px] font-bold">
+                <div class="py-1.5 px-2 bg-emerald-50 text-emerald-700 rounded-lg flex items-center justify-center gap-1">
+                  <span>🔒 CoDi 0%</span>
+                </div>
+                <div class="py-1.5 px-2 bg-amber-50 text-amber-800 rounded-lg flex items-center justify-center gap-1">
+                  <span>💳 3 MSI ($262/m)</span>
+                </div>
               </div>
             </div>
           </div>
@@ -593,14 +919,14 @@
   </section>
 
   <!-- ========================================================= -->
-  <!-- SECCIÓN: INSTRUCTIVO PASO A PASO (EL MOSTRADOR) -->
+  <!-- SECCIÓN: INSTRUCTIVO PASO A PASO (MOSTRADOR & ENVÍOS) -->
   <!-- ========================================================= -->
-  <section id="instructivo" class="max-w-4xl mx-auto px-4 py-14">
+  <section id="instructivo" class="max-w-5xl mx-auto px-4 py-14">
     <div class="text-center mb-10">
       <span class="text-[11px] font-bold uppercase tracking-[0.18em] text-[#002B7F] bg-[#E8EEF9] px-3 py-1 rounded-full">
-        Instructivo de Mostrador
+        Flujo de Operación
       </span>
-      <h2 class="text-3xl font-extrabold text-[#121A2E] mt-3">Cómo cobrar en 4 sencillos pasos</h2>
+      <h2 class="text-3xl font-extrabold text-[#121A2E] mt-3">Cómo cobrar y despachar en 4 sencillos pasos</h2>
       <p class="text-[15px] text-[#6B7A99] mt-2">Diseñado para atender de pie, con la fila llena y sin perder segundos.</p>
     </div>
 
@@ -611,10 +937,10 @@
           1
         </div>
         <div class="flex-1">
-          <div class="text-[11px] font-bold uppercase tracking-wider text-[#D4AF37]">Paso 1 · En la caja</div>
-          <h3 class="text-xl font-bold text-[#121A2E] mt-0.5">Teclea el monto o selecciona del menú</h3>
+          <div class="text-[11px] font-bold uppercase tracking-wider text-[#D4AF37]">Paso 1 · En la caja o tienda</div>
+          <h3 class="text-xl font-bold text-[#121A2E] mt-0.5">Teclea el monto o selecciona del catálogo</h3>
           <p class="text-[14px] text-[#6B7A99] mt-1">
-            Usa el teclado de números grandes (diseñado para verse clarito bajo el sol o con prisa). Por ejemplo, tecleas <strong class="text-[#121A2E] font-orbitron">$150.00</strong> y tocas el botón azul <strong>"Cobrar con CoDi"</strong> (o eliges Dólares Digitales si tu cliente lo solicita).
+            Usa el teclado táctil de números grandes o selecciona productos con fotos generadas por IA. Si es para envío a domicilio, la tienda agrega el costo exacto de FedEx o Estafeta en automático.
           </p>
         </div>
       </div>
@@ -625,10 +951,10 @@
           2
         </div>
         <div class="flex-1">
-          <div class="text-[11px] font-bold uppercase tracking-wider text-[#D4AF37]">Paso 2 · En el mostrador</div>
-          <h3 class="text-xl font-bold text-[#121A2E] mt-0.5">Voltea la pantalla hacia tu cliente</h3>
+          <div class="text-[11px] font-bold uppercase tracking-wider text-[#D4AF37]">Paso 2 · Selección de riel</div>
+          <h3 class="text-xl font-bold text-[#121A2E] mt-0.5">Muestra el QR oficial o activa Meses Sin Intereses</h3>
           <p class="text-[14px] text-[#6B7A99] mt-1">
-            La caja muestra el código QR oficial con el <strong>monto exacto bloqueado</strong> 🔒. El cliente no tiene que escribir la cantidad ni equivocarse de ceros.
+            La caja muestra el código QR CoDi con el <strong>monto exacto bloqueado</strong> 🔒 (o el botón de Tarjetas de Crédito / PayPal con opciones a 3, 6, 9 y 12 Meses Sin Intereses).
           </p>
         </div>
       </div>
@@ -640,9 +966,9 @@
         </div>
         <div class="flex-1">
           <div class="text-[11px] font-bold uppercase tracking-wider text-[#D4AF37]">Paso 3 · El cliente</div>
-          <h3 class="text-xl font-bold text-[#121A2E] mt-0.5">Tu cliente escanea desde su app bancaria o wallet</h3>
+          <h3 class="text-xl font-bold text-[#121A2E] mt-0.5">Tu cliente autoriza desde su banco, tarjeta o wallet</h3>
           <p class="text-[14px] text-[#6B7A99] mt-1">
-            Tu cliente abre su banco (BBVA, Banorte, Santander, Nu, Azteca, Hey Banco, etc.) o su wallet (Phantom/Solflare) y autoriza con su huella o Face ID.
+            Tu cliente escanea desde su app bancaria habitual (BBVA, Banorte, Nu, Azteca) o paga con su tarjeta de crédito preferida mediante el checkout seguro sin salir de tu sitio.
           </p>
         </div>
       </div>
@@ -653,10 +979,10 @@
           4
         </div>
         <div class="flex-1">
-          <div class="text-[11px] font-bold uppercase tracking-wider text-[#16A34A]">Paso 4 · ¡Confirmado y Timbrado!</div>
-          <h3 class="text-xl font-bold text-[#121A2E] mt-0.5">¡Pantalla verde de Pagado al instante!</h3>
+          <div class="text-[11px] font-bold uppercase tracking-wider text-[#16A34A]">Paso 4 · ¡Pago Confirmado, Guía & Factura!</div>
+          <h3 class="text-xl font-bold text-[#121A2E] mt-0.5">¡Pantalla verde, guía de paquetería y timbrado SAT!</h3>
           <p class="text-[14px] text-[#6B7A99] mt-1">
-            En un par de segundos, la caja confirma: <strong>"¡Pagado! $150.00 ✓ Acreditado"</strong>. Puedes emitir la factura CFDI 4.0 con un clic o atender la siguiente venta.
+            En 2 segundos la pantalla confirma el cobro. Si fue una venta con envío nacional, descargas la <strong>guía oficial en PDF de FedEx/Estafeta en 1 clic</strong> y timbras la factura fiscal CFDI 4.0 al instante.
           </p>
         </div>
       </div>
@@ -667,7 +993,7 @@
   <!-- SECCIÓN: PWA INSTALABLE Y OFFLINE FIRST -->
   <!-- ========================================================= -->
   <section class="bg-white border-y border-[#E8E0CC] py-12">
-    <div class="max-w-4xl mx-auto px-4 text-center">
+    <div class="max-w-5xl mx-auto px-4 text-center">
       <div class="w-12 h-12 rounded-2xl bg-[#E8EEF9] text-[#002B7F] flex items-center justify-center mx-auto mb-3 text-2xl">
         📱
       </div>
@@ -681,7 +1007,7 @@
       <div class="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
         <div class="p-5 rounded-2xl bg-[#F8FAFC] border border-[#E8E0CC]">
           <div class="text-2xl mb-2">⚡</div>
-          <div class="font-bold text-[15px] text-[#121A2E]">Instálala como App</div>
+          <div class="font-bold text-[15px] text-[#121A2E]">Instálala como App Nativa</div>
           <div class="text-[13px] text-[#6B7A99] mt-1">
             Agrégala a la pantalla de inicio en Android, iPhone, iPad o laptop. Abre a pantalla completa sin barras de navegador.
           </div>
@@ -709,18 +1035,39 @@
   <!-- ========================================================= -->
   <!-- PREGUNTAS FRECUENTES (FAQ ENRIQUECIDA) -->
   <!-- ========================================================= -->
-  <section class="max-w-4xl mx-auto px-4 py-14">
+  <section id="faq" class="max-w-4xl mx-auto px-4 py-14">
     <div class="text-center mb-10">
       <span class="text-[11px] font-bold uppercase tracking-[0.18em] text-[#6B7A99]">Dudas Comunes</span>
       <h2 class="text-3xl font-extrabold text-[#121A2E] mt-1">Preguntas Frecuentes</h2>
-      <p class="text-[14px] text-[#6B7A99] mt-1">Todo lo que necesitas saber antes de empezar.</p>
+      <p class="text-[14px] text-[#6B7A99] mt-1">Todo lo que necesitas saber sobre rieles, planes, envíos y comisiones.</p>
     </div>
 
     <div class="space-y-4 text-left">
       <div class="bg-white p-5 rounded-2xl border border-[#E8E0CC] shadow-xs">
-        <h3 class="font-bold text-[16px] text-[#121A2E]">¿Tengo que comprar un aparato especial o pagar mensualidad?</h3>
+        <h3 class="font-bold text-[16px] text-[#121A2E]">¿Cómo funciona el cobro con Tarjetas de Crédito y Meses Sin Intereses (MSI)?</h3>
         <p class="text-[14px] text-[#6B7A99] mt-1.5 leading-relaxed">
-          No. Puedes usar cualquier teléfono, tableta o computadora que ya tengas en tu negocio. No pagas renta mensual de aparato, ni contratos forzosos.
+          En México mucha gente no completa su compra sin opciones de crédito. Con el riel de PayPal REST v2 (disponible en el plan Ark Pro), tus clientes pueden pagar con cualquier tarjeta Visa, Mastercard o American Express y diferir su compra a <strong>3, 6, 9 o 12 Meses Sin Intereses</strong>. Todo ocurre en la pantalla de pago sin que tengas que comprar ni rentar una terminal física costosa.
+        </p>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl border border-[#E8E0CC] shadow-xs">
+        <h3 class="font-bold text-[16px] text-[#121A2E]">¿Cómo funcionan los envíos a todo México con FedEx y Estafeta?</h3>
+        <p class="text-[14px] text-[#6B7A99] mt-1.5 leading-relaxed">
+          Integrado a través de Envia.com. Cuando un cliente compra en tu tienda en línea e ingresa su Código Postal, el sistema cotiza las paqueterías disponibles con costos y días de entrega estimados. Al recibir el pago, tú entras al botón <strong>"📦 Envíos"</strong> de tu caja registradora y generas la <strong>guía oficial en PDF con número de rastreo</strong> con un solo clic.
+        </p>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl border border-[#E8E0CC] shadow-xs">
+        <h3 class="font-bold text-[16px] text-[#121A2E]">¿Cómo funciona el generador de imágenes de producto con Inteligencia Artificial?</h3>
+        <p class="text-[14px] text-[#6B7A99] mt-1.5 leading-relaxed">
+          Utilizamos el modelo de última generación <strong>Flux.1 Schnell</strong> ejecutado en los servidores de borde de Cloudflare Workers AI. Solo escribes una breve descripción de tu producto (por ejemplo: <em>"Playera oversize negra de algodón con caída relajada y fondo de concreto minimalista"</em>) y el sistema genera una foto publicitaria de calidad fotográfica en formato WebP optimizado para R2.
+        </p>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl border border-[#E8E0CC] shadow-xs">
+        <h3 class="font-bold text-[16px] text-[#121A2E]">¿El Plan Básico Free es realmente gratis y al 0% de comisión?</h3>
+        <p class="text-[14px] text-[#6B7A99] mt-1.5 leading-relaxed">
+          Sí. El riel CoDi® del Banco de México fue diseñado como un bien público de cero costo para incentivar la digitalización del comercio nacional. Ark Cash Register no cobra comisión de plataforma en el Plan Básico Free, permitiéndote registrar ventas, cobrar con CoDi, hacer arqueo de caja y timbrar comprobantes CFDI 4.0 a Público en General sin costo mensual.
         </p>
       </div>
 
@@ -734,7 +1081,7 @@
       <div class="bg-white p-5 rounded-2xl border border-[#E8E0CC] shadow-xs">
         <h3 class="font-bold text-[16px] text-[#121A2E]">¿Cómo funcionan los Dólares Digitales (USDC/USDT)?</h3>
         <p class="text-[14px] text-[#6B7A99] mt-1.5 leading-relaxed">
-          Es un riel opcional en la red Solana. Genera un QR de Solana Pay con el monto exacto en USDC o USDT. Tu cliente escanea con su wallet (Phantom, Solflare, etc.) y los dólares digitales caen directo a tu wallet personal. Ark <strong>nunca custodia tus llaves privadas</strong>.
+          Es un riel en la red Solana ideal para turistas y cobros internacionales. Genera un QR de Solana Pay con el monto exacto en USDC o USDT. Tu cliente escanea con su wallet (Phantom, Solflare, etc.) y los dólares digitales caen en 1 segundo directo a tu wallet personal. Ark <strong>nunca custodia tus llaves privadas</strong>.
         </p>
       </div>
 
@@ -751,34 +1098,30 @@
           Prácticamente todos los bancos de México: BBVA, Banorte, Santander, Citibanamex, HSBC, Scotiabank, Nu México, Banco Azteca, Hey Banco, Bancoppel, Mercado Pago y más de 30 instituciones reguladas por el Banco de México.
         </p>
       </div>
-
-      <div class="bg-white p-5 rounded-2xl border border-[#E8E0CC] shadow-xs">
-        <h3 class="font-bold text-[16px] text-[#121A2E]">¿Por qué no hay contracargos como en las terminales con tarjeta?</h3>
-        <p class="text-[14px] text-[#6B7A99] mt-1.5 leading-relaxed">
-          Porque en el riel CoDi® del Banco de México, el cliente entra directamente a la app de su propio banco y firma la transferencia con su token, huella o Face ID. Una vez transferido, el pago es definitivo e irreversible para el comercio.
-        </p>
-      </div>
     </div>
   </section>
 
   <!-- ========================================================= -->
   <!-- BANNER FINAL CTA -->
   <!-- ========================================================= -->
-  <section class="max-w-5xl mx-auto px-4 pb-14 text-center">
-    <div class="bg-[#002B7F] rounded-3xl p-8 sm:p-12 text-white shadow-xl relative overflow-hidden">
+  <section class="max-w-6xl mx-auto px-4 pb-14 text-center">
+    <div class="pro-gradient rounded-3xl p-8 sm:p-12 text-white shadow-xl relative overflow-hidden border border-white/10">
       <div class="relative z-10 max-w-2xl mx-auto space-y-4">
         <span class="text-[12px] font-bold uppercase tracking-[0.2em] text-[#D4AF37]">Empieza hoy mismo</span>
-        <h2 class="text-2xl sm:text-4xl font-extrabold tracking-tight">Tu negocio merece cobrar seguro, en cualquier riel y sin fugas de dinero</h2>
+        <h2 class="text-2xl sm:text-4xl font-extrabold tracking-tight">Tu negocio merece cobrar seguro, en cualquier riel y vender a todo México</h2>
         <p class="text-white/80 text-[15px]">
-          Abre la caja registradora en tu pantalla, prueba el mostrador y atiende a tus clientes como las grandes empresas.
+          Abre la caja registradora en tu pantalla, prueba el mostrador y atiende a tus clientes con la tecnología de las grandes plataformas.
         </p>
         <div class="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
           <a href="/caja" class="w-full sm:w-auto h-14 px-8 rounded-2xl bg-white text-[#002B7F] font-bold text-[16px] flex items-center justify-center gap-2 hover:bg-gray-100 shadow-md">
-            <span>Abrir la Caja Registradora</span>
+            <span>Abrir la Caja TPV Gratis</span>
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
           </a>
+          <a href="#planes" class="w-full sm:w-auto h-14 px-6 rounded-2xl gold-gradient hover:opacity-95 text-slate-950 font-bold text-[15px] flex items-center justify-center gap-2 shadow-sm transition">
+            <span>Conocer Plan Ark Pro ($299/m)</span>
+          </a>
           <a href="/tienda" class="w-full sm:w-auto h-14 px-6 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-semibold text-[15px] flex items-center justify-center gap-2 border border-white/20 transition">
-            <span>Ver Tienda de Clientes</span>
+            <span>Ver Tienda Demo</span>
           </a>
         </div>
       </div>
@@ -789,21 +1132,33 @@
   <!-- FOOTER INSTITUCIONAL -->
   <!-- ========================================================= -->
   <footer class="bg-white border-t border-[#E8E0CC] py-8">
-    <div class="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+    <div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
       <div class="flex items-center gap-3 justify-center sm:justify-start">
         <img src="/favicon.svg" alt="Ark" class="w-7 h-7 rounded-lg" />
         <div class="text-[12px] text-[#6B7A99]">
-          <strong class="text-[#121A2E]">Ark Cash Register</strong> · Plataforma Soberana de Cobro & Facturación para México.
+          <strong class="text-[#121A2E]">Ark Cash Register</strong> · Plataforma Soberana de Cobro, Facturación & Logística para México.
         </div>
       </div>
 
-      <div class="flex items-center justify-center gap-2">
-        <span class="text-[11px] text-[#6B7A99]">Infraestructura procesada por</span>
-        <img src="/pey-codi-logo.png" alt="Pey CoDi" class="h-4 w-auto object-contain" />
+      <div class="flex items-center justify-center gap-3 flex-wrap">
+        <div class="flex items-center gap-1.5 text-[11px] text-[#6B7A99]">
+          <span>CoDi procesado por</span>
+          <img src="/pey-codi-logo.png" alt="Pey CoDi" class="h-4 w-auto object-contain" />
+        </div>
+        <span class="text-slate-300">·</span>
+        <div class="flex items-center gap-1.5 text-[11px] text-[#6B7A99]">
+          <span>Envíos por</span>
+          <strong class="text-slate-700">Envia.com</strong>
+        </div>
+        <span class="text-slate-300">·</span>
+        <div class="flex items-center gap-1.5 text-[11px] text-[#6B7A99]">
+          <span>Tarjetas por</span>
+          <strong class="text-slate-700">PayPal REST v2</strong>
+        </div>
       </div>
     </div>
     <div class="text-center text-[11px] text-[#8C9BB5] mt-4">
-      Ark Systems · Substrate Holdings LLC · CoDi® es una marca registrada de Banco de México
+      Ark Systems · Substrate Holdings LLC · CoDi® es una marca registrada de Banco de México · Todos los derechos reservados
     </div>
     <div class="text-center mt-3 flex items-center justify-center gap-4 text-[11px]">
       <a href="/terms.html" class="text-[#8C9BB5] hover:text-[#002B7F] transition-colors">Términos de uso</a>
@@ -813,6 +1168,8 @@
       <a href="/caja" class="text-[#8C9BB5] hover:text-[#002B7F] transition-colors">Mostrador TPV</a>
       <span class="text-[#D4CDB8]">·</span>
       <a href="/tienda" class="text-[#8C9BB5] hover:text-[#002B7F] transition-colors">Tienda Online</a>
+      <span class="text-[#D4CDB8]">·</span>
+      <a href="#planes" class="text-[#8C9BB5] hover:text-[#002B7F] transition-colors">Planes & Precios</a>
     </div>
   </footer>
 
