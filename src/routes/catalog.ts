@@ -63,7 +63,9 @@ catalogRouter.get('/:id/tier', async (c) => {
       paypalMsi: isPro,
       storefront: isPro,
       aiPhotos: isPro || aiPhotoCredits > 0,
-      whatsappCatalog: isPro
+      whatsappCatalog: isPro,
+      shippingRates: isPro,
+      shippingLabels: isPro
     }
   });
 });

@@ -35,6 +35,9 @@ export interface Env {
     PAYPAL_CLIENT_ID?: string;
     PAYPAL_CLIENT_SECRET?: string;
     PAYPAL_ENVIRONMENT?: 'sandbox' | 'live';
+    // Logística y Envíos (Envia.com multicarrier)
+    ENVIA_API_KEY?: string;
+    ENVIA_SANDBOX?: string;
   }
 
 export const CODI_MAX_MXN = 8000;

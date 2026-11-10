@@ -157,11 +157,49 @@
         <!-- Lista de Items -->
         <div id="drawer-items-list" class="divide-y divide-slate-100"></div>
 
+        <!-- Cotizador de Envíos Nacionales Multicarrier (FedEx / Estafeta / Redpack) -->
+        <div id="section-shipping-quote" class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-xs">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-slate-800 flex items-center gap-1.5">
+              <span>🚚 Envío a Domicilio (Todo México)</span>
+            </span>
+            <span class="text-[10px] text-blue-900 bg-blue-100 px-1.5 py-0.5 rounded font-bold">Envia.com</span>
+          </div>
+          
+          <div class="flex gap-2">
+            <input 
+              type="text" 
+              id="input-shipping-cp" 
+              maxlength="5" 
+              inputmode="numeric" 
+              placeholder="Código Postal (ej. 06700)" 
+              class="flex-1 h-9 px-2.5 rounded-lg border border-slate-200 text-xs font-mono font-bold focus:outline-none focus:border-blue-900" 
+            />
+            <button 
+              type="button" 
+              onclick="quoteShippingForCart()" 
+              id="btn-quote-shipping" 
+              class="px-3 h-9 rounded-lg bg-blue-900 hover:bg-blue-950 text-white font-bold text-xs transition flex items-center gap-1"
+            >
+              <span>Cotizar</span>
+            </button>
+          </div>
+
+          <div id="shipping-feedback" class="hidden text-[11px] text-slate-500"></div>
+
+          <!-- Lista de Opciones de Paquetería -->
+          <div id="shipping-options-list" class="space-y-1.5 hidden pt-1"></div>
+        </div>
+
         <!-- Resumen de Costos -->
         <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-200 space-y-1.5 text-xs text-slate-600">
           <div class="flex justify-between">
             <span>Subtotal</span>
             <span id="summary-subtotal" class="font-semibold text-slate-900">$0.00 MXN</span>
+          </div>
+          <div id="summary-shipping-row" class="flex justify-between hidden text-blue-900">
+            <span>Envío (<span id="summary-shipping-carrier">Paquetería</span>)</span>
+            <span id="summary-shipping-cost" class="font-semibold">+$0.00 MXN</span>
           </div>
           <div class="flex justify-between text-emerald-700">
             <span>Comisión CoDi® Banxico (0%)</span>
@@ -713,9 +751,123 @@
       showToast(`¡${label} copiado!`);
     }
 
+    // ==========================================
+    // LOGÍSTICA & ENVÍOS NACIONALES (ENVIA.COM)
+    // ==========================================
+    let selectedShippingRate = null;
+    let shippingQuoteRates = [];
+
+    async function quoteShippingForCart() {
+      const cpInput = document.getElementById('input-shipping-cp');
+      const btn = document.getElementById('btn-quote-shipping');
+      const fb = document.getElementById('shipping-feedback');
+      const list = document.getElementById('shipping-options-list');
+      const cp = cpInput ? cpInput.value.trim() : '';
+
+      if (!cp || cp.length < 5) {
+        if (fb) {
+          fb.textContent = 'Ingresa un código postal válido de 5 dígitos.';
+          fb.className = 'text-[11px] text-rose-600 block';
+        }
+        return;
+      }
+
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="inline-block animate-spin mr-1">⏳</span>...';
+      }
+      if (fb) {
+        fb.textContent = 'Consultando tarifas con paqueterías en tiempo real...';
+        fb.className = 'text-[11px] text-slate-500 block';
+      }
+
+      try {
+        const res = await fetch(`/api/merchant/${encodeURIComponent(currentCatalog.merchantId)}/shipping/quote`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            postalCode: cp,
+            packageWeight: 1.2
+          })
+        });
+
+        if (res.status === 402) {
+          if (fb) {
+            fb.innerHTML = '⚠️ Este comercio no tiene habilitados envíos nacionales automáticos en su plan.';
+            fb.className = 'text-[11px] text-amber-700 block';
+          }
+          return;
+        }
+
+        const data = await res.json();
+        if (res.ok && data.rates && data.rates.length > 0) {
+          shippingQuoteRates = data.rates;
+          if (fb) fb.classList.add('hidden');
+          renderShippingOptions();
+        } else {
+          if (fb) {
+            fb.textContent = 'No se encontraron paqueterías para este C.P.';
+            fb.className = 'text-[11px] text-rose-600 block';
+          }
+        }
+      } catch (err) {
+        if (fb) {
+          fb.textContent = 'Error al conectar con el servidor de envíos.';
+          fb.className = 'text-[11px] text-rose-600 block';
+        }
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<span>Cotizar</span>';
+        }
+      }
+    }
+
+    function renderShippingOptions() {
+      const list = document.getElementById('shipping-options-list');
+      if (!list) return;
+
+      list.innerHTML = shippingQuoteRates.map((rate, idx) => {
+        const isSelected = selectedShippingRate && selectedShippingRate.carrier === rate.carrier && selectedShippingRate.service === rate.service;
+        return `
+          <div 
+            onclick="selectShippingRate(${idx})" 
+            class="p-2.5 rounded-lg border cursor-pointer transition flex items-center justify-between ${
+              isSelected 
+                ? 'bg-blue-50 border-blue-900 shadow-2xs' 
+                : 'bg-white border-slate-200 hover:border-slate-300'
+            }"
+          >
+            <div class="flex items-center gap-2">
+              <span class="text-base">${rate.logoEmoji || '📦'}</span>
+              <div>
+                <div class="font-bold text-xs text-slate-900">${rate.serviceDescription}</div>
+                <div class="text-[10px] text-slate-500">Llega en ${rate.deliveryEstimate}</div>
+              </div>
+            </div>
+            <div class="text-right">
+              <span class="font-orbitron font-bold text-xs text-slate-900">$${rate.cost.toFixed(2)}</span>
+              <span class="text-[9px] text-slate-400 block">MXN</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+      list.classList.remove('hidden');
+    }
+
+    function selectShippingRate(idx) {
+      if (shippingQuoteRates[idx]) {
+        selectedShippingRate = shippingQuoteRates[idx];
+        renderShippingOptions();
+        updateCartUI();
+      }
+    }
+
     function updateCartUI() {
       const count = cart.reduce((sum, i) => sum + i.qty, 0);
-      const total = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+      const subtotal = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+      const shippingCost = selectedShippingRate ? Number(selectedShippingRate.cost || 0) : 0;
+      const total = subtotal + shippingCost;
 
       const dock = document.getElementById('cart-dock');
       document.getElementById('dock-count').textContent = count;
@@ -729,7 +881,19 @@
       }
 
       document.getElementById('drawer-items-count').textContent = `${count} ${count === 1 ? 'item' : 'items'}`;
-      document.getElementById('summary-subtotal').textContent = `$${total.toFixed(2)} MXN`;
+      document.getElementById('summary-subtotal').textContent = `$${subtotal.toFixed(2)} MXN`;
+      
+      const shippingRow = document.getElementById('summary-shipping-row');
+      if (shippingRow) {
+        if (selectedShippingRate) {
+          shippingRow.classList.remove('hidden');
+          document.getElementById('summary-shipping-carrier').textContent = selectedShippingRate.carrier.toUpperCase();
+          document.getElementById('summary-shipping-cost').textContent = `+$${shippingCost.toFixed(2)} MXN`;
+        } else {
+          shippingRow.classList.add('hidden');
+        }
+      }
+
       document.getElementById('summary-total').textContent = `$${total.toFixed(2)} MXN`;
 
       // Umbral CoDi vs SPEI dinámico en botón de checkout
@@ -795,7 +959,9 @@
 
     // 3. CHECKOUT CODI BANXICO (Nivel de corrección H, Negro sobre Blanco, Quiet Zone)
     async function executeCodiCheckout() {
-      const total = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+      const subtotal = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+      const shippingCost = selectedShippingRate ? Number(selectedShippingRate.cost || 0) : 0;
+      const total = subtotal + shippingCost;
       if (total <= 0) return;
 
       // Fallback SPEI para montos mayores a $8,000 MXN (Límite operativo CoDi Banxico)
@@ -805,7 +971,8 @@
       }
 
       const customer = document.getElementById('order-customer-name').value.trim() || 'Cliente';
-      const concept = `Pedido ${customer.substring(0, 15)} (${cart.length} items)`.trim();
+      const shippingNote = selectedShippingRate ? ` + Envío ${selectedShippingRate.carrier.toUpperCase()}` : '';
+      const concept = `Pedido ${customer.substring(0, 15)} (${cart.length} items${shippingNote})`.trim();
 
       // Abrir modal en estado Cargando
       closeCartDrawer();
@@ -1121,7 +1288,9 @@ _Adjunto captura de pantalla de mi transferencia SPEI para confirmación._`;
 
     // 4. CHECKOUT WHATSAPP (Ticket detallado en texto)
     function executeWhatsAppCheckout() {
-      const total = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+      const subtotal = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+      const shippingCost = selectedShippingRate ? Number(selectedShippingRate.cost || 0) : 0;
+      const total = subtotal + shippingCost;
       if (total <= 0) return;
 
       const customer = document.getElementById('order-customer-name').value.trim() || 'Cliente';
@@ -1135,8 +1304,8 @@ _Adjunto captura de pantalla de mi transferencia SPEI para confirmación._`;
 ---------------------------------------
 ${itemsRows}
 ---------------------------------------
-*Subtotal:* $${total.toFixed(2)} MXN
-*Total:* $${total.toFixed(2)} MXN
+*Subtotal:* $${subtotal.toFixed(2)} MXN
+${selectedShippingRate ? `*Envío:* ${selectedShippingRate.serviceDescription} (+$${shippingCost.toFixed(2)} MXN)\n` : ''}*Total:* $${total.toFixed(2)} MXN
 *Cliente:* ${customer}
 ${notes ? `*Notas:* ${notes}\n` : ''}*Pago:* A convenir con el comercio
 ---------------------------------------

@@ -14,6 +14,7 @@ import { aiRouter } from './routes/ai';
 import { solanaRouter } from './routes/solana';
 import { paypalRouter } from './routes/paypal';
 import { catalogRouter, handleServeCatalogImage } from './routes/catalog';
+import { shippingRouter } from './routes/shipping';
 import { generateUlid } from './utils/ulid';
 import { runBackup } from './services/backup';
 
@@ -105,6 +106,7 @@ app.route('/api/payment/solana', solanaRouter);
 app.route('/api/paypal', paypalRouter);
 app.route('/api/payment/paypal', paypalRouter);
 app.route('/api/merchant', catalogRouter);
+app.route('/api/merchant', shippingRouter);
 app.get('/api/catalog/images/:merchantId/:productId', handleServeCatalogImage);
 app.route('/webhooks', webhookRouter);
 app.route('/api/webhooks', webhookRouter);

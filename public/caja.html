@@ -229,10 +229,16 @@
         </div>
 
         <!-- Botón "Editar Precios y Menú" (Gestor del Merchant) -->
-        <button onclick="handleProAction('catalog')" class="w-full h-11 rounded-[14px] bg-white border border-[#E8E0CC] text-[#002B7F] font-bold text-[13px] flex items-center justify-center hover:bg-slate-50 transition active:scale-98 shadow-2xs">
-          <span class="mr-2 text-base">⚙️</span>
-          <span>Editar Precios y Menú del Negocio</span>
-        </button>
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="handleProAction('catalog')" class="h-11 rounded-[14px] bg-white border border-[#E8E0CC] text-[#002B7F] font-bold text-[12px] flex items-center justify-center hover:bg-slate-50 transition active:scale-98 shadow-2xs">
+            <span class="mr-1.5 text-base">⚙️</span>
+            <span>Editar Menú</span>
+          </button>
+          <button onclick="handleProAction('shipping')" class="h-11 rounded-[14px] bg-amber-50/80 border border-amber-300 text-amber-900 font-bold text-[12px] flex items-center justify-center hover:bg-amber-100 transition active:scale-98 shadow-2xs">
+            <span class="mr-1.5 text-base">📦</span>
+            <span>Envíos & Guías</span>
+          </button>
+        </div>
       </div>
 
       <!-- Lista de Pagos de Hoy -->
@@ -814,6 +820,14 @@
             <div class="text-[11px] text-[#6B7A99]">Acepta tarjetas de crédito con financiamiento bancario directo a tu cuenta.</div>
           </div>
         </div>
+
+        <div class="flex items-start gap-2.5">
+          <span class="text-base shrink-0">🚚</span>
+          <div>
+            <div class="font-bold text-[#121A2E]">Logística & Envíos con Envia.com</div>
+            <div class="text-[11px] text-[#6B7A99]">Cotización multicarrier (FedEx, Estafeta, Redpack) y emisión de guías con 1 clic.</div>
+          </div>
+        </div>
       </div>
 
       <!-- Precio y Acción -->
@@ -1274,6 +1288,103 @@
         shareCatalogWhatsApp();
       } else if (actionType === 'catalog') {
         openCatalogManagerModal();
+      } else if (actionType === 'shipping') {
+        openShippingModal();
+      }
+    }
+
+    // ==========================================
+    // LOGÍSTICA & ENVÍOS NACIONALES (ENVIA.COM)
+    // ==========================================
+    function openShippingModal() {
+      const modal = document.getElementById('modal-shipping-manager');
+      if (modal) modal.classList.remove('hidden');
+      loadShippingLabels();
+    }
+
+    function closeShippingModal() {
+      const modal = document.getElementById('modal-shipping-manager');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    async function loadShippingLabels() {
+      const container = document.getElementById('shipping-labels-container');
+      if (!container) return;
+      container.innerHTML = '<div class="text-center py-6 text-xs text-slate-400">Consultando guías registradas...</div>';
+
+      try {
+        const res = await fetch(`/api/merchant/${encodeURIComponent(currentMerchantId)}/shipping/labels`);
+        const data = await res.json();
+        if (res.ok && data.labels && data.labels.length > 0) {
+          container.innerHTML = data.labels.map(l => `
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-2 text-xs">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-slate-900 uppercase tracking-wide">${l.carrier}</span>
+                  <span class="font-mono text-[11px] bg-slate-200 text-slate-800 px-1.5 py-0.5 rounded">${l.tracking_number}</span>
+                </div>
+                <div class="text-[10px] text-slate-500 mt-0.5">Ref: ${l.order_reference || 'Venta Mostrador'} · ${Number(l.cost_mxn).toFixed(2)} MXN</div>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <a href="${l.label_url}" target="_blank" class="px-2.5 py-1 bg-[#002B7F] text-white font-bold rounded-lg text-[10px] hover:bg-[#001D56] transition">
+                  📄 Guía PDF
+                </a>
+                <a href="${l.tracking_url}" target="_blank" class="px-2 py-1 bg-white border border-slate-300 text-slate-700 font-semibold rounded-lg text-[10px] hover:bg-slate-50 transition">
+                  🔍 Rastreo
+                </a>
+              </div>
+            </div>
+          `).join('');
+        } else {
+          container.innerHTML = '<div class="text-center py-8 text-xs text-slate-500">No hay guías de envío emitidas aún.<br/><span class="text-[10px] text-slate-400">Emite una nueva guía para documentar pedidos foráneos.</span></div>';
+        }
+      } catch (err) {
+        container.innerHTML = '<div class="text-center py-6 text-xs text-rose-600">Error al consultar guías de envío.</div>';
+      }
+    }
+
+    async function promptEmitFastLabel() {
+      const destName = prompt('Nombre completo del destinatario:', 'Cliente E-commerce');
+      if (!destName) return;
+      const destStreet = prompt('Calle y número exterior:', 'Av. Reforma 222');
+      if (!destStreet) return;
+      const destCity = prompt('Ciudad o Municipio:', 'Ciudad de México');
+      if (!destCity) return;
+      const destState = prompt('Estado (ej. CMX, JAL, NL, YUC):', 'CMX');
+      if (!destState) return;
+      const destCp = prompt('Código Postal (5 dígitos):', '06600');
+      if (!destCp) return;
+
+      const carrier = prompt('Paquetería preferida (estafeta / fedex / redpack):', 'estafeta') || 'estafeta';
+
+      try {
+        const res = await fetch(`/api/merchant/${encodeURIComponent(currentMerchantId)}/shipping/label`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            carrier: carrier.toLowerCase(),
+            service: 'ground',
+            orderReference: 'ORD-' + Math.floor(1000 + Math.random() * 9000),
+            destination: {
+              name: destName,
+              street: destStreet,
+              city: destCity,
+              state: destState.toUpperCase(),
+              postalCode: destCp
+            }
+          })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          alert(`🎉 ¡Guía de envío emitida con éxito!\nPaquetería: ${data.carrier.toUpperCase()}\nNúmero de Guía: ${data.trackingNumber}\nCosto: ${data.totalCost} MXN`);
+          loadShippingLabels();
+          if (data.labelUrl) window.open(data.labelUrl, '_blank');
+        } else {
+          alert('No se pudo generar la guía: ' + (data.error?.message || 'Error en servidor'));
+        }
+      } catch (err) {
+        alert('Error al conectar con Envia.com: ' + err.message);
       }
     }
 
@@ -2940,5 +3051,47 @@
       initTenant();
     });
   </script>
+
+  <!-- MODAL: GESTOR DE ENVÍOS Y GUÍAS OFICIALES (ENVIA.COM) -->
+  <div id="modal-shipping-manager" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+    <div class="bg-white rounded-[24px] max-w-lg w-full p-6 space-y-4 border border-[#E8E0CC] shadow-2xl relative max-h-[92vh] flex flex-col">
+      <div class="flex items-center justify-between border-b border-[#F1EFE8] pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-2xl">📦</span>
+          <div>
+            <h3 class="text-base font-extrabold text-[#121A2E]">Envíos & Guías Oficiales</h3>
+            <p class="text-[11px] text-[#6B7A99]">Envia.com Multicarrier · FedEx, Estafeta, Redpack</p>
+          </div>
+        </div>
+        <button onclick="closeShippingModal()" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition text-xs">
+          ✕
+        </button>
+      </div>
+
+      <!-- Lista de Guías -->
+      <div class="flex-1 overflow-y-auto space-y-3 min-h-[220px]">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-700">Guías Emitidas Recientes</span>
+          <button onclick="loadShippingLabels()" class="text-[11px] text-blue-900 font-bold hover:underline">
+            🔄 Actualizar
+          </button>
+        </div>
+        <div id="shipping-labels-container" class="space-y-2">
+          <div class="text-center py-6 text-xs text-slate-400">Cargando guías...</div>
+        </div>
+      </div>
+
+      <!-- Pie con botón para generar guía rápida -->
+      <div class="pt-3 border-t border-[#F1EFE8] flex gap-2">
+        <button onclick="closeShippingModal()" class="w-1/3 h-11 rounded-[14px] border border-[#E8E0CC] text-[#6B7A99] font-bold text-xs hover:bg-slate-50 transition">
+          Cerrar
+        </button>
+        <button onclick="promptEmitFastLabel()" class="w-2/3 h-11 rounded-[14px] bg-[#002B7F] hover:bg-[#001D56] text-white font-bold text-xs transition flex items-center justify-center gap-1.5 shadow-2xs">
+          <span>+ Emitir Guía de Envío</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
