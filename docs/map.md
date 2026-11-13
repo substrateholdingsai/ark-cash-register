@@ -16,7 +16,7 @@
 **Última actualización:** Noviembre 2026  
 **Estado:**
 - Typecheck `tsc --noEmit`: **0 errores**
-- Tests Vitest: **118/118 pasando (11 archivos de prueba)**
+- Tests Vitest: **130/130 pasando (14 archivos de prueba)**
 - Despliegue en producción: **Activo en `https://caja.arksystems.site`**
 
 ---
@@ -34,7 +34,7 @@ ark-cash-register/
 │   ├── dpo.md                     # Delegado de Protección de Datos
 │   ├── dpa-pey.md                 # Acuerdos de procesamiento de datos con Pey
 │   └── dpa-facturapi.md           # Acuerdos de procesamiento de datos con Facturapi
-├── migrations/                    # Migraciones D1 SQLite (13 aplicadas en orden)
+├── migrations/                    # Migraciones D1 SQLite (16 aplicadas en orden)
 │   ├── 0001_initial_schema.sql             # merchants, payments, ledger_entries, webhook_events
 │   ├── 0002_operator_audit_and_closes.sql   # operator_audit_log, daily_closes
 │   ├── 0003_auth.sql                       # users, auth_sessions, email_verification_tokens, ...
@@ -47,7 +47,10 @@ ark-cash-register/
 │   ├── 0010_paypal_rail.sql                # paypal_client_id, paypal_orders, payment_rail 'paypal'
 │   ├── 0011_fix_foreign_keys.sql           # corrección de integridad referencial D1
 │   ├── 0012_merchant_tier_and_ai_photos.sql# subscription_tier (free/pro), ai_photos, catalog_images
-│   └── 0013_merchant_shipping.sql          # merchant_shipping_config, shipping_labels, quotes
+│   ├── 0013_merchant_shipping.sql          # merchant_shipping_config, shipping_labels, quotes
+│   ├── 0014_shipping_webhook_status.sql    # status y last_checkpoint_json en shipping_labels
+│   ├── 0015_pro_quota_renewal.sql          # ai_photos_reset_at en merchants para cron de cuotas
+│   └── 0016_cashier_mode_pin.sql           # cashier_pin_hash, cashier_mode_enabled y cashier_shifts
 ├── public/                        # Assets estáticos servidos desde el Edge (PWA Frontend)
 │   ├── index.html                 # Landing pública (Multi-Riel, Freemium Free vs Pro, Envíos, Fotos IA, FAQ)
 │   ├── caja.html                  # Mostrador TPV (Teclado táctil, QR CoDi, Envíos & Guías, Arqueo, Upgrade)
@@ -78,12 +81,12 @@ ark-cash-register/
 │   │   ├── compliance.ts          # /api/legal/versions, /api/privacy/* (ARCO), backup manual
 │   │   ├── internal.ts            # /api/internal/* (StayPuft admin: status, metrics, ledger, lfpiorpi)
 │   │   ├── invoices.ts            # /api/fiscal/profile, /api/invoice/* (issue CFDI 4.0, cancel, pdf, xml)
-│   │   ├── merchant.ts            # /api/merchant/* (register, catalog CRUD, payments, close-day, spei)
+│   │   ├── merchant.ts            # /api/merchant/* (register, catalog CRUD, payments, close-day, spei, cashier-pin/shift)
 │   │   ├── paymentLink.ts         # /api/payment-link, /api/payment/link/*
 │   │   ├── paypal.ts              # /api/merchant/:id/paypal/* (create-order, capture-order, order-status)
 │   │   ├── shipping.ts            # /api/merchant/:id/shipping/* (quote, label, track, config, labels)
 │   │   ├── solana.ts              # /api/solana/* (order, status, confirm-payment, offramp-info)
-│   │   └── webhooks.ts            # /webhooks/pey, /api/webhooks/pey (HMAC-SHA256, anti-replay, idempotencia)
+│   │   └── webhooks.ts            # /webhooks/pey, /api/webhooks/{pey,paypal,shipping} (firma, anti-replay, idempotencia)
 │   ├── services/
 │   │   ├── aiClient.ts            # Chat Llama 3.1 8B Instruct vía Cloudflare Workers AI
 │   │   ├── backup.ts              # Snapshot semanal D1 → R2 en formato JSON por tabla
@@ -91,8 +94,9 @@ ark-cash-register/
 │   │   ├── enviaService.ts        # Integración multicarrier Envia.com (cotización, guías PDF, tracking)
 │   │   ├── facturapiClient.ts     # Timbrado PAC CFDI 4.0 SAT con Facturapi
 │   │   ├── lfpiorpi.ts            # Evaluador Art. 17 Fracc. XVI LFPIORPI con dictamen criptográfico SHA-256
-│   │   ├── paypalClient.ts        # Cliente PayPal REST v2 (OAuth2 bearer, órdenes, capturas, MSI)
+│   │   ├── paypalClient.ts        # Cliente PayPal REST v2 (OAuth2 bearer, órdenes, capturas, MSI, verifyWebhook)
 │   │   ├── peyClient.ts           # Cliente HTTP Pey CoDi API (OpenAPI v2026-10-20)
+│   │   ├── proQuotaCron.ts        # Cron diario: renovación cuotas IA Pro (50/30d) y expiración a Free
 │   │   └── resendClient.ts        # Envío de correos transaccionales (verificación, recuperación)
 │   └── utils/
 │       ├── clabe.ts               # Validación matemática de CLABE 18 dígitos (checksum Banxico)
@@ -101,18 +105,21 @@ ark-cash-register/
 │       ├── solana.ts              # Validación Base58 wallet Solana, referencia única 32b, URL Solana Pay
 │       ├── totp.ts                # TOTP RFC 6238 nativo sin librerías externas
 │       └── ulid.ts                # Generador ULID Crockford Base32
-├── tests/                         # Suite Vitest (11 archivos, 118 pruebas unitarias y de integración)
+├── tests/                         # Suite Vitest (14 archivos, 130 pruebas unitarias y de integración)
 │   ├── ai.test.ts                         # 3 pruebas (Workers AI corte y claves SAT)
 │   ├── auth.test.ts                       # 15 pruebas (registro, login, cookies, rotación, MFA)
-│   ├── freemium_ai_catalog.test.ts        # 9 pruebas (paywall free vs pro, generación fotos Flux.1)
+│   ├── cashier_pin.test.ts                # 2 pruebas (PIN cajero 4 dígitos, apertura/cierre de turno)
+│   ├── freemium_ai_catalog.test.ts        # 8 pruebas (paywall free vs pro, generación fotos Flux.1)
 │   ├── internal.test.ts                   # 14 pruebas (StayPuft conector administrativo)
 │   ├── invoices.test.ts                   # 4 pruebas (CFDI 4.0 Facturapi + R2)
 │   ├── p0_auth_pagination_idempotency.test.ts # 18 pruebas (seguridad base P0)
-│   ├── paypal.test.ts                     # 9 pruebas (PayPal REST v2 órdenes, capturas, MSI)
+│   ├── paypal.test.ts                     # 6 pruebas (PayPal REST v2 órdenes, capturas, MSI)
+│   ├── pro_quota_cron.test.ts             # 3 pruebas (cron renovación cuotas Pro y expiración a Free)
 │   ├── shipping_envia.test.ts             # 7 pruebas (cotizaciones, emisión guías PDF, tracking)
 │   ├── solana_lfpiorpi.test.ts            # 16 pruebas (Solana Pay + compliance LFPIORPI)
 │   ├── spei_fallback.test.ts              # 13 pruebas (umbral CoDi $8,000 MXN vs SPEI directo)
-│   └── storefront.test.ts                 # 14 pruebas (catálogo aislado, carrito, checkout)
+│   ├── storefront.test.ts                 # 14 pruebas (catálogo aislado, carrito, checkout)
+│   └── webhooks_third_party.test.ts       # 7 pruebas (webhooks PayPal REST v2 y Envia.com)
 ├── wrangler.toml                  # Configuración Cloudflare Workers: D1, KV, R2, AI, vars y bindings
 └── package.json                   # Dependencias: Hono ^4.13.17 | Dev: @cloudflare/workers-types, vitest, typescript
 ```
@@ -280,7 +287,11 @@ flowchart TD
 - [x] **Frontend PWA & Tienda Online Aislada:**
   - Mostrador `/caja` optimizado para pantallas táctiles y tablets bajo el sol.
   - Tienda en línea `/tienda?m=...` con catálogo, variantes (tallas/sabores) y checkout unificado.
-  - Service Worker con soporte offline para cortes de red locales.
+  - Service Worker (`sw.js` `v2.7`) con soporte offline para cortes de red locales.
+- [x] **Experiencia de Mostrador Físico & Demo (Quick Wins v2.2):**
+  - **Ticket Térmico Imprimible (58mm / 80mm):** Hoja `@media print` con tamaño dinámico `@page`, desglose de partidas/descuentos, método de pago, UUID CFDI 4.0 y QR del folio vía `window.print()`.
+  - **Teclado Físico (Numpad) y Lector HID de Códigos de Barras:** Atajos globales (`0-9`, `Backspace`, `Delete/c`, `Enter`, `Escape`, `p` imprimir) y detección de ráfagas HID (`<= 45ms`) por `barcode`/`sku`/`id` con toast `#pos-toast`.
+  - **Barra Demo Switcher (`⚡ Modo Demo / Juez`):** Píldora colapsable sincronizada en `/caja` y `/tienda` para alternar entre *Taquería (Free)* y *SkinLab (Ark Pro)*, navegar entre TPV y tienda, y simular pagos CoDi en vivo.
 - [x] **Landing Page Comercial Actualizada:**
   - Nueva página principal destacando los 4 rieles de pago, la tabla Freemium de precios, el estudio de fotos IA y la logística nacional.
 
@@ -302,29 +313,30 @@ flowchart TD
   - `RESEND_API_KEY` con dominio verificado `arksystems.site` para emails transaccionales de verificación de cuenta.
 
 ### 5.2 Integraciones Asíncronas y Webhooks de Terceros
-> **Prioridad:** Media
-- [ ] **Webhook Listener de PayPal REST v2 (`/api/webhooks/paypal`):**
-  - Verificación criptográfica del header `PAYPAL-TRANSMISSION-SIG` para capturas asíncronas de órdenes o disputas comerciales.
-- [ ] **Webhook Listener de Envia.com (`/api/webhooks/shipping`):**
-  - Recepción de eventos de paqueterías (`in_transit`, `out_for_delivery`, `delivered`, `exception`) para actualizar el estado del pedido en D1 sin polling.
+> **Prioridad:** Media (Completado ✅)
+- [x] **Webhook Listener de PayPal REST v2 (`/api/webhooks/paypal`):**
+  - Verificación de firma `PAYPAL-TRANSMISSION-SIG` (`/v1/notifications/verify-webhook-signature`), anti-replay (`±300s`), idempotencia en `webhook_events`, captura `PAID` + asiento en `ledger_entries`, y manejo de disputas/reembolsos (`MANUAL_REVIEW` / `CANCELLED`).
+- [x] **Webhook Listener de Envia.com (`/api/webhooks/shipping`):**
+  - Verificación HMAC-SHA256 (`X-Envia-Signature`) o `Bearer`, idempotencia en `webhook_events`, actualización de `shipping_labels` (`status`, `last_checkpoint_json`, migración `0014`) y caché en `KV` (`envia_track:*`).
 
 ### 5.3 Cobro Recurrente y Automatización de Ark Pro
 > **Prioridad:** Media
+- [x] **Job Cron (`scheduled`) para cuotas mensuales y expiración Ark Pro:**
+  - `runProQuotaMaintenance` en `src/services/proQuotaCron.ts` (`[triggers] crons = ["0 6 * * *"]` en `wrangler.toml`, migración `0015`): renueva a 50 créditos de fotos IA cada 30 días, degrada suscripciones vencidas (`pro_expires_at < now`) a `free` (máx. 2 créditos) y audita en `purge_log`.
 - [ ] **Suscripción mensual recurrente ($299 MXN/mes):**
   - Implementar flujo de cobro recurrente con débito automático a tarjeta mediante PayPal Subscriptions o domiciliación SPEI.
-  - Job en Cloudflare Workers Cron (`scheduled`) para renovar cuota mensual de fotos IA (50 créditos) cada 30 días.
 
 ### 5.4 Hardware de Mostrador & Punto de Venta Físico
 > **Prioridad:** Media / Baja
-- [ ] **Impresión Térmica Bluetooth / USB (ESC/POS):**
-  - Conexión vía Web Bluetooth API o WebUSB API para imprimir tickets de venta de 58mm/80mm y etiquetas térmicas de paquetería (formato 4x6" para guías de FedEx/Estafeta).
-- [ ] **Soporte para Lectores de Código de Barras:**
-  - Event listener en `caja.html` para pistolas lectoras HID USB/Bluetooth que agreguen productos al ticket en tiempo real mediante SKU.
+- [ ] **Impresión Térmica Directa Silenciosa (Web Bluetooth / WebUSB ESC/POS):**
+  - La impresión estándar 58mm/80mm vía `@media print` (`window.print()`) ya está implementada en `caja.html`; queda como evolución la conexión directa ESC/POS sin diálogo del sistema operativo y etiquetas térmicas 4x6" para guías de FedEx/Estafeta.
+- [x] **Soporte para Lectores de Código de Barras (HID USB/Bluetooth):**
+  - Event listener `keydown` en `caja.html` con detección de ráfagas rápidas (`<= 45ms`) que agrega productos al carrito por `barcode`, `sku` o `id` con toast de confirmación.
 
 ### 5.5 Multi-Sucursal y Roles de Cajero (RBAC)
 > **Prioridad:** Baja
-- [ ] **Gestión de Turnos y Roles de Operador:**
-  - Modo cajero con PIN de 4 dígitos para apertura y cierre de turno sin acceso a cambio de CLABE ni métricas financieras globales.
+- [x] **Gestión de Turnos y Roles de Operador:**
+  - Modo cajero con PIN de 4 dígitos para apertura y cierre de turno sin acceso a cambio de CLABE ni métricas financieras globales (`migrations/0016_cashier_mode_pin.sql`, `PUT /api/merchant/:id/cashier-pin`, `GET /api/merchant/:id/cashier/status`, `POST /api/merchant/:id/cashier/shift/open`, `POST /api/merchant/:id/cashier/shift/close`, y modal `#modal-cashier-pin` con restricciones de UI en `public/caja.html`).
 - [ ] **Multi-sucursal por comercio:**
   - Asociación de inventarios y cajas a diferentes códigos postales o sucursales físicas bajo el mismo RFC.
 
@@ -342,12 +354,15 @@ flowchart TD
 | `tests/auth.test.ts` | 15 | Registro, login, refresh tokens, lockout, MFA TOTP, cookies `__Host-` |
 | `tests/p0_auth_pagination_idempotency.test.ts` | 18 | Paginación blindada, deduplicación de webhooks, scoping multi-tenant |
 | `tests/spei_fallback.test.ts` | 13 | Límite CoDi $8,000, orden SPEI, confirmación manual, anti-split |
-| `tests/paypal.test.ts` | 9 | Creación de órdenes, captura de pagos, Meses Sin Intereses, sandbox/live |
+| `tests/paypal.test.ts` | 6 | Creación de órdenes, captura de pagos, Meses Sin Intereses, sandbox/live |
 | `tests/shipping_envia.test.ts` | 7 | Cotización multicarrier, generación de guías PDF, checkpoints de rastreo |
-| `tests/freemium_ai_catalog.test.ts` | 9 | Paywall Free vs Pro, cuotas de imágenes IA, generación Flux.1 Schnell |
+| `tests/freemium_ai_catalog.test.ts` | 8 | Paywall Free vs Pro, cuotas de imágenes IA, generación Flux.1 Schnell |
 | `tests/solana_lfpiorpi.test.ts` | 16 | Solana Pay no-custodial, ventana móvil 180 días, umbrales UMA, hash SHA-256 |
 | `tests/storefront.test.ts` | 14 | Catálogo dinámico, aislamiento entre tiendas, variantes y checkout |
 | `tests/internal.test.ts` | 14 | StayPuft conector administrativo, métricas globales, fail-closed 401 |
+| `tests/webhooks_third_party.test.ts` | 7 | Webhooks PayPal REST v2 y Envia.com (firma, idempotencia, estado/tracking) |
 | `tests/invoices.test.ts` | 4 | Timbrado Facturapi CFDI 4.0, almacenamiento XML en R2 |
 | `tests/ai.test.ts` | 3 | Cloudflare Workers AI para cortes de caja y claves fiscales SAT |
-| **TOTAL** | **118** | **100% pruebas verdes en Vitest** |
+| `tests/pro_quota_cron.test.ts` | 3 | Cron `scheduled`: renovación de cuotas IA Pro cada 30 días y degradación a Free |
+| `tests/cashier_pin.test.ts` | 2 | Modo Cajero con PIN de 4 dígitos, apertura/cierre de turno y capacidades restringidas |
+| **TOTAL** | **130** | **100% pruebas verdes en Vitest** |

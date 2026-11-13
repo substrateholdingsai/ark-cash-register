@@ -91,9 +91,9 @@ catalogRouter.post('/:id/upgrade-pro', async (c) => {
 
       await c.env.DB.prepare(`
         UPDATE merchants 
-        SET tier = 'pro', pro_expires_at = ?, ai_photo_credits = ?, updated_at = ?
+        SET tier = 'pro', pro_expires_at = ?, ai_photo_credits = ?, last_quota_reset_at = ?, updated_at = ?
         WHERE id = ?
-      `).bind(proExpiresAt, updatedCredits, now, merchantId).run();
+      `).bind(proExpiresAt, updatedCredits, now, now, merchantId).run();
 
       if (c.env.KV) {
         await c.env.KV.delete(`merchant:${merchantId}`);

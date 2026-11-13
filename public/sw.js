@@ -1,5 +1,5 @@
 // Service Worker — Ark Cash Register v2.4 (Offline First)
-const CACHE_NAME = 'ark-cash-register-v2.4';
+const CACHE_NAME = 'ark-cash-register-v2.8';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

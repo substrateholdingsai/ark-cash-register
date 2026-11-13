@@ -165,4 +165,51 @@ export class PayPalClient {
       netAmount: netVal
     };
   }
+
+  /**
+   * Verifica la firma criptográfica de un webhook PayPal REST v2
+   * usando el endpoint oficial /v1/notifications/verify-webhook-signature.
+   */
+  async verifyWebhookSignature(params: {
+    webhookId: string;
+    transmissionId: string;
+    transmissionTime: string;
+    certUrl: string;
+    authAlgo: string;
+    transmissionSig: string;
+    webhookEvent: unknown;
+  }): Promise<boolean> {
+    if (!params.webhookId || !params.transmissionSig || !params.transmissionId || !params.transmissionTime) {
+      return false;
+    }
+
+    if (this.isMock) {
+      return params.transmissionSig.startsWith('mock_sig_');
+    }
+
+    const token = await this.getAccessToken();
+    const res = await fetch(`${this.baseUrl}/v1/notifications/verify-webhook-signature`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        auth_algo: params.authAlgo,
+        cert_url: params.certUrl,
+        transmission_id: params.transmissionId,
+        transmission_sig: params.transmissionSig,
+        transmission_time: params.transmissionTime,
+        webhook_id: params.webhookId,
+        webhook_event: params.webhookEvent
+      })
+    });
+
+    if (!res.ok) {
+      return false;
+    }
+
+    const data: any = await res.json().catch(() => ({}));
+    return data?.verification_status === 'SUCCESS';
+  }
 }

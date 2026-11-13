@@ -17,6 +17,7 @@ import { catalogRouter, handleServeCatalogImage } from './routes/catalog';
 import { shippingRouter } from './routes/shipping';
 import { generateUlid } from './utils/ulid';
 import { runBackup } from './services/backup';
+import { runProQuotaMaintenance } from './services/proQuotaCron';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -144,6 +145,8 @@ app.onError((err, c) => {
     }
     await env.DB.prepare('INSERT INTO purge_log (id, entity, records_purged, executed_at, notes) VALUES (?,?,?,?,?)')
       .bind(generateUlid(), 'scheduled_purge', (s as any)?.success ? 1 : 0, now, `disabled_anonymized=${disabled.results?.length || 0}`).run();
+    // Renovación mensual de cuotas Ark Pro y expiración de suscripciones vencidas
+    try { await runProQuotaMaintenance(env, now); } catch (e) { console.error('[Scheduled Pro Quota Error]', e); }
     // backup semanal (best-effort)
     try { await runBackup(env); } catch (e) { console.error('[Scheduled Backup Error]', e); }
   } catch (err) {

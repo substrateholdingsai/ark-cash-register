@@ -32,6 +32,10 @@ bucket_name = "ark-cash-invoices"
 [ai]
 binding = "AI"
 
+# Cron diario (06:00 UTC / 00:00 CDMX) para renovación de cuotas Ark Pro, purga y respaldo
+[triggers]
+crons = ["0 6 * * *"]
+
 # Variables de entorno públicas
 [vars]
 PEY_API_URL = "https://api.pey.mx"

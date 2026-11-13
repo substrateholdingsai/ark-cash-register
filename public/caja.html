@@ -154,7 +154,53 @@
     .animate-spin-custom {
       animation: spin 1.4s linear infinite;
     }
+
+    /* ==========================================
+       TICKET TÉRMICO IMPRIMIBLE (58mm / 80mm)
+       Solo visible al imprimir (window.print)
+       ========================================== */
+    #print-ticket { display: none; }
+
+    @media print {
+      html, body {
+        background: #fff !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        max-width: none !important;
+        min-height: 0 !important;
+        box-shadow: none !important;
+        display: block !important;
+      }
+      body > *:not(#print-ticket) { display: none !important; }
+      #print-ticket {
+        display: block !important;
+        width: var(--ticket-width, 58mm);
+        padding: 2mm 3mm 6mm;
+        box-sizing: border-box;
+        color: #000;
+        font-family: 'Courier New', ui-monospace, monospace;
+        font-size: var(--ticket-font, 10.5px);
+        line-height: 1.3;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+
+    .tk-center { text-align: center; }
+    .tk-bold { font-weight: 700; }
+    .tk-big { font-size: 1.45em; font-weight: 700; }
+    .tk-merchant { font-size: 1.3em; font-weight: 700; text-transform: uppercase; word-break: break-word; }
+    .tk-muted { font-size: 0.9em; }
+    .tk-hr { border: 0; border-top: 1px dashed #000; margin: 1.6mm 0; }
+    .tk-row { display: flex; justify-content: space-between; gap: 2mm; }
+    .tk-row > span:first-child { flex: 1; min-width: 0; word-break: break-word; }
+    .tk-row > span:last-child { white-space: nowrap; }
+    .tk-item-sub { padding-left: 2.5mm; font-size: 0.9em; }
+    .tk-paid-stamp { border: 1.5px solid #000; padding: 1mm 0; margin: 1.6mm 0; letter-spacing: 0.08em; }
+    .tk-qr { display: block; margin: 1.5mm auto 0; width: 26mm; height: 26mm; image-rendering: pixelated; }
+    .tk-folio { font-size: 0.85em; word-break: break-all; }
   </style>
+  <style id="print-page-size">@page { size: 58mm auto; margin: 0; }</style>
 </head>
 <body class="min-h-screen flex flex-col justify-between max-w-md mx-auto shadow-2xl relative bg-white pb-6">
 
@@ -183,6 +229,32 @@
       </div>
     </div>
   </header>
+
+  <!-- BARRA DEMO SWITCHER PARA JUECES / PRUEBAS (Colapsable) -->
+  <div id="demo-judge-bar" class="bg-[#F8FAFC] border-b border-[#E8E0CC] px-4 py-1.5 text-[11px] flex flex-col gap-1.5 z-30">
+    <div class="flex items-center justify-between">
+      <button id="btn-toggle-demo-bar" onclick="toggleDemoJudgeBar()" class="flex items-center gap-1.5 font-bold text-[#002B7F] hover:text-[#001D56] transition">
+        <span>⚡</span>
+        <span>Modo Demo / Juez</span>
+        <span id="demo-bar-chevron" class="text-[10px] text-[#6B7A99]">▸</span>
+      </button>
+      <span id="demo-bar-active-tag" class="font-mono text-[10px] text-[#6B7A99] truncate max-w-[160px]">Taquería (Free)</span>
+    </div>
+    <div id="demo-judge-controls" class="hidden flex flex-wrap items-center gap-1.5 pb-1">
+      <button id="demo-preset-tq" onclick="selectDemoPreset('01JBAVWE4NS5TGXHWGMX3KH23Q')" class="px-2.5 py-1 rounded-full bg-[#002B7F] text-white font-bold transition flex items-center gap-1 shadow-2xs">
+        <span>🌮</span><span>Taquería (Free)</span>
+      </button>
+      <button id="demo-preset-sl" onclick="selectDemoPreset('01JBAVSKINLAB0000000000000')" class="px-2.5 py-1 rounded-full bg-white border border-[#E8E0CC] text-[#121A2E] font-semibold hover:bg-gray-50 transition flex items-center gap-1">
+        <span>🧴</span><span>SkinLab (Ark Pro)</span>
+      </button>
+      <button id="demo-btn-simulate" onclick="triggerDemoSimulateFromBar()" class="px-2.5 py-1 rounded-full bg-[#DCFCE7] border border-[#86EFAC] text-[#166534] font-bold hover:bg-[#BBF7D0] transition flex items-center gap-1">
+        <span>⚡</span><span>Simular Pago CoDi</span>
+      </button>
+      <a id="demo-link-tienda" href="/tienda?m=01JBAVWE4NS5TGXHWGMX3KH23Q&preview=1" class="px-2.5 py-1 rounded-full bg-white border border-[#E8E0CC] text-[#002B7F] font-semibold hover:bg-[#E8EEF9] transition flex items-center gap-1">
+        <span>🛍️</span><span>Tienda</span>
+      </a>
+    </div>
+  </div>
 
   <!-- CONTENEDOR PRINCIPAL DE PANTALLAS -->
   <main class="flex-1 flex flex-col justify-between p-4 overflow-y-auto">
@@ -214,7 +286,7 @@
         </button>
 
         <!-- Fila de Acciones de Tienda y Catálogo -->
-        <div class="grid grid-cols-2 gap-2">
+        <div id="a-admin-actions-row-1" class="grid grid-cols-2 gap-2">
           <!-- Botón "Abrir Tienda" (Modo Previa de Dueño) -->
           <button type="button" id="btn-open-store" onclick="handleProAction('store')" class="h-12 rounded-[14px] bg-[#E8EEF9] border border-[#C5D7F2] text-[#002B7F] font-bold text-[13px] flex items-center justify-center hover:bg-[#D9E6F7] transition active:scale-98 shadow-2xs">
             <span class="mr-1.5 text-base">🛒</span>
@@ -229,8 +301,8 @@
         </div>
 
         <!-- Botón "Editar Precios y Menú" (Gestor del Merchant) -->
-        <div class="grid grid-cols-2 gap-2">
-          <button onclick="handleProAction('catalog')" class="h-11 rounded-[14px] bg-white border border-[#E8E0CC] text-[#002B7F] font-bold text-[12px] flex items-center justify-center hover:bg-slate-50 transition active:scale-98 shadow-2xs">
+        <div id="a-admin-actions-row-2" class="grid grid-cols-2 gap-2">
+          <button id="btn-edit-menu-a" onclick="handleProAction('catalog')" class="h-11 rounded-[14px] bg-white border border-[#E8E0CC] text-[#002B7F] font-bold text-[12px] flex items-center justify-center hover:bg-slate-50 transition active:scale-98 shadow-2xs">
             <span class="mr-1.5 text-base">⚙️</span>
             <span>Editar Menú</span>
           </button>
@@ -239,10 +311,25 @@
             <span>Envíos & Guías</span>
           </button>
         </div>
+
+        <!-- Modo Cajero con PIN de 4 dígitos -->
+        <div id="cashier-shift-banner" class="hidden p-3 rounded-[14px] bg-amber-50 border border-amber-300 flex items-center justify-between gap-2 text-[12px]">
+          <div class="min-w-0">
+            <div class="font-bold text-amber-950 truncate">🔐 Turno Cajero: <span id="cashier-operator-label">Operador</span></div>
+            <div class="text-[10px] text-amber-800">Acceso restringido: CLABE y métricas globales ocultas</div>
+          </div>
+          <button onclick="openCashierPinModal('close')" class="px-2.5 py-1.5 rounded-lg bg-amber-900 text-white font-bold text-[11px] shrink-0 hover:bg-black transition">
+            Cerrar Turno
+          </button>
+        </div>
+        <button id="btn-cashier-mode" onclick="openCashierPinModal('open')" class="w-full h-10 rounded-[14px] bg-slate-50 border border-slate-200 text-slate-700 font-bold text-[12px] flex items-center justify-center gap-1.5 hover:bg-slate-100 transition">
+          <span>🔐</span>
+          <span id="btn-cashier-mode-text">Activar Modo Cajero (PIN 4 dígitos)</span>
+        </button>
       </div>
 
       <!-- Lista de Pagos de Hoy -->
-      <div class="flex-1 flex flex-col justify-end mt-4">
+      <div id="a-global-payments-section" class="flex-1 flex flex-col justify-end mt-4">
         <div class="flex items-center justify-between mb-2 px-1">
           <span class="text-[11px] font-bold uppercase tracking-[0.16em] text-[#6B7A99]">Pagos de hoy</span>
           <span id="sales-count-badge" class="text-[12px] font-medium text-[#6B7A99]">0 pagos</span>
@@ -334,6 +421,9 @@
           <button id="btn-generate-qr" onclick="generateCodiQr()" class="w-full h-14 rounded-[16px] btn-navy-primary font-bold text-[16px] flex items-center justify-center">
             Generar QR
           </button>
+          <div class="text-center text-[10px] text-[#8C9BB5] mt-2 hidden sm:block">
+            ⌨️ Teclado: 0–9 · ⌫ borrar · Enter cobrar · Esc volver · Lector HID listo
+          </div>
         </div>
 
         <!-- MODO 2: CATÁLOGO RÁPIDO & CARRITO DE MOSTRADOR -->
@@ -493,6 +583,17 @@
             Enviar Ticket por WhatsApp
           </button>
 
+          <!-- Botón Imprimir Ticket Térmico (58mm / 80mm) -->
+          <div class="flex gap-2">
+            <button id="btn-print-ticket" onclick="printPaidTicket()" class="flex-1 h-12 rounded-[14px] bg-[#121A2E] text-white font-bold text-[14px] flex items-center justify-center shadow-xs hover:bg-black transition active:scale-98" title="Imprimir ticket en impresora térmica o guardar como PDF">
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+              Imprimir Ticket
+            </button>
+            <button id="btn-ticket-width" onclick="toggleTicketWidth()" class="w-[72px] h-12 rounded-[14px] bg-white border border-[#E8E0CC] text-[#121A2E] font-orbitron font-bold text-[12px] flex flex-col items-center justify-center hover:bg-gray-50 transition active:scale-95" title="Cambiar ancho del rollo térmico">
+              <span id="ticket-width-label">58mm</span>
+              <span class="font-sans font-medium text-[9px] text-[#6B7A99]">rollo</span>
+            </button>
+          </div>
           <!-- Botón Emitir Factura Fiscal (CFDI 4.0) -->
           <button id="btn-open-factura" onclick="openFacturaModal()" class="w-full h-11 rounded-[14px] bg-white border border-[#002B7F] text-[#002B7F] font-bold text-[13px] flex items-center justify-center shadow-2xs hover:bg-[#F0F4FA] transition active:scale-98">
             <span class="mr-1.5">🧾</span> Emitir Factura Fiscal (CFDI 4.0)
@@ -1189,6 +1290,26 @@
         btnStore.href = `/tienda?m=${encodeURIComponent(currentMerchantId)}`;
       }
 
+      // Sincronizar barra Demo / Juez
+      const demoTag = document.getElementById('demo-bar-active-tag');
+      const demoPresetTq = document.getElementById('demo-preset-tq');
+      const demoPresetSl = document.getElementById('demo-preset-sl');
+      const demoLinkTienda = document.getElementById('demo-link-tienda');
+      if (demoLinkTienda && currentMerchantId) {
+        demoLinkTienda.href = `/tienda?m=${encodeURIComponent(currentMerchantId)}&preview=1`;
+      }
+      if (demoTag) {
+        if (isSkinLab) demoTag.textContent = 'SkinLab (Ark Pro)';
+        else if (currentMerchantId === '01JBAVWE4NS5TGXHWGMX3KH23Q') demoTag.textContent = 'Taquería (Free)';
+        else demoTag.textContent = currentMerchant?.alias || 'Comercio activo';
+      }
+      if (demoPresetTq && demoPresetSl) {
+        const activeCls = 'px-2.5 py-1 rounded-full bg-[#002B7F] text-white font-bold transition flex items-center gap-1 shadow-2xs';
+        const idleCls = 'px-2.5 py-1 rounded-full bg-white border border-[#E8E0CC] text-[#121A2E] font-semibold hover:bg-gray-50 transition flex items-center gap-1';
+        demoPresetTq.className = (!isSkinLab && currentMerchantId === '01JBAVWE4NS5TGXHWGMX3KH23Q') ? activeCls : idleCls;
+        demoPresetSl.className = isSkinLab ? activeCls : idleCls;
+      }
+
       if (!btnTq || !btnSl) return;
       if (isSkinLab) {
         btnSl.className = 'px-2.5 py-1 rounded-full bg-[#002B7F] text-white font-bold transition flex items-center gap-1 shadow-2xs';
@@ -1496,6 +1617,10 @@
     // ONBOARDING STEPS DEL MERCHANT (3 PASOS)
     // ==========================================
     function openOnboardingModal(allowClose = false) {
+      if (isCashierModeActive()) {
+        showPosToast('🔒 Modo Cajero: cambio de CLABE y cuenta restringido', true);
+        return;
+      }
       const modal = document.getElementById('modal-onboarding');
       const closeBtn = document.getElementById('btn-close-onboarding');
       
@@ -2087,10 +2212,14 @@
         document.getElementById('b-state-keypad').classList.add('hidden');
         document.getElementById('b-state-waiting').classList.remove('hidden');
 
-        // Toggle botón de simulación si está en modo demo/activación
+        // Toggle botón de simulación si está en modo demo/activación, localhost o barra juez abierta
         const demoSimBtn = document.getElementById('b-demo-simulate-container');
         if (demoSimBtn) {
-          demoSimBtn.classList.toggle('hidden', !data.isDemoFallback);
+          const canSim = Boolean(data.isDemoFallback) ||
+            localStorage.getItem('ark_demo_bar_open') === '1' ||
+            location.hostname === '127.0.0.1' ||
+            location.hostname === 'localhost';
+          demoSimBtn.classList.toggle('hidden', !canSim);
         }
 
         // Iniciar timer countdown 600s
@@ -2280,6 +2409,144 @@
     }
 
     // ==========================================
+    // TICKET TÉRMICO IMPRIMIBLE (58mm / 80mm)
+    // window.print() nativo: impresoras térmicas USB/Bluetooth o "Guardar como PDF"
+    // ==========================================
+    const TICKET_WIDTH_KEY = 'ark_ticket_width';
+    let ticketWidthMm = localStorage.getItem(TICKET_WIDTH_KEY) === '80' ? 80 : 58;
+
+    function escapeTicketHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, ch => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[ch]));
+    }
+
+    function applyTicketWidth() {
+      const label = document.getElementById('ticket-width-label');
+      if (label) label.textContent = `${ticketWidthMm}mm`;
+      const pageStyle = document.getElementById('print-page-size');
+      if (pageStyle) pageStyle.textContent = `@page { size: ${ticketWidthMm}mm auto; margin: 0; }`;
+      document.documentElement.style.setProperty('--ticket-width', `${ticketWidthMm}mm`);
+      document.documentElement.style.setProperty('--ticket-font', ticketWidthMm === 80 ? '12px' : '10.5px');
+    }
+
+    function toggleTicketWidth() {
+      ticketWidthMm = ticketWidthMm === 58 ? 80 : 58;
+      localStorage.setItem(TICKET_WIDTH_KEY, String(ticketWidthMm));
+      applyTicketWidth();
+    }
+
+    function getTicketRailLabel(rail) {
+      switch (String(rail || 'codi').toLowerCase()) {
+        case 'spei': return 'SPEI Directo';
+        case 'paypal': return 'Tarjeta (PayPal)';
+        case 'solana': return 'Dólares Digitales (Solana Pay)';
+        default: return 'CoDi® Banxico';
+      }
+    }
+
+    function buildQrDataUrl(text) {
+      // Renderiza el QR fuera de pantalla y extrae el canvas como PNG
+      try {
+        if (typeof QRCode === 'undefined' || !text) return '';
+        const tmp = document.createElement('div');
+        tmp.style.cssText = 'position:fixed;left:-9999px;top:-9999px;';
+        document.body.appendChild(tmp);
+        new QRCode(tmp, { text, width: 160, height: 160, colorDark: '#000000', colorLight: '#FFFFFF', correctLevel: QRCode.CorrectLevel.M });
+        const canvas = tmp.querySelector('canvas');
+        const url = canvas ? canvas.toDataURL('image/png') : '';
+        tmp.remove();
+        return url;
+      } catch (e) {
+        console.warn('No se pudo generar QR del ticket', e);
+        return '';
+      }
+    }
+
+    function buildPaidTicketHtml() {
+      const amount = Number(currentPayment?.amount || (currentInputCents / 100) || 0);
+      const now = new Date();
+      const merchantName = currentMerchant?.alias || currentMerchant?.name || 'Ark Cash Register';
+      const legalName = currentMerchant?.name && currentMerchant?.alias && currentMerchant.name !== currentMerchant.alias
+        ? currentMerchant.name : '';
+      const folio = currentPayment?.qrId || currentPayment?.paymentId || currentPayment?.id || '';
+      const rail = getTicketRailLabel(currentPayment?.paymentRail || currentPayment?.payment_rail);
+      const items = lastCartCheckout?.items || [];
+      const fmt = n => `$${Number(n || 0).toFixed(2)}`;
+
+      let html = `<div class="tk-center">
+        <div class="tk-merchant">${escapeTicketHtml(merchantName)}</div>
+        ${legalName ? `<div class="tk-muted">${escapeTicketHtml(legalName)}</div>` : ''}
+        <div class="tk-muted">${escapeTicketHtml(now.toLocaleDateString('es-MX'))} ${escapeTicketHtml(now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }))}</div>
+      </div>
+      <hr class="tk-hr">`;
+
+      if (items.length > 0) {
+        html += items.map(it => `
+          <div class="tk-row"><span>${escapeTicketHtml(it.qty)}x ${escapeTicketHtml(it.name)}</span><span>${fmt(it.price * it.qty)}</span></div>
+          ${it.qty > 1 ? `<div class="tk-item-sub">${fmt(it.price)} c/u</div>` : ''}
+        `).join('');
+        html += `<hr class="tk-hr">`;
+        if (lastCartCheckout.discount > 0) {
+          html += `<div class="tk-row"><span>Subtotal</span><span>${fmt(lastCartCheckout.subtotal)}</span></div>
+            <div class="tk-row"><span>${escapeTicketHtml(lastCartCheckout.promoText || 'Descuento')}</span><span>-${fmt(lastCartCheckout.discount)}</span></div>`;
+        }
+      } else {
+        html += `<div class="tk-row"><span>Venta mostrador</span><span>${fmt(amount)}</span></div><hr class="tk-hr">`;
+      }
+
+      html += `<div class="tk-row tk-big"><span>TOTAL</span><span>${fmt(amount)}</span></div>
+        <div class="tk-muted tk-center">MXN · IVA incluido</div>
+        <div class="tk-center tk-bold tk-paid-stamp">*** PAGADO ***</div>
+        <div class="tk-row"><span>Método</span><span>${escapeTicketHtml(rail)}</span></div>`;
+
+      // Factura CFDI timbrada en esta venta (si aplica)
+      const invoiceBox = document.getElementById('b-paid-invoice-status');
+      const invoiceUuid = document.getElementById('b-invoice-uuid-badge')?.textContent?.trim();
+      if (invoiceBox && !invoiceBox.classList.contains('hidden') && invoiceUuid && invoiceUuid !== 'UUID') {
+        html += `<div class="tk-muted">CFDI 4.0: <span class="tk-folio">${escapeTicketHtml(invoiceUuid)}</span></div>`;
+      }
+
+      if (folio) {
+        const qrUrl = buildQrDataUrl(folio);
+        html += `<hr class="tk-hr">
+          <div class="tk-center tk-muted">Folio</div>
+          <div class="tk-center tk-folio">${escapeTicketHtml(folio)}</div>
+          ${qrUrl ? `<img class="tk-qr" src="${qrUrl}" alt="QR folio">` : ''}`;
+      }
+
+      html += `<hr class="tk-hr">
+        <div class="tk-center tk-bold">¡Gracias por tu compra!</div>
+        <div class="tk-center tk-muted">caja.arksystems.site</div>`;
+
+      return html;
+    }
+
+    function printPaidTicket() {
+      applyTicketWidth();
+      let ticketEl = document.getElementById('print-ticket');
+      if (!ticketEl) {
+        ticketEl = document.createElement('div');
+        ticketEl.id = 'print-ticket';
+        ticketEl.setAttribute('aria-hidden', 'true');
+        document.body.appendChild(ticketEl);
+      }
+      ticketEl.innerHTML = buildPaidTicketHtml();
+
+      // Espera a que la imagen del QR esté decodificada antes de imprimir
+      const img = ticketEl.querySelector('img');
+      const doPrint = () => setTimeout(() => window.print(), 50);
+      if (img && !img.complete) {
+        img.onload = doPrint;
+        img.onerror = doPrint;
+      } else {
+        doPrint();
+      }
+    }
+
+    applyTicketWidth();
+
+    // ==========================================
     // DEEP LINKING: COMPARTIR CATÁLOGO & PRECIOS VÍA WHATSAPP
     // ==========================================
     function formatWhatsAppCatalog(catalogData, merchantProfile, storeUrl) {
@@ -2364,6 +2631,10 @@
     let editableCatalogItems = [];
 
     async function openCatalogManagerModal() {
+      if (isCashierModeActive()) {
+        showPosToast('🔒 Modo Cajero: edición de catálogo y precios restringida', true);
+        return;
+      }
       const mId = currentMerchantId || localStorage.getItem('ark_merchant_id') || '01JBAVWE4NS5TGXHWGMX3KH23Q';
       const previewLink = document.getElementById('link-preview-store');
       if (previewLink) {
@@ -3037,6 +3308,416 @@
       document.getElementById('modal-close-day').classList.add('hidden');
     }
 
+    // ==========================================
+    // TECLADO FÍSICO (NUMPAD) & LECTOR HID DE CÓDIGOS DE BARRAS
+    // ==========================================
+    const MODAL_CLOSE_HANDLERS = [
+      ['modal-cashier-pin', () => closeCashierPinModal()],
+      ['modal-shipping-manager', () => closeShippingModal()],
+      ['modal-factura', () => closeFacturaModal()],
+      ['modal-catalog-manager', () => closeCatalogManagerModal()],
+      ['modal-paywall-pro', () => closePaywallProModal()],
+      ['modal-onboarding', () => closeOnboardingModal()],
+      ['modal-close-day', () => document.getElementById('modal-close-day')?.classList.add('hidden')]
+    ];
+
+    let posToastTimer = null;
+    function showPosToast(message, isError = false) {
+      const toast = document.getElementById('pos-toast');
+      if (!toast) return;
+      toast.textContent = message;
+      toast.className = `fixed bottom-5 left-1/2 -translate-x-1/2 z-[60] px-4 py-2 rounded-full text-xs font-bold shadow-lg transition-opacity duration-200 pointer-events-none ${
+        isError ? 'bg-[#DC2626] text-white' : 'bg-[#121A2E] text-white'
+      }`;
+      clearTimeout(posToastTimer);
+      posToastTimer = setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 2400);
+    }
+
+    function getOpenModalHandler() {
+      return MODAL_CLOSE_HANDLERS.find(([id]) => {
+        const el = document.getElementById(id);
+        return el && !el.classList.contains('hidden');
+      });
+    }
+
+    function isVisible(id) {
+      const el = document.getElementById(id);
+      return Boolean(el && !el.classList.contains('hidden'));
+    }
+
+    function findCatalogItemByCode(rawCode) {
+      if (!currentCatalog || !Array.isArray(currentCatalog.items)) return null;
+      const needle = String(rawCode || '').trim().toLowerCase();
+      if (!needle) return null;
+      return currentCatalog.items.find(item =>
+        String(item.barcode || '').trim().toLowerCase() === needle ||
+        String(item.sku || '').trim().toLowerCase() === needle ||
+        String(item.id || '').trim().toLowerCase() === needle
+      ) || null;
+    }
+
+    async function handleBarcodeScan(code) {
+      if (!currentCatalog) {
+        await loadCatalog(currentMerchantId || '01JBAVWE4NS5TGXHWGMX3KH23Q');
+      }
+      const matched = findCatalogItemByCode(code);
+      if (!matched) {
+        showPosToast(`⚠️ Código no encontrado: ${code}`, true);
+        return;
+      }
+      if (activeScreen !== 'B' || !isVisible('b-state-keypad')) {
+        goToScreenB();
+      }
+      setBMode('catalog');
+      addToCart(matched.id);
+      showPosToast(`📦 +1 ${matched.name}`);
+    }
+
+    // Buffer para detectar ráfagas rápidas de pistolas lectoras HID (< 45ms entre teclas)
+    let hidBuffer = '';
+    let hidLastKeyTs = 0;
+    let hidFastBurst = false;
+    let hidCentsBeforeBurst = null;
+    let hidContextBeforeBurst = null;
+
+    function resetHidBuffer() {
+      hidBuffer = '';
+      hidLastKeyTs = 0;
+      hidFastBurst = false;
+      hidCentsBeforeBurst = null;
+      hidContextBeforeBurst = null;
+    }
+
+    function handlePhysicalKeyboard(e) {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+      const target = e.target;
+      const isEditable = target && (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.tagName === 'SELECT' ||
+        target.isContentEditable
+      );
+
+      // Si hay un modal abierto, solo Esc lo cierra (y no interferimos con inputs)
+      const openModal = getOpenModalHandler();
+      if (openModal) {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          openModal[1]();
+        }
+        return;
+      }
+
+      if (isEditable) {
+        if (e.key === 'Escape') target.blur();
+        return;
+      }
+
+      const now = performance.now();
+      const delta = hidLastKeyTs ? (now - hidLastKeyTs) : 9999;
+
+      // Acumulador HID para caracteres imprimibles
+      if (e.key.length === 1) {
+        if (delta <= 45) {
+          hidBuffer += e.key;
+          if (hidBuffer.length >= 3) hidFastBurst = true;
+        } else {
+          hidBuffer = e.key;
+          hidFastBurst = false;
+          hidCentsBeforeBurst = currentInputCents;
+          hidContextBeforeBurst = activeScreen;
+        }
+        hidLastKeyTs = now;
+      }
+
+      // Al llegar Enter tras ráfaga HID o código alfanumérico (>= 3 chars con letras/guiones)
+      if (e.key === 'Enter' && hidBuffer.length >= 3 && (hidFastBurst || /[a-zA-Z_-]/.test(hidBuffer))) {
+        e.preventDefault();
+        const scanned = hidBuffer;
+        // Restaurar monto si la ráfaga numérica del escáner alcanzó a teclear dígitos
+        if (hidCentsBeforeBurst !== null && hidContextBeforeBurst === activeScreen) {
+          currentInputCents = hidCentsBeforeBurst;
+          if (activeScreen === 'B') updateAmountDisplay('b');
+          if (activeScreen === 'C') updateAmountDisplay('c');
+        }
+        resetHidBuffer();
+        handleBarcodeScan(scanned);
+        return;
+      }
+
+      // Esc: cancelar o volver a inicio
+      if (e.key === 'Escape') {
+        resetHidBuffer();
+        e.preventDefault();
+        if (activeScreen === 'B' && isVisible('b-state-waiting')) {
+          cancelPayment();
+        } else if (activeScreen !== 'A') {
+          goToScreenA();
+        }
+        return;
+      }
+
+      // Pantalla A (Inicio)
+      if (activeScreen === 'A') {
+        if (e.key >= '0' && e.key <= '9') {
+          e.preventDefault();
+          goToScreenB();
+          setBMode('keypad');
+          keypadPress(e.key, 'b');
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          goToScreenB();
+        }
+        return;
+      }
+
+      // Pantalla B (Cobrar aquí)
+      if (activeScreen === 'B') {
+        if (isVisible('b-state-keypad')) {
+          const inCatalog = isVisible('b-view-catalog');
+          if (e.key === 'Enter') {
+            resetHidBuffer();
+            e.preventDefault();
+            if (inCatalog) {
+              if (calculateCartTotals().total > 0) checkoutCartCodi();
+            } else if (currentInputCents > 0) {
+              generateCodiQr();
+            }
+          } else if (!inCatalog) {
+            if (e.key >= '0' && e.key <= '9') {
+              e.preventDefault();
+              keypadPress(e.key, 'b');
+            } else if (e.key === 'Backspace') {
+              resetHidBuffer();
+              e.preventDefault();
+              keypadBackspace('b');
+            } else if (e.key === 'Delete' || e.key.toLowerCase() === 'c') {
+              resetHidBuffer();
+              e.preventDefault();
+              currentInputCents = 0;
+              updateAmountDisplay('b');
+            }
+          }
+        } else if (isVisible('b-state-paid')) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            goToScreenA();
+          } else if (e.key.toLowerCase() === 'p') {
+            e.preventDefault();
+            printPaidTicket();
+          }
+        } else if (isVisible('b-state-expired') && e.key === 'Enter') {
+          e.preventDefault();
+          generateCodiQr();
+        }
+        return;
+      }
+
+      // Pantalla C (Cobrar a distancia)
+      if (activeScreen === 'C' && isVisible('c-state-keypad')) {
+        if (e.key >= '0' && e.key <= '9') {
+          e.preventDefault();
+          keypadPress(e.key, 'c');
+        } else if (e.key === 'Backspace') {
+          resetHidBuffer();
+          e.preventDefault();
+          keypadBackspace('c');
+        } else if (e.key === 'Delete' || e.key.toLowerCase() === 'c') {
+          resetHidBuffer();
+          e.preventDefault();
+          currentInputCents = 0;
+          updateAmountDisplay('c');
+        } else if (e.key === 'Enter' && currentInputCents > 0) {
+          resetHidBuffer();
+          e.preventDefault();
+          createPaymentLink();
+        }
+      }
+    }
+
+    document.addEventListener('keydown', handlePhysicalKeyboard);
+
+    // ==========================================
+    // BARRA DEMO SWITCHER PARA JUECES / PRUEBAS
+    // ==========================================
+    function setDemoJudgeBarOpen(isOpen) {
+      const controls = document.getElementById('demo-judge-controls');
+      const chevron = document.getElementById('demo-bar-chevron');
+      if (controls) controls.classList.toggle('hidden', !isOpen);
+      if (chevron) chevron.textContent = isOpen ? '▾' : '▸';
+      localStorage.setItem('ark_demo_bar_open', isOpen ? '1' : '0');
+    }
+
+    function toggleDemoJudgeBar() {
+      const controls = document.getElementById('demo-judge-controls');
+      const isCurrentlyOpen = controls && !controls.classList.contains('hidden');
+      setDemoJudgeBarOpen(!isCurrentlyOpen);
+    }
+
+    async function selectDemoPreset(mId) {
+      await switchTenant(mId);
+      const label = mId === '01JBAVSKINLAB0000000000000'
+        ? '🧴 SkinLab (Ark Pro)'
+        : '🌮 Taquería El Güero (Free)';
+      showPosToast(`Modo Demo: ${label}`);
+    }
+
+    async function triggerDemoSimulateFromBar() {
+      if (activeScreen === 'B' && isVisible('b-state-waiting') && currentPayment?.qrId) {
+        await simulateDemoPayment();
+        return;
+      }
+      // Si no hay QR esperando, genera un cobro rápido demo de $150.00 para mostrar el flujo completo
+      goToScreenB();
+      setBMode('keypad');
+      currentInputCents = 15000;
+      updateAmountDisplay('b');
+      await generateCodiQr();
+      showPosToast('⚡ QR demo $150.00 listo — pulsa de nuevo para simular pago');
+    }
+
+    if (localStorage.getItem('ark_demo_bar_open') === '1') {
+      setDemoJudgeBarOpen(true);
+    }
+
+    // ==========================================
+    // MODO CAJERO CON PIN DE 4 DÍGITOS
+    // ==========================================
+    const CASHIER_SHIFT_STORAGE_KEY = 'ark_cashier_shift';
+    let cashierPinMode = 'open'; // 'open' | 'close'
+
+    function getActiveCashierShift() {
+      try {
+        const raw = sessionStorage.getItem(CASHIER_SHIFT_STORAGE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.merchantId === currentMerchantId && parsed.status === 'OPEN') {
+          return parsed;
+        }
+      } catch {}
+      return null;
+    }
+
+    function isCashierModeActive() {
+      return Boolean(getActiveCashierShift());
+    }
+
+    function applyCashierModeUI() {
+      const shift = getActiveCashierShift();
+      const active = Boolean(shift);
+
+      document.getElementById('cashier-shift-banner')?.classList.toggle('hidden', !active);
+      document.getElementById('btn-cashier-mode')?.classList.toggle('hidden', active);
+      document.getElementById('a-global-payments-section')?.classList.toggle('hidden', active);
+      document.getElementById('btn-header-tier')?.classList.toggle('hidden', active);
+      document.getElementById('btn-edit-menu-a')?.classList.toggle('hidden', active);
+
+      const opLabel = document.getElementById('cashier-operator-label');
+      if (opLabel && shift) {
+        opLabel.textContent = shift.operatorName || 'Cajero en Turno';
+      }
+    }
+
+    function openCashierPinModal(mode = 'open') {
+      cashierPinMode = mode;
+      const modal = document.getElementById('modal-cashier-pin');
+      const title = document.getElementById('cashier-modal-title');
+      const subtitle = document.getElementById('cashier-modal-subtitle');
+      const opGroup = document.getElementById('cashier-operator-group');
+      const cashLabel = document.getElementById('cashier-cash-label');
+      const submitBtn = document.getElementById('btn-submit-cashier-pin');
+      const errBox = document.getElementById('cashier-pin-error');
+
+      if (errBox) errBox.classList.add('hidden');
+      document.getElementById('cashier-pin-input').value = '';
+      document.getElementById('cashier-cash-input').value = '';
+
+      if (mode === 'close') {
+        if (title) title.textContent = 'Cerrar Turno de Cajero';
+        if (subtitle) subtitle.textContent = 'Ingresa tu PIN de 4 dígitos para cerrar turno y restaurar acceso de dueño.';
+        if (opGroup) opGroup.classList.add('hidden');
+        if (cashLabel) cashLabel.textContent = 'Efectivo contado al cierre (MXN)';
+        if (submitBtn) submitBtn.textContent = 'Cerrar Turno';
+      } else {
+        if (title) title.textContent = 'Abrir Turno (Modo Cajero)';
+        if (subtitle) subtitle.textContent = 'Oculta cambio de CLABE y métricas globales del comercio. (PIN demo: 1234)';
+        if (opGroup) opGroup.classList.remove('hidden');
+        if (cashLabel) cashLabel.textContent = 'Fondo inicial en caja (MXN)';
+        if (submitBtn) submitBtn.textContent = 'Abrir Turno';
+      }
+
+      modal?.classList.remove('hidden');
+      setTimeout(() => document.getElementById('cashier-pin-input')?.focus(), 50);
+    }
+
+    function closeCashierPinModal() {
+      document.getElementById('modal-cashier-pin')?.classList.add('hidden');
+    }
+
+    async function submitCashierPinModal() {
+      const mId = currentMerchantId || localStorage.getItem('ark_merchant_id') || '01JBAVWE4NS5TGXHWGMX3KH23Q';
+      const pin = (document.getElementById('cashier-pin-input')?.value || '').trim();
+      const operatorName = (document.getElementById('cashier-operator-input')?.value || 'Cajero Turno 1').trim();
+      const cashAmount = parseFloat(document.getElementById('cashier-cash-input')?.value || '0') || 0;
+      const errBox = document.getElementById('cashier-pin-error');
+      const submitBtn = document.getElementById('btn-submit-cashier-pin');
+
+      if (!/^\d{4}$/.test(pin)) {
+        if (errBox) {
+          errBox.textContent = 'Ingresa exactamente 4 dígitos numéricos.';
+          errBox.classList.remove('hidden');
+        }
+        return;
+      }
+
+      if (submitBtn) submitBtn.disabled = true;
+      try {
+        const endpoint = cashierPinMode === 'close'
+          ? `/api/merchant/${encodeURIComponent(mId)}/cashier/shift/close`
+          : `/api/merchant/${encodeURIComponent(mId)}/cashier/shift/open`;
+
+        const payload = cashierPinMode === 'close'
+          ? { pin, closingCashMxn: cashAmount }
+          : { pin, operatorName, openingCashMxn: cashAmount };
+
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(data.error?.message || 'Error al validar PIN de cajero');
+        }
+
+        if (cashierPinMode === 'close') {
+          sessionStorage.removeItem(CASHIER_SHIFT_STORAGE_KEY);
+          showPosToast('🔓 Turno cerrado · Modo Dueño restaurado');
+        } else {
+          sessionStorage.setItem(CASHIER_SHIFT_STORAGE_KEY, JSON.stringify({
+            merchantId: mId,
+            shiftId: data.shiftId,
+            operatorName: data.operatorName,
+            status: 'OPEN',
+            openedAt: data.openedAt
+          }));
+          showPosToast(`🔐 Turno abierto: ${data.operatorName}`);
+        }
+        closeCashierPinModal();
+        applyCashierModeUI();
+      } catch (err) {
+        if (errBox) {
+          errBox.textContent = err.message || 'PIN incorrecto';
+          errBox.classList.remove('hidden');
+        }
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+      }
+    }
+
     // Service Worker Registration (Offline First)
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -3048,7 +3729,7 @@
 
     // Inicialización al cargar: Resolución de tenant y mostrador
     window.addEventListener('DOMContentLoaded', () => {
-      initTenant();
+      initTenant().then(() => applyCashierModeUI());
     });
   </script>
 
@@ -3092,6 +3773,47 @@
       </div>
     </div>
   </div>
+
+  <!-- MODAL: MODO CAJERO (PIN 4 DÍGITOS) -->
+  <div id="modal-cashier-pin" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+    <div class="bg-white rounded-[24px] max-w-sm w-full p-6 space-y-4 border border-[#E8E0CC] shadow-2xl relative">
+      <div class="flex items-center justify-between border-b border-[#F1EFE8] pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-2xl">🔐</span>
+          <div>
+            <h3 id="cashier-modal-title" class="text-base font-extrabold text-[#121A2E]">Abrir Turno (Modo Cajero)</h3>
+            <p id="cashier-modal-subtitle" class="text-[11px] text-[#6B7A99]">PIN de 4 dígitos para operar caja sin métricas globales.</p>
+          </div>
+        </div>
+        <button onclick="closeCashierPinModal()" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition text-xs">✕</button>
+      </div>
+
+      <div id="cashier-operator-group">
+        <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">Nombre del cajero</label>
+        <input id="cashier-operator-input" type="text" value="Cajero Turno 1" maxlength="60" class="w-full h-10 px-3 border border-slate-200 rounded-xl text-sm focus:border-[#002B7F] focus:outline-none" />
+      </div>
+
+      <div>
+        <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">PIN de 4 dígitos</label>
+        <input id="cashier-pin-input" type="password" inputmode="numeric" maxlength="4" placeholder="••••" class="w-full h-12 px-3 border border-slate-200 rounded-xl text-center font-orbitron text-xl tracking-[0.5em] focus:border-[#002B7F] focus:outline-none" />
+      </div>
+
+      <div>
+        <label id="cashier-cash-label" class="block text-[11px] font-bold text-slate-700 uppercase mb-1">Fondo inicial en caja (MXN)</label>
+        <input id="cashier-cash-input" type="number" min="0" step="0.01" placeholder="0.00" class="w-full h-10 px-3 border border-slate-200 rounded-xl text-sm font-orbitron focus:border-[#002B7F] focus:outline-none" />
+      </div>
+
+      <div id="cashier-pin-error" class="hidden text-center text-xs text-rose-600 font-semibold"></div>
+
+      <div class="flex gap-2 pt-1">
+        <button onclick="closeCashierPinModal()" class="w-1/3 h-11 rounded-[14px] border border-[#E8E0CC] text-[#6B7A99] font-bold text-xs hover:bg-slate-50 transition">Cancelar</button>
+        <button id="btn-submit-cashier-pin" onclick="submitCashierPinModal()" class="w-2/3 h-11 rounded-[14px] bg-[#002B7F] hover:bg-[#001D56] text-white font-bold text-xs transition">Abrir Turno</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast de Feedback Rápido (Lector HID / Teclado) -->
+  <div id="pos-toast" class="hidden" role="status" aria-live="polite"></div>
 
 </body>
 </html>

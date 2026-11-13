@@ -6,6 +6,7 @@ import { validateClabe, getBankFromClabe } from '../utils/clabe';
 import { validateSolanaAddress } from '../utils/solana';
 import { getCatalogForMerchant, CatalogItem, MerchantCatalog } from '../data/catalogs';
 import { requireMerchantAuth } from '../middleware/auth';
+import { sha256Hex, timingSafeEqualStr } from '../utils/crypto';
 
 export const merchantRouter = new Hono<{ Bindings: Env }>();
 
@@ -738,5 +739,214 @@ merchantRouter.post('/:id/payments/:paymentId/confirm-spei', requireMerchantAuth
     amount: payment.amount,
     datePaid: now,
     confirmedBy: operatorName
+  }, 200);
+});
+
+// ==========================================
+// MODO CAJERO CON PIN DE 4 DÍGITOS (RBAC DE MOSTRADOR)
+// ==========================================
+const DEFAULT_DEMO_CASHIER_PIN = '1234';
+
+async function hashCashierPin(merchantId: string, pin: string): Promise<string> {
+  return sha256Hex(`ark_cashier_pin:${merchantId}:${pin}`);
+}
+
+async function verifyMerchantPin(merchant: any, merchantId: string, pin: string): Promise<boolean> {
+  if (!/^\d{4}$/.test(pin)) return false;
+  if (merchant?.cashier_pin_hash) {
+    const candidateHash = await hashCashierPin(merchantId, pin);
+    return timingSafeEqualStr(candidateHash, String(merchant.cashier_pin_hash));
+  }
+  // Si el comercio aún no configuró PIN personalizado, solo acepta el PIN demo por defecto '1234'
+  return timingSafeEqualStr(pin, DEFAULT_DEMO_CASHIER_PIN);
+}
+
+// Configurar / rotar PIN de 4 dígitos del Modo Cajero (requiere auth de dueño)
+merchantRouter.put('/:id/cashier-pin', requireMerchantAuth, async (c) => {
+  const merchantId = c.req.param('id') || '';
+  const body = await c.req.json().catch(() => ({}));
+  const pin = String(body.pin || '').trim();
+
+  if (!/^\d{4}$/.test(pin)) {
+    return c.json({
+      error: { message: 'El PIN de cajero debe ser exactamente de 4 dígitos numéricos', type: 'INVALID_PIN' }
+    }, 400);
+  }
+
+  if (!c.env.DB) {
+    return c.json({ error: { message: 'Base de datos no configurada', type: 'DB_UNAVAILABLE' } }, 503);
+  }
+
+  const merchant: any = await c.env.DB.prepare('SELECT id FROM merchants WHERE id = ? LIMIT 1')
+    .bind(merchantId).first();
+  if (!merchant) {
+    return c.json({ error: { message: 'Comercio no encontrado', type: 'MERCHANT_NOT_FOUND' } }, 404);
+  }
+
+  const now = Math.floor(Date.now() / 1000);
+  const pinHash = await hashCashierPin(merchantId, pin);
+
+  await c.env.DB.prepare(`
+    UPDATE merchants
+    SET cashier_pin_hash = ?, cashier_mode_enabled = 1, updated_at = ?
+    WHERE id = ?
+  `).bind(pinHash, now, merchantId).run();
+
+  return c.json({
+    success: true,
+    merchantId,
+    cashierModeEnabled: true,
+    hasCustomPin: true,
+    updatedAt: now
+  });
+});
+
+// Consultar estado del Modo Cajero y turno abierto actual
+merchantRouter.get('/:id/cashier/status', async (c) => {
+  const merchantId = c.req.param('id');
+  if (!c.env.DB) {
+    return c.json({ hasCustomPin: false, cashierModeEnabled: false, activeShift: null });
+  }
+
+  const merchant: any = await c.env.DB.prepare(
+    'SELECT id, cashier_pin_hash, cashier_mode_enabled FROM merchants WHERE id = ? LIMIT 1'
+  ).bind(merchantId).first();
+
+  if (!merchant) {
+    return c.json({ error: { message: 'Comercio no encontrado', type: 'MERCHANT_NOT_FOUND' } }, 404);
+  }
+
+  const activeShift: any = await c.env.DB.prepare(`
+    SELECT id, operator_name, status, opening_cash_mxn, opened_at
+    FROM cashier_shifts
+    WHERE merchant_id = ? AND status = 'OPEN'
+    ORDER BY opened_at DESC
+    LIMIT 1
+  `).bind(merchantId).first();
+
+  return c.json({
+    hasCustomPin: Boolean(merchant.cashier_pin_hash),
+    cashierModeEnabled: Boolean(merchant.cashier_mode_enabled),
+    activeShift: activeShift ? {
+      shiftId: activeShift.id,
+      operatorName: activeShift.operator_name,
+      status: activeShift.status,
+      openingCashMxn: Number(activeShift.opening_cash_mxn || 0),
+      openedAt: activeShift.opened_at
+    } : null
+  });
+});
+
+// Abrir turno de cajero con validación de PIN de 4 dígitos
+merchantRouter.post('/:id/cashier/shift/open', async (c) => {
+  const merchantId = c.req.param('id') || '';
+  const body = await c.req.json().catch(() => ({}));
+  const pin = String(body.pin || '').trim();
+  const operatorName = String(body.operatorName || 'Cajero en Turno').trim().slice(0, 60) || 'Cajero en Turno';
+  const openingCashMxn = Math.max(0, Number(body.openingCashMxn || 0));
+
+  if (!/^\d{4}$/.test(pin)) {
+    return c.json({ error: { message: 'Ingresa un PIN válido de 4 dígitos', type: 'INVALID_PIN_FORMAT' } }, 400);
+  }
+
+  if (!c.env.DB) {
+    return c.json({ error: { message: 'Base de datos no configurada', type: 'DB_UNAVAILABLE' } }, 503);
+  }
+
+  const merchant: any = await c.env.DB.prepare(
+    'SELECT id, cashier_pin_hash, cashier_mode_enabled FROM merchants WHERE id = ? LIMIT 1'
+  ).bind(merchantId).first();
+
+  if (!merchant) {
+    return c.json({ error: { message: 'Comercio no encontrado', type: 'MERCHANT_NOT_FOUND' } }, 404);
+  }
+
+  const valid = await verifyMerchantPin(merchant, merchantId, pin);
+  if (!valid) {
+    return c.json({ error: { message: 'PIN de cajero incorrecto', type: 'INVALID_PIN' } }, 401);
+  }
+
+  const now = Math.floor(Date.now() / 1000);
+  const shiftId = generateUlid();
+
+  // Cerrar turno previo abierto si existiera antes de abrir el nuevo
+  await c.env.DB.prepare(`
+    UPDATE cashier_shifts
+    SET status = 'CLOSED', closed_at = COALESCE(closed_at, ?)
+    WHERE merchant_id = ? AND status = 'OPEN'
+  `).bind(now, merchantId).run();
+
+  await c.env.DB.prepare(`
+    INSERT INTO cashier_shifts (id, merchant_id, operator_name, status, opening_cash_mxn, opened_at)
+    VALUES (?, ?, ?, 'OPEN', ?, ?)
+  `).bind(shiftId, merchantId, operatorName, openingCashMxn, now).run();
+
+  return c.json({
+    success: true,
+    shiftId,
+    merchantId,
+    operatorName,
+    status: 'OPEN',
+    role: 'cashier',
+    openingCashMxn,
+    openedAt: now,
+    restrictedCapabilities: ['change_clabe', 'global_metrics', 'catalog_prices']
+  }, 201);
+});
+
+// Cerrar turno de cajero con validación de PIN de 4 dígitos
+merchantRouter.post('/:id/cashier/shift/close', async (c) => {
+  const merchantId = c.req.param('id') || '';
+  const body = await c.req.json().catch(() => ({}));
+  const pin = String(body.pin || '').trim();
+  const closingCashMxn = body.closingCashMxn !== undefined ? Math.max(0, Number(body.closingCashMxn)) : null;
+
+  if (!/^\d{4}$/.test(pin)) {
+    return c.json({ error: { message: 'Ingresa un PIN válido de 4 dígitos', type: 'INVALID_PIN_FORMAT' } }, 400);
+  }
+
+  if (!c.env.DB) {
+    return c.json({ error: { message: 'Base de datos no configurada', type: 'DB_UNAVAILABLE' } }, 503);
+  }
+
+  const merchant: any = await c.env.DB.prepare(
+    'SELECT id, cashier_pin_hash FROM merchants WHERE id = ? LIMIT 1'
+  ).bind(merchantId).first();
+
+  if (!merchant) {
+    return c.json({ error: { message: 'Comercio no encontrado', type: 'MERCHANT_NOT_FOUND' } }, 404);
+  }
+
+  const valid = await verifyMerchantPin(merchant, merchantId, pin);
+  if (!valid) {
+    return c.json({ error: { message: 'PIN de cajero incorrecto', type: 'INVALID_PIN' } }, 401);
+  }
+
+  const now = Math.floor(Date.now() / 1000);
+  const openShift: any = await c.env.DB.prepare(`
+    SELECT id, operator_name, opening_cash_mxn, opened_at
+    FROM cashier_shifts
+    WHERE merchant_id = ? AND status = 'OPEN'
+    ORDER BY opened_at DESC
+    LIMIT 1
+  `).bind(merchantId).first();
+
+  if (openShift) {
+    await c.env.DB.prepare(`
+      UPDATE cashier_shifts
+      SET status = 'CLOSED', closing_cash_mxn = ?, closed_at = ?
+      WHERE id = ?
+    `).bind(closingCashMxn, now, openShift.id).run();
+  }
+
+  return c.json({
+    success: true,
+    merchantId,
+    shiftId: openShift?.id || null,
+    operatorName: openShift?.operator_name || null,
+    status: 'CLOSED',
+    openingCashMxn: openShift ? Number(openShift.opening_cash_mxn || 0) : 0,
+    closingCashMxn,
+    closedAt: now
   }, 200);
 });

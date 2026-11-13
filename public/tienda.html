@@ -66,6 +66,34 @@
     </div>
   </header>
 
+  <!-- Barra Demo Switcher para Jueces / Pruebas (Colapsable) -->
+  <div id="demo-judge-bar" class="bg-slate-50 border-b border-slate-200 px-4 py-1.5 text-[11px] z-20">
+    <div class="max-w-2xl mx-auto flex flex-col gap-1.5">
+      <div class="flex items-center justify-between">
+        <button id="btn-toggle-demo-bar" onclick="toggleDemoJudgeBar()" class="flex items-center gap-1.5 font-bold text-[#002B7F] hover:text-blue-950 transition">
+          <span>⚡</span>
+          <span>Modo Demo / Juez</span>
+          <span id="demo-bar-chevron" class="text-[10px] text-slate-400">▸</span>
+        </button>
+        <span id="demo-bar-active-tag" class="font-mono text-[10px] text-slate-500 truncate max-w-[180px]">Taquería (Free)</span>
+      </div>
+      <div id="demo-judge-controls" class="hidden flex flex-wrap items-center gap-1.5 pb-1">
+        <button id="demo-preset-tq" onclick="selectDemoStore('01JBAVWE4NS5TGXHWGMX3KH23Q')" class="px-2.5 py-1 rounded-full bg-[#002B7F] text-white font-bold transition flex items-center gap-1 shadow-2xs">
+          <span>🌮</span><span>Taquería (Free)</span>
+        </button>
+        <button id="demo-preset-sl" onclick="selectDemoStore('01JBAVSKINLAB0000000000000')" class="px-2.5 py-1 rounded-full bg-white border border-slate-200 text-slate-800 font-semibold hover:bg-slate-100 transition flex items-center gap-1">
+          <span>🧴</span><span>SkinLab (Ark Pro)</span>
+        </button>
+        <a id="demo-link-caja" href="/caja?m=01JBAVWE4NS5TGXHWGMX3KH23Q" class="px-2.5 py-1 rounded-full bg-white border border-slate-200 text-[#002B7F] font-semibold hover:bg-blue-50 transition flex items-center gap-1">
+          <span>🧾</span><span>Abrir Caja (TPV)</span>
+        </a>
+        <button onclick="simulateActiveCodiStore()" class="px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold hover:bg-emerald-100 transition flex items-center gap-1">
+          <span>⚡</span><span>Simular Pago CoDi</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Banner del Comercio -->
   <section id="merchant-header-section" class="bg-white border-b border-slate-200 py-5 px-4">
     <div class="max-w-2xl mx-auto flex items-start gap-3.5">
@@ -525,10 +553,64 @@
     let currentPaymentId = null;
 
     document.addEventListener('DOMContentLoaded', async () => {
+      if (localStorage.getItem('ark_demo_bar_open') === '1') {
+        setDemoJudgeBarOpen(true);
+      }
       const urlParams = new URLSearchParams(window.location.search);
       const mParam = urlParams.get('m') || '01JBAVWE4NS5TGXHWGMX3KH23Q';
       await loadStoreCatalog(mParam);
     });
+
+    function setDemoJudgeBarOpen(isOpen) {
+      const controls = document.getElementById('demo-judge-controls');
+      const chevron = document.getElementById('demo-bar-chevron');
+      if (controls) controls.classList.toggle('hidden', !isOpen);
+      if (chevron) chevron.textContent = isOpen ? '▾' : '▸';
+      localStorage.setItem('ark_demo_bar_open', isOpen ? '1' : '0');
+    }
+
+    function toggleDemoJudgeBar() {
+      const controls = document.getElementById('demo-judge-controls');
+      const isCurrentlyOpen = controls && !controls.classList.contains('hidden');
+      setDemoJudgeBarOpen(!isCurrentlyOpen);
+    }
+
+    function syncTiendaDemoBar(merchantId) {
+      const isSkinLab = merchantId === '01JBAVSKINLAB0000000000000';
+      const tag = document.getElementById('demo-bar-active-tag');
+      const btnTq = document.getElementById('demo-preset-tq');
+      const btnSl = document.getElementById('demo-preset-sl');
+      const linkCaja = document.getElementById('demo-link-caja');
+      if (linkCaja && merchantId) {
+        linkCaja.href = `/caja?m=${encodeURIComponent(merchantId)}`;
+      }
+      if (tag) {
+        tag.textContent = isSkinLab ? 'SkinLab (Ark Pro)' : (merchantId === '01JBAVWE4NS5TGXHWGMX3KH23Q' ? 'Taquería (Free)' : (currentCatalog?.brandName || 'Tienda'));
+      }
+      if (btnTq && btnSl) {
+        const activeCls = 'px-2.5 py-1 rounded-full bg-[#002B7F] text-white font-bold transition flex items-center gap-1 shadow-2xs';
+        const idleCls = 'px-2.5 py-1 rounded-full bg-white border border-slate-200 text-slate-800 font-semibold hover:bg-slate-100 transition flex items-center gap-1';
+        btnTq.className = !isSkinLab && merchantId === '01JBAVWE4NS5TGXHWGMX3KH23Q' ? activeCls : idleCls;
+        btnSl.className = isSkinLab ? activeCls : idleCls;
+      }
+    }
+
+    async function selectDemoStore(mId) {
+      const params = new URLSearchParams(window.location.search);
+      params.set('m', mId);
+      window.history.replaceState({}, '', `/tienda?${params.toString()}`);
+      await loadStoreCatalog(mId);
+    }
+
+    async function simulateActiveCodiStore() {
+      if (!currentPaymentId) {
+        alert('Agrega productos al carrito y genera un cobro CoDi primero para simular el pago.');
+        return;
+      }
+      if (typeof simulateDemoPayment === 'function') {
+        await simulateDemoPayment();
+      }
+    }
 
     // 1. CARGA DINÁMICA DEL CATÁLOGO DESDE EL WORKER (No hardcodeado)
     async function loadStoreCatalog(merchantIdOrAlias) {
@@ -574,6 +656,7 @@
       document.getElementById('merchant-subtitle').textContent = currentCatalog.tagline;
       document.getElementById('merchant-avatar').textContent = currentCatalog.emoji;
       document.getElementById('merchant-id-badge').textContent = currentCatalog.merchantId;
+      syncTiendaDemoBar(currentCatalog.merchantId);
 
       // Cargar carrito aislado por merchant_id
       loadCartFromStorage();
